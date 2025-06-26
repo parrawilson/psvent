@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PSCont - Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+            },
+            dark: {
+              800: '#1e293b',
+              900: '#0f172a',
+            }
+          },
+          transitionProperty: {
+            'width': 'width',
+            'spacing': 'margin, padding',
+          }
+        },
+      }
+    }
+  </script>
+  <style>
+    [x-cloak] { display: none !important; }
+    
+    .tooltip {
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(0.25rem);
+      transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+    }
+    .peer:hover + .tooltip {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 768px) {
+      #sidebar {
+        transform: translateX(-100%);
+      }
+      #sidebar.open {
+        transform: translateX(0);
+      }
+      .sidebar-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background-color: rgba(0,0,0,0.5);
+        z-index: 10;
+      }
+      #sidebar.open + .sidebar-overlay {
+        display: block;
+      }
+      #main-content {
+        padding-left: 0;
+      }
+    }
+
+    .collapsed .sidebar-text,
+    .collapsed .sidebar-title {
+      display: none;
+    }
+
+    .collapsed {
+      width: 5rem !important;
+    }
+
+    .collapsed + #main-content {
+      padding-left: 5rem !important;
+    }
+
+    /* Animación para notificaciones */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .notification {
+      animation: fadeIn 0.3s ease-out;
+    }
+    
+    /* Estilos para el dropdown */
+    .dropdown:hover .dropdown-menu {
+      display: block;
+    }
+    
+    .dropdown-menu {
+      display: none;
+      animation: fadeIn 0.2s ease-out;
+    }
+
+    /* Scrollbar personalizado */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+
+    /* Tarjetas con hover */
+    .card-hover:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+  </style>
+</head>
+<body class="h-full min-h-screen bg-slate-50">
+
+<!-- Sidebar Mobile Overlay -->
+<div class="sidebar-overlay hidden"></div>
+
+<!-- Sidebar -->
+<aside id="sidebar" class="w-64 transition-all duration-300 bg-white shadow-lg h-full fixed top-0 left-0 z-20 flex flex-col border-r border-slate-200">
+  <div class="p-4 border-b border-slate-200 flex items-center justify-between bg-white">
+    <h1 class="text-xl font-bold text-primary-600 sidebar-title">PSCont</h1>
+    <button id="toggleSidebar" class="text-slate-500 hover:text-slate-700 focus:outline-none">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+      </svg>
+    </button>
+  </div>
+
+  <nav class="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
+    <a href="#" class="relative flex items-center px-3 py-2.5 rounded-lg mx-2 bg-primary-50 text-primary-600 font-medium group transition-colors">
+      <span class="peer flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary-500" viewBox="0 0 20 20" fill="currentColor">
+          <path d="M10.707 1.293a1 1 0 00-1.414 0L2 8.586V18a2 2 0 002 2h4a1 1 0 001-1v-5h2v5a1 1 0 001 1h4a2 2 0 002-2V8.586l-7.293-7.293z" />
+        </svg>
+        <span class="ml-3 sidebar-text">Dashboard</span>
+      </span>
+      <span class="tooltip absolute left-full ml-2 bg-slate-800 text-white text-xs px-2 py-1 rounded">Dashboard</span>
+    </a>
+
+    <a href="#" class="relative flex items-center px-3 py-2.5 rounded-lg mx-2 text-slate-600 hover:bg-primary-50 hover:text-primary-600 font-medium group transition-colors">
+      <span class="peer flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary-500" viewBox="0 0 20 20" fill="currentColor">
+          <path d="M4 2a1 1 0 00-1 1v14a1 1 0 001 1h3v-4h6v4h3a1 1 0 001-1V3a1 1 0 00-1-1H4z" />
+        </svg>
+        <span class="ml-3 sidebar-text">Empresas</span>
+      </span>
+      <span class="tooltip absolute left-full ml-2 bg-slate-800 text-white text-xs px-2 py-1 rounded">Empresas</span>
+    </a>
+
+    <a href="#" class="relative flex items-center px-3 py-2.5 rounded-lg mx-2 text-slate-600 hover:bg-primary-50 hover:text-primary-600 font-medium group transition-colors">
+      <span class="peer flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary-500" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+        </svg>
+        <span class="ml-3 sidebar-text">Clientes</span>
+      </span>
+      <span class="tooltip absolute left-full ml-2 bg-slate-800 text-white text-xs px-2 py-1 rounded">Clientes</span>
+    </a>
+
+    <a href="#" class="relative flex items-center px-3 py-2.5 rounded-lg mx-2 text-slate-600 hover:bg-primary-50 hover:text-primary-600 font-medium group transition-colors">
+      <span class="peer flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary-500" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd" />
+        </svg>
+        <span class="ml-3 sidebar-text">Facturas</span>
+      </span>
+      <span class="tooltip absolute left-full ml-2 bg-slate-800 text-white text-xs px-2 py-1 rounded">Facturas</span>
+    </a>
+
+    <a href="#" class="relative flex items-center px-3 py-2.5 rounded-lg mx-2 text-slate-600 hover:bg-primary-50 hover:text-primary-600 font-medium group transition-colors">
+      <span class="peer flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary-500" viewBox="0 0 20 20" fill="currentColor">
+          <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+        </svg>
+        <span class="ml-3 sidebar-text">Proveedores</span>
+      </span>
+      <span class="tooltip absolute left-full ml-2 bg-slate-800 text-white text-xs px-2 py-1 rounded">Proveedores</span>
+    </a>
+
+    <a href="#" class="relative flex items-center px-3 py-2.5 rounded-lg mx-2 text-slate-600 hover:bg-primary-50 hover:text-primary-600 font-medium group transition-colors">
+      <span class="peer flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary-500" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9z" clip-rule="evenodd" />
+        </svg>
+        <span class="ml-3 sidebar-text">Reportes</span>
+      </span>
+      <span class="tooltip absolute left-full ml-2 bg-slate-800 text-white text-xs px-2 py-1 rounded">Reportes</span>
+    </a>
+  </nav>
+
+  <div class="p-4 border-t border-slate-200 mt-auto bg-white">
+    <a href="#" class="relative flex items-center justify-center px-3 py-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition group">
+      <span class="peer flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h6a1 1 0 110 2H5v10h5a1 1 0 110 2H4a1 1 0 01-1-1V4zm13.293 5.293a1 1 0 010 1.414L13.414 13a1 1 0 11-1.414-1.414L13.586 10l-1.586-1.586a1 1 0 011.414-1.414l2.293 2.293z" clip-rule="evenodd" />
+        </svg>
+        <span class="ml-2 sidebar-text">Cerrar sesión</span>
+      </span>
+      <span class="tooltip absolute left-full ml-2 bg-slate-800 text-white text-xs px-2 py-1 rounded">Cerrar sesión</span>
+    </a>
+  </div>
+</aside>
+
+<!-- Header -->
+<header class="bg-white shadow-sm fixed top-0 right-0 left-64 z-10 transition-all duration-300 border-b border-slate-200">
+  <div class="flex items-center justify-between px-6 py-3">
+    <!-- Breadcrumbs -->
+    <div class="flex items-center text-sm text-slate-600">
+      <a href="#" class="hover:text-primary-600 transition-colors">Dashboard</a>
+    </div>
+
+    <!-- Muestra la empresa seleccionada en esta sessión -->
+    <div class="flex items-center text-sm text-slate-600">
+      <i class="fas fa-building text-primary-500 mr-2"></i> 
+      <span class="font-medium">Empresa Ejemplo S.A.</span>
+    </div>
+
+    <!-- User and Notifications -->
+    <div class="flex items-center space-x-4">
+      <!-- Notifications -->
+      <div class="dropdown relative">
+        <button class="p-2 text-slate-500 hover:text-slate-700 relative transition-colors">
+          <i class="fas fa-bell text-lg"></i>
+          <span class="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500"></span>
+        </button>
+        <div class="dropdown-menu absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl py-1 z-50 border border-slate-200">
+          <div class="px-4 py-3 border-b border-slate-200 bg-slate-50 rounded-t-lg">
+            <h3 class="font-medium text-slate-700">Notificaciones</h3>
+          </div>
+          <div class="max-h-60 overflow-y-auto">
+            <a href="#" class="block px-4 py-3 hover:bg-slate-50 border-b border-slate-100 notification transition-colors">
+              <div class="flex items-start">
+                <div class="flex-shrink-0 text-primary-500 mt-0.5">
+                  <i class="fas fa-info-circle"></i>
+                </div>
+                <div class="ml-3">
+                  <p class="text-sm font-medium text-slate-900">Nuevo mensaje</p>
+                  <p class="text-xs text-slate-500">Tienes un nuevo mensaje del sistema</p>
+                  <p class="text-xs text-slate-400 mt-1">Hace 5 minutos</p>
+                </div>
+              </div>
+            </a>
+            <a href="#" class="block px-4 py-3 hover:bg-slate-50 border-b border-slate-100 notification transition-colors">
+              <div class="flex items-start">
+                <div class="flex-shrink-0 text-green-500 mt-0.5">
+                  <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="ml-3">
+                  <p class="text-sm font-medium text-slate-900">Tarea completada</p>
+                  <p class="text-xs text-slate-500">El proceso de importación ha finalizado</p>
+                  <p class="text-xs text-slate-400 mt-1">Hace 2 horas</p>
+                </div>
+              </div>
+            </a>
+          </div>
+          <div class="px-4 py-2 border-t border-slate-200 bg-slate-50 rounded-b-lg">
+            <a href="#" class="text-sm text-primary-600 hover:text-primary-800 transition-colors">Ver todas las notificaciones</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- User Profile -->
+      <div class="dropdown relative">
+        <button class="flex items-center space-x-2 focus:outline-none">
+          <div class="h-8 w-8 rounded-full bg-primary-500 flex items-center justify-center text-white font-medium">
+            J
+          </div>
+          <span class="hidden md:inline text-sm font-medium text-slate-700">
+            Juan Pérez
+          </span>
+          <i class="fas fa-chevron-down text-xs text-slate-500 hidden md:inline"></i>
+        </button>
+        <div class="dropdown-menu absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl py-1 z-50 border border-slate-200">
+          <a href="#" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+            <i class="fas fa-user-circle mr-2 text-slate-500"></i> Mi perfil
+          </a>
+          <a href="#" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+            <i class="fas fa-cog mr-2 text-slate-500"></i> Configuración
+          </a>
+          <div class="border-t border-slate-200"></div>
+          <a href="#" class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors">
+            <i class="fas fa-sign-out-alt mr-2"></i> Cerrar sesión
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- Contenido principal -->
+<main class="pl-64 pt-16 transition-all duration-300 min-h-screen" id="main-content">
+  <!-- Mobile header -->
+  <div class="md:hidden flex items-center p-4 bg-white shadow-sm">
+    <button id="mobileMenuButton" class="p-2 mr-2 text-slate-500 hover:text-slate-700 focus:outline-none">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+      </svg>
+    </button>
+    <h1 class="text-xl font-bold text-primary-600">PSCont</h1>
+  </div>
+
+  <div class="p-6">
+    <!-- Encabezado del dashboard -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+      <div>
+        <h1 class="text-2xl font-bold text-slate-800">Dashboard</h1>
+        <p class="text-slate-500">Resumen general de tu actividad</p>
+      </div>
+      <div class="mt-4 md:mt-0">
+        <div class="relative">
+          <select class="appearance-none bg-white border border-slate-300 rounded-lg pl-4 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+            <option>Últimos 7 días</option>
+            <option>Últimos 30 días</option>
+            <option>Este mes</option>
+            <option>Este año</option>
+          </select>
+          <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
+            <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tarjetas de resumen -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+      <!-- Tarjeta 1 -->
+      <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-200 card-hover transition-all duration-300">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm font-medium text-slate-500">Ventas totales</p>
+            <h3 class="text-2xl font-bold text-slate-800 mt-1">$24,780</h3>
+            <p class="text-sm text-green-500 mt-2">
+              <i class="fas fa-arrow-up mr-1"></i> 12.5% vs último mes
+            </p>
+          </div>
+          <div class="h-12 w-12 rounded-lg bg-blue-50 flex items-center justify-center">
+            <i class="fas fa-shopping-cart text-blue-500 text-xl"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tarjeta 2 -->
+      <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-200 card-hover transition-all duration-300">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm font-medium text-slate-500">Clientes nuevos</p>
+            <h3 class="text-2xl font-bold text-slate-800 mt-1">1,245</h3>
+            <p class="text-sm text-green-500 mt-2">
+              <i class="fas fa-arrow-up mr-1"></i> 8.2% vs último mes
+            </p>
+          </div>
+          <div class="h-12 w-12 rounded-lg bg-green-50 flex items-center justify-center">
+            <i class="fas fa-users text-green-500 text-xl"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tarjeta 3 -->
+      <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-200 card-hover transition-all duration-300">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm font-medium text-slate-500">Facturas pendientes</p>
+            <h3 class="text-2xl font-bold text-slate-800 mt-1">42</h3>
+            <p class="text-sm text-red-500 mt-2">
+              <i class="fas fa-arrow-down mr-1"></i> 3.1% vs último mes
+            </p>
+          </div>
+          <div class="h-12 w-12 rounded-lg bg-orange-50 flex items-center justify-center">
+            <i class="fas fa-file-invoice-dollar text-orange-500 text-xl"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tarjeta 4 -->
+      <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-200 card-hover transition-all duration-300">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm font-medium text-slate-500">Gastos</p>
+            <h3 class="text-2xl font-bold text-slate-800 mt-1">$8,230</h3>
+            <p class="text-sm text-red-500 mt-2">
+              <i class="fas fa-arrow-up mr-1"></i> 5.7% vs último mes
+            </p>
+          </div>
+          <div class="h-12 w-12 rounded-lg bg-purple-50 flex items-center justify-center">
+            <i class="fas fa-money-bill-wave text-purple-500 text-xl"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gráficos -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+      <!-- Gráfico de ventas -->
+      <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-200">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="font-medium text-slate-800">Ventas mensuales</h3>
+          <div class="flex space-x-2">
+            <button class="px-3 py-1 text-xs bg-primary-50 text-primary-600 rounded-lg">2023</button>
+            <button class="px-3 py-1 text-xs bg-slate-50 text-slate-600 rounded-lg">2022</button>
+          </div>
+        </div>
+        <div class="h-80">
+          <canvas id="salesChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Gráfico de categorías -->
+      <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-200">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="font-medium text-slate-800">Ventas por categoría</h3>
+          <div class="flex space-x-2">
+            <button class="px-3 py-1 text-xs bg-primary-50 text-primary-600 rounded-lg">Este año</button>
+            <button class="px-3 py-1 text-xs bg-slate-50 text-slate-600 rounded-lg">Total</button>
+          </div>
+        </div>
+        <div class="h-80">
+          <canvas id="categoriesChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla de últimas facturas -->
+    <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-slate-200 mb-6">
+      <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center">
+        <h3 class="font-medium text-slate-800">Últimas facturas</h3>
+        <a href="#" class="text-sm text-primary-600 hover:text-primary-800 transition-colors">Ver todas</a>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-slate-200">
+          <thead class="bg-slate-50">
+            <tr>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">N° Factura</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Cliente</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Fecha</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Total</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Estado</th>
+              <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Acciones</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-slate-200">
+            <tr>
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">FAC-2023-001</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">Cliente Ejemplo 1</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">15/06/2023</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">$1,250.00</td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Pagada</span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <a href="#" class="text-primary-600 hover:text-primary-900 mr-3">Ver</a>
+                <a href="#" class="text-slate-600 hover:text-slate-900">Descargar</a>
+              </td>
+            </tr>
+            <tr>
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">FAC-2023-002</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">Cliente Ejemplo 2</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">14/06/2023</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">$890.50</td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Pendiente</span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <a href="#" class="text-primary-600 hover:text-primary-900 mr-3">Ver</a>
+                <a href="#" class="text-slate-600 hover:text-slate-900">Descargar</a>
+              </td>
+            </tr>
+            <tr>
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">FAC-2023-003</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">Cliente Ejemplo 3</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">12/06/2023</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">$2,150.00</td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Vencida</span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <a href="#" class="text-primary-600 hover:text-primary-900 mr-3">Ver</a>
+                <a href="#" class="text-slate-600 hover:text-slate-900">Descargar</a>
+              </td>
+            </tr>
+            <tr>
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">FAC-2023-004</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">Cliente Ejemplo 4</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">10/06/2023</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">$1,750.00</td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Pagada</span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <a href="#" class="text-primary-600 hover:text-primary-900 mr-3">Ver</a>
+                <a href="#" class="text-slate-600 hover:text-slate-900">Descargar</a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="px-6 py-4 border-t border-slate-200 bg-slate-50 text-right">
+        <nav class="inline-flex">
+          <a href="#" class="px-3 py-1 rounded-l-lg border border-slate-300 bg-white text-sm text-slate-500 hover:bg-slate-50">Anterior</a>
+          <a href="#" class="px-3 py-1 border-t border-b border-slate-300 bg-primary-50 text-sm text-primary-600 font-medium">1</a>
+          <a href="#" class="px-3 py-1 border-t border-b border-slate-300 bg-white text-sm text-slate-600 hover:bg-slate-50">2</a>
+          <a href="#" class="px-3 py-1 border-t border-b border-slate-300 bg-white text-sm text-slate-600 hover:bg-slate-50">3</a>
+          <a href="#" class="px-3 py-1 rounded-r-lg border border-slate-300 bg-white text-sm text-slate-500 hover:bg-slate-50">Siguiente</a>
+        </nav>
+      </div>
+    </div>
+
+    <!-- Últimos clientes -->
+    <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-slate-200">
+      <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center">
+        <h3 class="font-medium text-slate-800">Clientes recientes</h3>
+        <a href="#" class="text-sm text-primary-600 hover:text-primary-800 transition-colors">Ver todos</a>
+      </div>
+      <div class="divide-y divide-slate-200">
+        <div class="px-6 py-4 flex items-center">
+          <div class="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium">
+            A
+          </div>
+          <div class="ml-4">
+            <div class="text-sm font-medium text-slate-900">Alberto Martínez</div>
+            <div class="text-sm text-slate-500">alberto@ejemplo.com</div>
+          </div>
+          <div class="ml-auto">
+            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Nuevo</span>
+          </div>
+        </div>
+        <div class="px-6 py-4 flex items-center">
+          <div class="flex-shrink-0 h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-medium">
+            B
+          </div>
+          <div class="ml-4">
+            <div class="text-sm font-medium text-slate-900">Beatriz Sánchez</div>
+            <div class="text-sm text-slate-500">beatriz@ejemplo.com</div>
+          </div>
+          <div class="ml-auto">
+            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">Regular</span>
+          </div>
+        </div>
+        <div class="px-6 py-4 flex items-center">
+          <div class="flex-shrink-0 h-10 w-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-medium">
+            C
+          </div>
+          <div class="ml-4">
+            <div class="text-sm font-medium text-slate-900">Carlos Rodríguez</div>
+            <div class="text-sm text-slate-500">carlos@ejemplo.com</div>
+          </div>
+          <div class="ml-auto">
+            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Potencial</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Footer -->
+<footer class="bg-white border-t border-slate-200 pl-64">
+  <div class="px-6 py-4 flex flex-col md:flex-row justify-between items-center text-sm text-slate-500">
+    <div class="mb-2 md:mb-0">
+      &copy; 2023 PSCont - Todos los derechos reservados
+    </div>
+    <div class="flex space-x-4">
+      <a href="#" class="hover:text-primary-600 transition-colors">Términos</a>
+      <a href="#" class="hover:text-primary-600 transition-colors">Privacidad</a>
+      <a href="#" class="hover:text-primary-600 transition-colors">Ayuda</a>
+      <a href="#" class="hover:text-primary-600 transition-colors">Contacto</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Configuración de gráficos
+  document.addEventListener('DOMContentLoaded', function() {
+    // Gráfico de ventas
+    const salesCtx = document.getElementById('salesChart').getContext('2d');
+    const salesChart = new Chart(salesCtx, {
+      type: 'line',
+      data: {
+        labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
+        datasets: [{
+          label: 'Ventas 2023',
+          data: [6500, 5900, 8000, 8100, 5600, 5500, 4000, 6200, 7800, 9000, 8500, 9500],
+          backgroundColor: 'rgba(59, 130, 246, 0.05)',
+          borderColor: 'rgba(59, 130, 246, 1)',
+          borderWidth: 2,
+          tension: 0.4,
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: {
+              color: 'rgba(226, 232, 240, 1)'
+            }
+          },
+          x: {
+            grid: {
+              display: false
+            }
+          }
+        }
+      }
+    });
+
+    // Gráfico de categorías
+    const categoriesCtx = document.getElementById('categoriesChart').getContext('2d');
+    const categoriesChart = new Chart(categoriesCtx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Productos', 'Servicios', 'Software', 'Consultoría', 'Otros'],
+        datasets: [{
+          data: [35, 25, 20, 15, 5],
+          backgroundColor: [
+            'rgba(59, 130, 246, 1)',
+            'rgba(16, 185, 129, 1)',
+            'rgba(245, 158, 11, 1)',
+            'rgba(139, 92, 246, 1)',
+            'rgba(156, 163, 175, 1)'
+          ],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '70%',
+        plugins: {
+          legend: {
+            position: 'right',
+          }
+        }
+      }
+    });
+  });
+
+  // Funcionalidad del sidebar
+  const toggleBtn = document.getElementById('toggleSidebar');
+  const sidebar = document.getElementById('sidebar');
+  const mainContent = document.getElementById('main-content');
+  const mobileMenuButton = document.getElementById('mobileMenuButton');
+  const sidebarOverlay = document.querySelector('.sidebar-overlay');
+  const header = document.querySelector('header');
+  const footer = document.querySelector('footer');
+
+  const isMobile = () => window.innerWidth < 768;
+
+  function toggleDesktopSidebar() {
+    const isCollapsed = sidebar.classList.toggle('collapsed');
+    mainContent.classList.toggle('pl-64');
+    mainContent.classList.toggle('pl-20');
+    
+    if (isCollapsed) {
+      header.classList.remove('left-64');
+      header.classList.add('left-20');
+      footer.classList.remove('pl-64');
+      footer.classList.add('pl-20');
+    } else {
+      header.classList.remove('left-20');
+      header.classList.add('left-64');
+      footer.classList.remove('pl-20');
+      footer.classList.add('pl-64');
+    }
+  }
+
+  function openMobileSidebar() {
+    sidebar.classList.add('open');
+    sidebarOverlay.classList.remove('hidden');
+  }
+
+  function closeMobileSidebar() {
+    sidebar.classList.remove('open');
+    sidebarOverlay.classList.add('hidden');
+  }
+
+  toggleBtn.addEventListener('click', () => {
+    if (!isMobile()) {
+      toggleDesktopSidebar();
+    }
+  });
+
+  mobileMenuButton.addEventListener('click', () => {
+    sidebar.classList.contains('open') ? closeMobileSidebar() : openMobileSidebar();
+  });
+
+  sidebarOverlay.addEventListener('click', closeMobileSidebar);
+
+  document.querySelectorAll('#sidebar a').forEach(link => {
+    link.addEventListener('click', () => {
+      if (isMobile()) closeMobileSidebar();
+    });
+  });
+
+  // Cerrar dropdowns al hacer clic fuera
+  document.addEventListener('click', function(event) {
+    if (!event.target.closest('.dropdown')) {
+      document.querySelectorAll('.dropdown-menu').forEach(menu => {
+        menu.style.display = 'none';
+      });
+    }
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,57 @@
+{% load custom_filters %}  <!-- Añade esto AL INICIO del template -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Reporte de Cierres - {{ fecha_inicio|default:'Inicio' }} al {{ fecha_fin|default:'Hoy' }}</title>
+    <style>
+        @page { size: A4 landscape; margin: 1cm; }
+        body { font-family: Arial; font-size: 10px; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background-color: #f2f2f2; text-align: left; }
+        th, td { border: 1px solid #ddd; padding: 6px; }
+        .text-end { text-align: right; }
+        .text-center { text-align: center; }
+        .header { text-align: center; margin-bottom: 15px; }
+        .header h1 { margin: 0; font-size: 16px; }
+        .footer { margin-top: 20px; font-size: 8px; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Reporte de Cierres de Caja</h1>
+        <p>Del {{ fecha_inicio|date:"d/m/Y"|default:'inicio' }} al {{ fecha_fin|date:"d/m/Y"|default:'hoy' }}</p>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Caja</th>
+                <th>Responsable</th>
+                <th>Apertura</th>
+                <th>Cierre</th>
+                <th class="text-end">Saldo Inicial</th>
+                <th class="text-end">Saldo Final</th>
+                <th class="text-end">Diferencia</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cierre in cierres %}
+            <tr>
+                <td>{{ cierre.nombre }}</td>
+                <td>{{ cierre.responsable.usuario.get_full_name }}</td>
+                <td>{{ cierre.fecha_apertura|date:"d/m/Y H:i" }}</td>
+                <td>{{ cierre.fecha_cierre|date:"d/m/Y H:i" }}</td>
+                <td class="text-end">${{ cierre.saldo_inicial|floatformat:2 }}</td>
+                <td class="text-end">${{ cierre.saldo_actual|floatformat:2 }}</td>
+                <td class="text-end">${{ cierre.saldo_actual|subtract:cierre.saldo_inicial|floatformat:2 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="footer">
+        Generado el {{ fecha_reporte|date:"d/m/Y H:i" }} por {{ usuario.get_full_name }}
+    </div>
+</body>
+</html>

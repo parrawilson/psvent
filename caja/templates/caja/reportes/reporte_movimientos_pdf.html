@@ -1,0 +1,69 @@
+{% load custom_filters %}  <!-- Añade esto AL INICIO del template -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Reporte de Movimientos - {{ fecha_inicio|default:'Inicio' }} al {{ fecha_fin|default:'Hoy' }}</title>
+<style>
+    /* Mantén solo estas propiedades básicas */
+    body { font-family: Arial; font-size: 12px; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+    th, td { border: 1px solid #ddd; padding: 5px; }
+    th { background-color: #f2f2f2; }
+    .text-right { text-align: right; }
+    .text-center { text-align: center; }
+    .summary { margin-top: 15px; padding: 8px; background: #f9f9f9; }
+</style>
+</head>
+<body>
+    <div class="header">
+        <h1>Reporte de Movimientos de Caja</h1>
+        <div class="subtitle">{{ empresa_nombre|default:"Mi Empresa" }}</div>
+    </div>
+
+    <div class="info-section">
+        <div class="info-item"><strong>Fecha:</strong> {{ fecha_reporte|date:"d/m/Y H:i" }}</div>
+        <div class="info-item"><strong>Generado por:</strong> {{ usuario.get_full_name }}</div>
+        {% if caja %}<div class="info-item"><strong>Caja:</strong> {{ caja.nombre }}</div>{% endif %}
+        <div class="info-item"><strong>Periodo:</strong> {{ fecha_inicio|date:"d/m/Y"|default:"Inicio" }} - {{ fecha_fin|date:"d/m/Y"|default:"Hoy" }}</div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Fecha/Hora</th>
+                <th>Caja</th>
+                <th>Tipo</th>
+                <th class="text-right">Monto</th>
+                <th>Descripción</th>
+                <th>Comprobante</th>
+                <th>Responsable</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for movimiento in movimientos %}
+            <tr>
+                <td>{{ movimiento.fecha|date:"d/m/Y H:i" }}</td>
+                <td>{{ movimiento.caja.nombre }}</td>
+                <td>{{ movimiento.get_tipo_display }}</td>
+                <td class="text-right">${{ movimiento.monto|floatformat:2 }}</td>
+                <td>{{ movimiento.descripcion|truncatechars:30 }}</td>
+                <td>{{ movimiento.comprobante|default:"-" }}</td>
+                <td>{{ movimiento.responsable.usuario.get_full_name }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="summary">
+        <div><strong>Total Ingresos:</strong> ${{ total_ingresos|floatformat:2 }}</div>
+        <div><strong>Total Egresos:</strong> ${{ total_egresos|floatformat:2 }}</div>
+        <div><strong>Saldo Neto:</strong> ${{ total_ingresos|subtract:total_egresos|floatformat:2 }}</div>
+    </div>
+
+    <div class="footer">
+        {{ empresa_nombre|default:"Mi Empresa" }} - {{ empresa_direccion|default:"Dirección no especificada" }}<br>
+        Tel: {{ empresa_telefono|default:"-" }} | Email: {{ empresa_email|default:"-" }}
+    </div>
+</body>
+</html>

@@ -23,4 +23,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', lambda request: redirect('login', permanent=False)),
     path('', include('usuarios.urls')),  # rutas de usuarios
+    path('almacen/', include('almacen.urls')), #rutas de almacen
+    path('compras/', include('compras.urls')), #rutas de compras
+    path('caja/', include('caja.urls')), #rutas de compras
+    path('ventas/', include('ventas.urls')), #rutas de compras
 ]

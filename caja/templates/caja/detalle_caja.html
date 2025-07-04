@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="flex justify-center py-6 px-4">
+  <div class="w-full max-w-6xl bg-white p-6 rounded-xl shadow-lg">
+    <div class="flex justify-between items-start mb-6">
+      <h1 class="text-2xl font-bold text-gray-800">{{ titulo }}</h1>
+      <a href="{% url 'caja:lista_cajas' %}" class="text-sm font-medium text-blue-600 hover:underline flex items-center">
+        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+        </svg>
+        Volver
+      </a>
+    </div>
+
+    <!-- Información de la Caja -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+      <div class="bg-gray-50 p-4 rounded-lg">
+        <h3 class="text-lg font-semibold text-gray-700 mb-3">Información Básica</h3>
+        <div class="space-y-2">
+          <p><span class="font-medium text-gray-700">Nombre:</span> {{ caja.nombre }}</p>
+          <p><span class="font-medium text-gray-700">Responsable:</span> {{ caja.responsable.usuario.username }}</p>
+          <p><span class="font-medium text-gray-700">Estado:</span> 
+            <span class="px-2 py-1 text-xs rounded-full 
+              {% if caja.estado == 'ABIERTA' %}bg-green-100 text-green-800
+              {% else %}bg-gray-100 text-gray-800{% endif %}">
+              {{ caja.get_estado_display }}
+            </span>
+          </p>
+        </div>
+      </div>
+
+      <div class="bg-gray-50 p-4 rounded-lg">
+        <h3 class="text-lg font-semibold text-gray-700 mb-3">Saldos</h3>
+        <div class="space-y-2">
+          <p><span class="font-medium text-gray-700">Saldo Inicial:</span> S/ {{ caja.saldo_inicial|floatformat:2 }}</p>
+          <p><span class="font-medium text-gray-700">Saldo Actual:</span> S/ {{ caja.saldo_actual|floatformat:2 }}</p>
+        </div>
+      </div>
+
+      <div class="bg-gray-50 p-4 rounded-lg">
+        <h3 class="text-lg font-semibold text-gray-700 mb-3">Horarios</h3>
+        <div class="space-y-2">
+          {% if caja.fecha_apertura %}
+            <p><span class="font-medium text-gray-700">Apertura:</span> {{ caja.fecha_apertura|date:"d/m/Y H:i" }}</p>
+          {% endif %}
+          {% if caja.fecha_cierre %}
+            <p><span class="font-medium text-gray-700">Cierre:</span> {{ caja.fecha_cierre|date:"d/m/Y H:i" }}</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Acciones -->
+    <div class="flex flex-wrap gap-4 mb-6">
+      {% if caja.estado == 'ABIERTA' %}
+        <a href="{% url 'caja:registrar_movimiento' caja.id %}" 
+           class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+          </svg>
+          Registrar Movimiento
+        </a>
+        <a href="{% url 'caja:cerrar_caja' caja.id %}" 
+           class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
+          </svg>
+          Cerrar Caja
+        </a>
+      {% elif caja.estado == 'CERRADA' %}
+        <a href="{% url 'caja:abrir_caja' caja.id %}" 
+           class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+          </svg>
+          Abrir Caja
+        </a>
+      {% endif %}
+    </div>
+
+    <!-- Movimientos -->
+    <h3 class="text-xl font-semibold text-gray-800 mb-4">Movimientos</h3>
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Monto</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descripción</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Comprobante</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          {% for movimiento in movimientos %}
+          <tr>
+            <td class="px-6 py-4 whitespace-nowrap">{{ movimiento.fecha|date:"d/m/Y H:i" }}</td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <span class="px-2 py-1 text-xs rounded-full 
+                {% if movimiento.tipo == 'INGRESO' %}bg-green-100 text-green-800
+                {% else %}bg-red-100 text-red-800{% endif %}">
+                {{ movimiento.get_tipo_display }}
+              </span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">S/ {{ movimiento.monto|floatformat:2 }}</td>
+            <td class="px-6 py-4">{{ movimiento.descripcion }}</td>
+            <td class="px-6 py-4 whitespace-nowrap">{{ movimiento.comprobante|default:"-" }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" class="px-6 py-4 text-center text-gray-500">No hay movimientos registrados</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

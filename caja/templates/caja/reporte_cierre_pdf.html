@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Cierre de Caja - {{ caja.nombre }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+    </style>
+</head>
+<body>
+    <h1 style="text-align: center;">Cierre de Caja</h1>
+    
+    <table>
+        <tr>
+            <th>Caja:</th>
+            <td>{{ caja.nombre }}</td>
+            <th>Responsable:</th>
+            <td>{{ caja.responsable.usuario.get_full_name }}</td>
+        </tr>
+        <tr>
+            <th>Fecha Apertura:</th>
+            <td>{{ caja.fecha_apertura|date:"d/m/Y H:i" }}</td>
+            <th>Fecha Cierre:</th>
+            <td>{{ caja.fecha_cierre|date:"d/m/Y H:i" }}</td>
+        </tr>
+    </table>
+
+    <h2>Resumen</h2>
+    <table>
+        <tr>
+            <th>Saldo Inicial</th>
+            <td class="text-right">${{ caja.saldo_inicial|floatformat:2 }}</td>
+        </tr>
+        <tr>
+            <th>Total Ingresos</th>
+            <td class="text-right">${{ ingresos|floatformat:2 }}</td>
+        </tr>
+        <tr>
+            <th>Total Egresos</th>
+            <td class="text-right">${{ egresos|floatformat:2 }}</td>
+        </tr>
+        <tr>
+            <th>Saldo Final (Teórico)</th>
+            <td class="text-right">${{ caja.saldo_actual|floatformat:2 }}</td>
+        </tr>
+    </table>
+
+    <h2>Movimientos</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Fecha/Hora</th>
+                <th>Tipo</th>
+                <th>Monto</th>
+                <th>Descripción</th>
+                <th>Responsable</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for movimiento in movimientos %}
+            <tr>
+                <td>{{ movimiento.fecha|date:"d/m/Y H:i" }}</td>
+                <td>{{ movimiento.get_tipo_display }}</td>
+                <td class="text-right">${{ movimiento.monto|floatformat:2 }}</td>
+                <td>{{ movimiento.descripcion }}</td>
+                <td>{{ movimiento.responsable.usuario.get_full_name }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <p style="text-align: right; margin-top: 30px;">
+        Generado por: {{ usuario.get_full_name }}<br>
+        Fecha: {{ fecha_reporte|date:"d/m/Y H:i" }}
+    </p>
+</body>
+</html>

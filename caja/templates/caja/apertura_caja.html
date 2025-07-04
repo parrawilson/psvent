@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="flex justify-center py-6 px-4">
+  <div class="w-full max-w-2xl bg-white p-6 rounded-xl shadow-lg">
+    <div class="flex items-center mb-6">
+      <a href="{% url 'caja:detalle_caja' caja.id %}" class="mr-4 text-gray-600 hover:text-gray-800">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+        </svg>
+      </a>
+      <h1 class="text-2xl font-bold text-gray-800">{{ titulo }}</h1>
+    </div>
+
+    {% if messages %}
+      {% for message in messages %}
+        {% if message.tags == 'error' %}
+          <div class="p-4 mb-6 bg-red-100 border border-red-200 text-red-800 rounded">
+            {{ message }}
+          </div>
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+
+    <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
+      <div class="flex">
+        <div class="flex-shrink-0">
+          <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9z" clip-rule="evenodd"/>
+          </svg>
+        </div>
+        <div class="ml-3">
+          <p class="text-sm text-blue-700">
+            Estás a punto de abrir la caja <strong>{{ caja.nombre }}</strong>. 
+            Verifica que el saldo inicial coincida con el efectivo físico disponible.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <form method="post" class="space-y-6">
+      {% csrf_token %}
+      
+      <div class="grid grid-cols-1 gap-6">
+        <!-- Información de la Caja -->
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <h3 class="text-lg font-semibold text-gray-700 mb-3">Información de Caja</h3>
+          <div class="space-y-2">
+            <p><span class="font-medium text-gray-700">Nombre:</span> {{ caja.nombre }}</p>
+            <p><span class="font-medium text-gray-700">Responsable Actual:</span> {{ caja.responsable.usuario.username }}</p>
+            <p><span class="font-medium text-gray-700">Nuevo Responsable:</span> {{ request.user.username }}</p>
+          </div>
+        </div>
+
+        <!-- Campo Saldo Inicial -->
+        <div>
+          <label for="{{ form.saldo_inicial.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            Saldo Inicial en Efectivo *
+          </label>
+          <div class="relative rounded-md shadow-sm">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500">
+              S/
+            </span>
+            <input type="number" 
+                   name="{{ form.saldo_inicial.name }}"
+                   id="{{ form.saldo_inicial.id_for_label }}"
+                   class="block w-full pl-10 pr-12 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                   min="0"
+                   step="0.01"
+                   required
+                   value="{{ form.saldo_inicial.value|default_if_none:'' }}">
+          </div>
+          {% if form.saldo_inicial.errors %}
+            <div class="mt-1 text-sm text-red-600">
+              {{ form.saldo_inicial.errors.as_text }}
+            </div>
+          {% endif %}
+          <p class="mt-2 text-sm text-gray-500">Ingrese el monto exacto de efectivo disponible en la caja</p>
+        </div>
+      </div>
+
+      <div class="flex flex-col md:flex-row gap-4 pt-4">
+        <a href="{% url 'caja:detalle_caja' caja.id %}" 
+           class="flex-1 text-center bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-6 rounded-lg">
+          Cancelar
+        </a>
+        <button type="submit" 
+                class="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-lg flex items-center justify-center">
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+          </svg>
+          Confirmar Apertura
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

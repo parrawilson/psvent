@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}PSCont{% endblock %}</title>
+  <title>{% block title %}PSVent{% endblock %}</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script>
@@ -13,6 +13,7 @@
           transitionProperty: {
             'width': 'width',
             'spacing': 'margin, padding',
+            'height': 'height'
           }
         },
       }
@@ -54,7 +55,8 @@
     }
 
     .collapsed .sidebar-text,
-    .collapsed .sidebar-title {
+    .collapsed .sidebar-title,
+    .collapsed .submenu {
       display: none;
     }
 
@@ -86,18 +88,71 @@
       animation: fadeIn 0.2s ease-out;
     }
 
-    .dropdown:hover .dropdown-menu {
-      display: block;
+    /* Estilos mejorados para submenús */
+    .submenu {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease-out;
+      padding-left: 0.5rem;
+      margin-left: 0.5rem;
+      border-left: 2px solid #dbeafe;
     }
 
-    .dropdown-menu {
-      display: none;
+    .submenu.max-h-screen {
+      max-height: 500px;
+      transition: max-height 0.5s ease-in;
+    }
+
+    .chevron.rotate-90 {
+      transform: rotate(90deg);
+    }
+
+    .submenu-toggle {
+      transition: all 0.3s ease;
+      cursor: pointer;
+      user-select: none;
+      width: 100%;
+      text-align: left;
+    }
+    
+    .submenu-item {
+      padding: 0.5rem 1rem 0.5rem 2.5rem;
+      position: relative;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      border-radius: 0.375rem;
+    }
+    
+    .submenu-item:hover {
+      background-color: #ebf4ff;
+      transform: translateX(3px);
+    }
+    
+    .submenu-item::before {
+      content: "";
       position: absolute;
-      right: 0;
-      margin-top: 0.5rem;
-      animation: fadeIn 0.2s ease-out;
-      /* Añade un pequeño retraso antes de ocultarse */
-      transition: visibility 0s, opacity 0.2s linear;
+      left: 1.5rem;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background-color: #93c5fd;
+      transition: all 0.2s ease;
+    }
+    
+    .submenu-item:hover::before {
+      background-color: #3b82f6;
+      width: 8px;
+      height: 8px;
+    }
+
+    .submenu-item i {
+      width: 1.25rem;
+      text-align: center;
+      margin-right: 0.5rem;
+      color: #60a5fa;
     }
 
     /* Crea un puente invisible entre el botón y el menú */
@@ -111,8 +166,26 @@
       background: transparent;
     }
 
+    /* Estilo para elementos activos */
+    .menu-item-active {
+      background-color: #dbeafe;
+      color: #1d4ed8;
+      font-weight: 500;
+    }
+    
+    .menu-item-active i {
+      color: #3b82f6;
+    }
 
+    /* Asegurar que el tooltip no interfiera con el clic */
+    .submenu-toggle .tooltip {
+      display: none;
+    }
 
+    /* Efecto visual para el ítem activo */
+    .submenu-toggle.active {
+      background-color: #dbeafe;
+    }
   </style>
 </head>
 <body class="h-full min-h-screen bg-gray-100">
@@ -123,43 +196,173 @@
 <!-- Sidebar -->
 <aside id="sidebar" class="w-64 transition-all duration-300 bg-white shadow-md h-full fixed top-0 left-0 z-20 flex flex-col">
   <div class="p-4 border-b flex items-center justify-between">
-    <h1 class="text-2xl font-bold text-blue-600 sidebar-title">PSCont</h1>
+    <h1 class="text-2xl font-bold text-blue-600 sidebar-title">PSVent</h1>
     <button id="toggleSidebar" class="text-gray-500 hover:text-gray-700 focus:outline-none">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-      </svg>
+      <i class="fas fa-bars"></i>
     </button>
   </div>
 
-  <nav class="flex-1 px-2 py-4 space-y-2 overflow-y-auto">
-    <a href="{% url 'dashboard' %}" class="relative flex items-center px-3 py-2 rounded hover:bg-blue-100 text-gray-700 font-medium group">
+  <nav class="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
+    <!-- Ítem Inicio -->
+    <a href="{% url 'dashboard' %}" class="relative flex items-center px-3 py-3 rounded hover:bg-blue-100 text-gray-700 font-medium group {% if request.resolver_match.url_name == 'dashboard' %}menu-item-active{% endif %}">
       <span class="peer flex items-center">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
-          <path d="M10.707 1.293a1 1 0 00-1.414 0L2 8.586V18a2 2 0 002 2h4a1 1 0 001-1v-5h2v5a1 1 0 001 1h4a2 2 0 002-2V8.586l-7.293-7.293z" />
-        </svg>
-        <span class="ml-3 sidebar-text">Inicio</span>
+        <i class="fas fa-home w-5 text-center mr-3"></i>
+        <span class="sidebar-text">Inicio</span>
       </span>
       <span class="tooltip absolute left-full ml-2 bg-gray-800 text-white text-sm px-2 py-1 rounded">Inicio</span>
     </a>
 
-    <a href="{% url 'lista_empresas' %}" class="relative flex items-center px-3 py-2 rounded hover:bg-blue-100 text-gray-700 font-medium group">
+    <!-- Ítem Almacén con submenú -->
+    <div class="relative group">
+      <button class="submenu-toggle w-full flex items-center justify-between px-3 py-3 rounded hover:bg-blue-100 text-gray-700 font-medium {% if 'almacen/' in request.path %}bg-blue-50{% endif %}">
+        <span class="flex items-center">
+          <i class="fas fa-warehouse w-5 text-center mr-3"></i>
+          <span class="sidebar-text">Almacén</span>
+        </span>
+        <i class="fas fa-chevron-right text-xs text-gray-500 chevron transform transition-transform duration-200 sidebar-text"></i>
+      </button>
+      <span class="tooltip absolute left-full ml-2 bg-gray-800 text-white text-sm px-2 py-1 rounded">Almacén</span>
+      
+      <!-- Submenú -->
+      <div class="submenu pl-2 space-y-1 {% if 'almacen/' in request.path %}max-h-screen{% else %}max-h-0{% endif %}">
+        <a href="{% url 'almacen:lista_productos' %}" class="submenu-item block {% if request.resolver_match.url_name == 'lista_productos' %}menu-item-active{% endif %}">
+          <i class="fas fa-boxes"></i>
+          <span>Productos</span>
+        </a>
+        <a href="{% url 'almacen:lista_categorias' %}" class="submenu-item block {% if request.resolver_match.url_name == 'categorias' %}menu-item-active{% endif %}">
+          <i class="fas fa-tags"></i>
+          <span>Categorías</span>
+        </a>
+        <a href="{% url 'almacen:lista_stock' %}" class="submenu-item block {% if request.resolver_match.url_name == 'stock' %}menu-item-active{% endif %}">
+          <i class="fas fa-clipboard-list"></i>
+          <span>Stock</span>
+        </a>
+        <a href="{% url 'almacen:lista_movimientos' %}" class="submenu-item block {% if request.resolver_match.url_name == 'movimientos' %}menu-item-active{% endif %}">
+          <i class="fas fa-exchange-alt"></i>
+          <span>Movimientos</span>
+        </a>
+        <a href="{% url 'almacen:reportes' %}" class="submenu-item block {% if request.resolver_match.url_name == 'reportes' %}menu-item-active{% endif %}">
+          <i class="fas fa-chart-pie"></i>
+          <span>Reportes</span>
+        </a>
+        <a href="{% url 'almacen:lista_unidades_medidas' %}" class="submenu-item {% if request.resolver_match.url_name == 'lista_unidades_medida' %}menu-item-active{% endif %}">
+          <i class="fas fa-ruler-combined"></i>
+          <span>Unidades de M.</span>
+        </a>
+
+        <a href="{% url 'almacen:lista_almacenes' %}" class="submenu-item {% if request.resolver_match.url_name == 'almacen:lista_almacenes' %}menu-item-active{% endif %}">
+          <i class="fas fa-warehouse w-5 text-center mr-3"></i>
+          <span>Deposito</span>
+        </a>
+      </div>
+    </div>
+
+
+
+
+
+
+
+    <!-- Ítem Compras con submenú -->
+    <div class="relative group">
+      <button class="submenu-toggle w-full flex items-center justify-between px-3 py-3 rounded hover:bg-blue-100 text-gray-700 font-medium {% if 'almacen/' in request.path %}bg-blue-50{% endif %}">
+        <span class="flex items-center">
+          <i class="fa-solid fa-cart-shopping text-center mr-3"></i>
+          <span class="sidebar-text">Compras</span>
+        </span>
+        <i class="fas fa-chevron-right text-xs text-gray-500 chevron transform transition-transform duration-200 sidebar-text"></i>
+      </button>
+      <span class="tooltip absolute left-full ml-2 bg-gray-800 text-white text-sm px-2 py-1 rounded">Almacén</span>
+      
+      <!-- Submenú -->
+      <div class="submenu pl-2 space-y-1 {% if 'compras/' in request.path %}max-h-screen{% else %}max-h-0{% endif %}">
+        <a href="{% url 'compras:lista_proveedores' %}" class="submenu-item block {% if request.resolver_match.url_name == 'lista_proveedores' %}menu-item-active{% endif %}">
+          <i class="fa-solid fa-truck-ramp-box"></i>
+          <span>Proveedores</span>
+        </a>
+        <a href="{% url 'compras:lista_ordenes' %}" class="submenu-item block {% if request.resolver_match.url_name == 'lista_ordenes' %}menu-item-active{% endif %}">
+          <i class="fa-solid fa-list-check"></i>
+          <span>Ordenes de compra</span>
+        </a>
+        
+      </div>
+    </div>
+
+
+
+
+
+
+
+
+    <!-- Otros ítems de menú -->
+    <a href="#" class="relative flex items-center px-3 py-3 rounded hover:bg-blue-100 text-gray-700 font-medium group {% if request.resolver_match.url_name == 'ventas' %}menu-item-active{% endif %}">
       <span class="peer flex items-center">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
-          <path d="M4 2a1 1 0 00-1 1v14a1 1 0 001 1h3v-4h6v4h3a1 1 0 001-1V3a1 1 0 00-1-1H4z" />
-        </svg>
-        <span class="ml-3 sidebar-text">Empresas</span>
+        <i class="fas fa-shopping-cart w-5 text-center mr-3"></i>
+        <span class="sidebar-text">Ventas</span>
       </span>
-      <span class="tooltip absolute left-full ml-2 bg-gray-800 text-white text-sm px-2 py-1 rounded">Empresas</span>
+      <span class="tooltip absolute left-full ml-2 bg-gray-800 text-white text-sm px-2 py-1 rounded">Ventas</span>
+    </a>
+
+
+
+
+
+
+
+        <!-- Ítem Caja con submenú -->
+    <div class="relative group">
+      <button class="submenu-toggle w-full flex items-center justify-between px-3 py-3 rounded hover:bg-blue-100 text-gray-700 font-medium {% if 'caja/' in request.path %}bg-blue-50{% endif %}">
+        <span class="flex items-center">
+          <i class="fa-solid fa-cash-register text-center mr-3"></i>
+          <span class="sidebar-text">Caja</span>
+        </span>
+        <i class="fas fa-chevron-right text-xs text-gray-500 chevron transform transition-transform duration-200 sidebar-text"></i>
+      </button>
+      <span class="tooltip absolute left-full ml-2 bg-gray-800 text-white text-sm px-2 py-1 rounded">Caja</span>
+      
+      <!-- Submenú -->
+      <div class="submenu pl-2 space-y-1 {% if 'caja/' in request.path %}max-h-screen{% else %}max-h-0{% endif %}">
+        <a href="{% url 'caja:lista_cajas' %}" class="submenu-item block {% if request.resolver_match.url_name == 'lista_cajas' %}menu-item-active{% endif %}">
+          <i class="fa-solid fa-cash-register"></i>
+          <span>Cajas</span>
+        </a>
+        
+        <a href="{% url 'caja:reportes_caja' %}" class="submenu-item block {% if request.resolver_match.url_name == 'reportes_caja' %}menu-item-active{% endif %}">
+          <i class="fas fa-chart-pie"></i>
+          <span>Reportes</span>
+        </a>
+
+      </div>
+    </div>
+
+
+
+
+
+
+    <a href="#" class="relative flex items-center px-3 py-3 rounded hover:bg-blue-100 text-gray-700 font-medium group {% if request.resolver_match.url_name == 'clientes' %}menu-item-active{% endif %}">
+      <span class="peer flex items-center">
+        <i class="fas fa-users w-5 text-center mr-3"></i>
+        <span class="sidebar-text">Clientes</span>
+      </span>
+      <span class="tooltip absolute left-full ml-2 bg-gray-800 text-white text-sm px-2 py-1 rounded">Clientes</span>
+    </a>
+
+    <a href="{% url 'lista_usuarios' %}" class="relative flex items-center px-3 py-3 rounded hover:bg-blue-100 text-gray-700 font-medium group {% if request.resolver_match.url_name == 'clientes' %}menu-item-active{% endif %}">
+      <span class="peer flex items-center">
+        <i class="fa-solid fa-user text-center mr-3"></i>
+        <span class="sidebar-text">Registar Usuario</span>
+      </span>
+      <span class="tooltip absolute left-full ml-2 bg-gray-800 text-white text-sm px-2 py-1 rounded">Clientes</span>
     </a>
   </nav>
 
   <div class="p-4 border-t mt-auto">
     <a href="{% url 'logout' %}" class="relative flex items-center justify-center px-3 py-2 rounded bg-red-100 text-red-600 hover:bg-red-200 transition group">
       <span class="peer flex items-center">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h6a1 1 0 110 2H5v10h5a1 1 0 110 2H4a1 1 0 01-1-1V4zm13.293 5.293a1 1 0 010 1.414L13.414 13a1 1 0 11-1.414-1.414L13.586 10l-1.586-1.586a1 1 0 011.414-1.414l2.293 2.293z" clip-rule="evenodd" />
-        </svg>
-        <span class="ml-2 sidebar-text">Cerrar sesión</span>
+        <i class="fas fa-sign-out-alt w-5 text-center mr-2"></i>
+        <span class="sidebar-text">Cerrar sesión</span>
       </span>
       <span class="tooltip absolute left-full ml-2 bg-gray-800 text-white text-sm px-2 py-1 rounded">Cerrar sesión</span>
     </a>
@@ -176,8 +379,7 @@
       {% endblock %}
     </div>
 
-     <!-- Muestra la empresa seleccionada en esta sessión -->
-
+    <!-- Muestra la empresa seleccionada en esta sessión -->
     {% if request.session.empresa_nombre %}
       <div class="flex items-center text-sm text-gray-600">
         <i class="fas fa-building text-blue-500 mr-1"></i> Empresa: <strong>{{ request.session.empresa_nombre }}</strong>
@@ -248,10 +450,10 @@
           <i class="fas fa-chevron-down text-xs text-gray-500 hidden md:inline"></i>
         </button>
         <div class="dropdown-menu absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
-          <a href="{% url 'logout' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+          <a href="{% url 'perfil' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
             <i class="fas fa-user-circle mr-2"></i> Mi perfil
           </a>
-          <a href="{% url 'logout' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+          <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
             <i class="fas fa-cog mr-2"></i> Configuración
           </a>
           <div class="border-t border-gray-200"></div>
@@ -269,17 +471,27 @@
   <!-- Mobile header -->
   <div class="md:hidden flex items-center mb-4">
     <button id="mobileMenuButton" class="p-2 mr-2 text-gray-500 hover:text-gray-700 focus:outline-none">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-      </svg>
+      <i class="fas fa-bars"></i>
     </button>
     <h1 class="text-xl font-bold text-blue-600">PSCont</h1>
   </div>
 
-  {% if messages %}
-    <div class="mb-4">
+
+
+
+{% if messages %}
+    <div class="mb-4 space-y-2">
       {% for message in messages %}
-        <div class="alert alert-{{ message.tags }} px-4 py-3 rounded relative {% if message.tags == 'success' %}bg-green-100 text-green-700{% elif message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-blue-100 text-blue-700{% endif %}">
+        <div class="alert alert-{{ message.tags }} px-4 py-3 rounded relative {% if message.tags == 'success' %}bg-green-100 text-green-700{% elif message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-blue-100 text-blue-700{% endif %} flex items-center">
+          {% if message.tags == 'success' %}
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+            </svg>
+          {% elif message.tags == 'error' %}
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+            </svg>
+          {% endif %}
           {{ message }}
           <button class="absolute top-0 bottom-0 right-0 px-4 py-3" onclick="this.parentElement.remove()">
             <i class="fas fa-times"></i>
@@ -289,10 +501,15 @@
     </div>
   {% endif %}
 
+
+
+
+
+
+
   {% block content %}
   {% endblock %}
 </main>
-
 
 <!-- Footer -->
 <footer class="bg-white border-t border-gray-200 pl-64">
@@ -309,7 +526,12 @@
   </div>
 </footer>
 
+
+{% block scripts %}
+{% endblock %}
+
 <script>
+  // Elementos del DOM
   const toggleBtn = document.getElementById('toggleSidebar');
   const sidebar = document.getElementById('sidebar');
   const mainContent = document.getElementById('main-content');
@@ -318,10 +540,14 @@
   const header = document.querySelector('header');
   const footer = document.querySelector('footer');
 
+  // Verificar si es móvil
   const isMobile = () => window.innerWidth < 768;
 
+  // Función para alternar sidebar en desktop
   function toggleDesktopSidebar() {
     const isCollapsed = sidebar.classList.toggle('collapsed');
+    localStorage.setItem('sidebarCollapsed', isCollapsed);
+    
     mainContent.classList.toggle('pl-64');
     mainContent.classList.toggle('pl-20');
     
@@ -338,16 +564,79 @@
     }
   }
 
+  // Funciones para móvil
   function openMobileSidebar() {
     sidebar.classList.add('open');
     sidebarOverlay.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
   }
 
   function closeMobileSidebar() {
     sidebar.classList.remove('open');
     sidebarOverlay.classList.add('hidden');
+    document.body.style.overflow = 'auto';
   }
 
+  // Manejo de submenús - Versión garantizada
+  function setupSubmenus() {
+    document.querySelectorAll('.submenu-toggle').forEach(toggle => {
+      toggle.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const parent = this.closest('.group');
+        const submenu = parent.querySelector('.submenu');
+        const chevron = this.querySelector('.chevron');
+        
+        // Alternar estado
+        const isOpening = !submenu.classList.contains('max-h-screen');
+        
+        // Cerrar todos los submenús primero
+        document.querySelectorAll('.submenu').forEach(sm => {
+          if (sm !== submenu) {
+            sm.classList.remove('max-h-screen');
+            sm.classList.add('max-h-0');
+            sm.previousElementSibling?.querySelector('.chevron')?.classList.remove('rotate-90');
+          }
+        });
+        
+        // Alternar el submenú actual
+        if (isOpening) {
+          submenu.classList.remove('max-h-0');
+          submenu.classList.add('max-h-screen');
+          chevron?.classList.add('rotate-90');
+        } else {
+          submenu.classList.remove('max-h-screen');
+          submenu.classList.add('max-h-0');
+          chevron?.classList.remove('rotate-90');
+        }
+      });
+    });
+  }
+
+  // Resaltar ítem de menú activo
+  function setActiveMenuItem() {
+    const currentPath = window.location.pathname;
+    
+    document.querySelectorAll('#sidebar a').forEach(link => {
+      if (link.getAttribute('href') === currentPath) {
+        link.classList.add('menu-item-active');
+        
+        // Abrir submenú padre si está en un submenú
+        const submenu = link.closest('.submenu');
+        if (submenu) {
+          const toggle = submenu.previousElementSibling;
+          if (toggle && toggle.classList.contains('submenu-toggle')) {
+            submenu.classList.remove('max-h-0');
+            submenu.classList.add('max-h-screen');
+            toggle.querySelector('.chevron')?.classList.add('rotate-90');
+          }
+        }
+      }
+    });
+  }
+
+  // Event listeners
   toggleBtn.addEventListener('click', () => {
     if (!isMobile()) {
       toggleDesktopSidebar();
@@ -360,12 +649,6 @@
 
   sidebarOverlay.addEventListener('click', closeMobileSidebar);
 
-  document.querySelectorAll('#sidebar a').forEach(link => {
-    link.addEventListener('click', () => {
-      if (isMobile()) closeMobileSidebar();
-    });
-  });
-
   // Cerrar dropdowns al hacer clic fuera
   document.addEventListener('click', function(event) {
     if (!event.target.closest('.dropdown')) {
@@ -374,6 +657,43 @@
       });
     }
   });
+
+  // Inicialización
+  document.addEventListener('DOMContentLoaded', function() {
+    // Estado inicial del sidebar
+    if (localStorage.getItem('sidebarCollapsed') === 'true') {
+      sidebar.classList.add('collapsed');
+      mainContent.classList.remove('pl-64');
+      mainContent.classList.add('pl-20');
+      header.classList.remove('left-64');
+      header.classList.add('left-20');
+      footer.classList.remove('pl-64');
+      footer.classList.add('pl-20');
+    }
+    
+    // Configurar submenús
+    setupSubmenus();
+    
+    // Establecer ítem activo
+    setActiveMenuItem();
+    
+    // Abrir automáticamente el submenú si estamos en una página de almacén
+    if (window.location.pathname.includes('/almacen/')) {
+      const almacenToggle = document.querySelector('.submenu-toggle');
+      if (almacenToggle) {
+        const submenu = almacenToggle.nextElementSibling;
+        if (submenu && submenu.classList.contains('submenu')) {
+          submenu.classList.remove('max-h-0');
+          submenu.classList.add('max-h-screen');
+          almacenToggle.querySelector('.chevron')?.classList.add('rotate-90');
+        }
+      }
+    }
+  });
+
+
+
+
 </script>
 
 </body>

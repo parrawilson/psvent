@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="flex justify-center py-6 px-4">
+  <div class="w-full max-w-6xl bg-white p-6 rounded-xl shadow-lg">
+    <h1 class="text-2xl font-bold text-gray-800 mb-6">{{ titulo }}</h1>
+    
+    <form method="post" id="venta-form">
+      {% csrf_token %}
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <h3 class="text-lg font-semibold text-gray-700 mb-3">Información de la Venta</h3>
+          {{ form.as_p }}
+        </div>
+        
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <h3 class="text-lg font-semibold text-gray-700 mb-3">Totales</h3>
+          <div class="space-y-2">
+            <p><span class="font-medium text-gray-700">Subtotal:</span> S/ {{ venta.subtotal|default:"0.00"|floatformat:2 }}</p>
+            <p><span class="font-medium text-gray-700">IGV (18%):</span> S/ {{ venta.igv|default:"0.00"|floatformat:2 }}</p>
+            <p><span class="font-medium text-gray-700">Total:</span> S/ {{ venta.total|default:"0.00"|floatformat:2 }}</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="mb-6">
+        <h3 class="text-xl font-semibold text-gray-800 mb-4">Detalles de Productos</h3>
+        {{ formset.management_form }}
+        <div id="formset-container" class="space-y-4">
+          {% for form_detalle in formset %}
+          <div class="formset-item grid grid-cols-1 md:grid-cols-4 gap-4 border-b pb-4">
+            {{ form_detalle.id }}
+            <div>
+              {{ form_detalle.producto.label_tag }}
+              {{ form_detalle.producto }}
+            </div>
+            <div>
+              {{ form_detalle.cantidad.label_tag }}
+              {{ form_detalle.cantidad }}
+            </div>
+            <div>
+              {{ form_detalle.precio_unitario.label_tag }}
+              {{ form_detalle.precio_unitario }}
+            </div>
+            <div>
+              {{ form_detalle.almacen.label_tag }}
+              {{ form_detalle.almacen }}
+            </div>
+            {% if form_detalle.DELETE %}
+            <div class="flex items-end">
+              {{ form_detalle.DELETE.label_tag }}
+              {{ form_detalle.DELETE }}
+            </div>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+        
+        <button type="button" id="add-form" class="mt-4 text-sm font-medium text-blue-600 hover:underline">
+          + Agregar producto
+        </button>
+      </div>
+      
+      <div class="flex flex-col md:flex-row gap-4">
+        <a href="{% url 'ventas:lista_ventas' %}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-6 rounded-lg text-center">
+          Cancelar
+        </a>
+        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg">
+          Guardar Venta
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- JavaScript para manejar el formset -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const container = document.getElementById('formset-container');
+  const addBtn = document.getElementById('add-form');
+  const totalForms = document.getElementById('id_form-TOTAL_FORMS');
+  const formsetPrefix = 'form';
+  let formCount = parseInt(totalForms.value);
+  
+  // Plantilla para nueva fila
+  const emptyForm = document.querySelector('.formset-item').cloneNode(true);
+  
+  addBtn.addEventListener('click', function() {
+    const newForm = emptyForm.cloneNode(true);
+    formCount++;
+    
+    // Actualizar todos los atributos name e id
+    const inputs = newForm.querySelectorAll('[name], [id]');
+    inputs.forEach(input => {
+      if (input.name) {
+        input.name = input.name.replace(/-\d+-/, `-${formCount}-`);
+      }
+      if (input.id) {
+        input.id = input.id.replace(/-\d+-/, `-${formCount}-`);
+      }
+    });
+    
+    // Limpiar valores
+    newForm.querySelector('[id$="-producto"]').value = '';
+    newForm.querySelector('[id$="-cantidad"]').value = '1';
+    newForm.querySelector('[id$="-precio_unitario"]').value = '0.00';
+    newForm.querySelector('[id$="-almacen"]').value = '';
+    
+    container.appendChild(newForm);
+    totalForms.value = formCount;
+  });
+});
+</script>
+{% endblock %}

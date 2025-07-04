@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto py-10 px-4">
+  <!-- Título -->
+  <div class="text-center mb-10">
+    <h1 class="text-3xl font-bold text-blue-600">
+      <i class="fa-solid fa-cash-register mr-2"></i> Reportes de Caja
+    </h1>
+    <p class="text-gray-500 mt-2">Selecciona el tipo de reporte que deseas ver</p>
+  </div>
+
+  <!-- Opciones de reportes -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- Tarjeta: Movimientos de caja -->
+    <a href="{% url 'caja:reporte_movimientos' %}" class="block rounded-xl shadow-lg p-6 bg-white hover:shadow-xl transition transform hover:-translate-y-1">
+      <div class="flex items-center space-x-4">
+        <div class="text-blue-500 text-4xl">
+          <i class="fa-solid fa-money-bill-transfer"></i>
+        </div>
+        <div>
+          <h2 class="text-xl font-semibold text-gray-800">Movimientos de Caja</h2>
+          <p class="text-sm text-gray-500">Reporte detallado de ingresos y egresos</p>
+        </div>
+      </div>
+    </a>
+
+    <!-- Tarjeta: Cierres de caja -->
+    <a href="{% url 'caja:reporte_cierres' %}" class="block rounded-xl shadow-lg p-6 bg-white hover:shadow-xl transition transform hover:-translate-y-1">
+      <div class="flex items-center space-x-4">
+        <div class="text-green-500 text-4xl">
+          <i class="fa-solid fa-lock"></i>
+        </div>
+        <div>
+          <h2 class="text-xl font-semibold text-gray-800">Cierres de Caja</h2>
+          <p class="text-sm text-gray-500">Historial de cierres y arqueos</p>
+        </div>
+      </div>
+    </a>
+  </div>
+
+  <!-- Instrucciones -->
+  <div class="mt-10 bg-blue-50 border-l-4 border-blue-400 p-6 rounded-lg">
+    <h3 class="text-gray-700 font-semibold mb-3">
+      <i class="fa-solid fa-circle-info text-blue-400 mr-2"></i> Instrucciones
+    </h3>
+    <ol class="list-decimal list-inside text-sm text-gray-600 space-y-1">
+      <li>Selecciona el tipo de reporte que necesitas</li>
+      <li>Usa los filtros para ajustar el período deseado</li>
+      <li>Exporta a PDF cuando sea necesario</li>
+    </ol>
+  </div>
+</div>
+{% endblock %}
+

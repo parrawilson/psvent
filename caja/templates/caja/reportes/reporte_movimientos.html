@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto py-10 px-4">
+  <!-- Título -->
+  <h1 class="text-3xl font-bold text-blue-600 mb-6">
+    <i class="fa-solid fa-money-check-dollar mr-2"></i> Reporte de Movimientos
+  </h1>
+
+  <!-- Filtros -->
+  <form method="get" class="bg-white shadow-md rounded-lg p-6 mb-8 space-y-4">
+    <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+      <!-- Caja -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Caja</label>
+        <select name="caja" class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+          <option value="">Todas</option>
+          {% for caja in cajas %}
+          <option value="{{ caja.id }}" {% if filtros.caja_id == caja.id|stringformat:"s" %}selected{% endif %}>
+            {{ caja.nombre }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Fecha inicio -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Fecha inicio</label>
+        <input type="date" name="fecha_inicio" value="{{ filtros.fecha_inicio }}"
+               class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+      </div>
+
+      <!-- Fecha fin -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Fecha fin</label>
+        <input type="date" name="fecha_fin" value="{{ filtros.fecha_fin }}"
+               class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+      </div>
+
+      <!-- Tipo -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
+        <select name="tipo" class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+          <option value="">Todos</option>
+          <option value="INGRESO" {% if filtros.tipo == 'INGRESO' %}selected{% endif %}>Ingresos</option>
+          <option value="EGRESO" {% if filtros.tipo == 'EGRESO' %}selected{% endif %}>Egresos</option>
+        </select>
+      </div>
+
+      <!-- Botones -->
+      <div class="flex items-end gap-2">
+        <button type="submit"
+                class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md shadow">
+          Filtrar
+        </button>
+        <button type="submit" name="exportar" value="pdf"
+                class="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md shadow">
+          Exportar PDF
+        </button>
+      </div>
+    </div>
+  </form>
+
+  <!-- Tabla -->
+  <div class="overflow-x-auto bg-white shadow-md rounded-lg">
+    <table class="min-w-full divide-y divide-gray-200">
+      <thead class="bg-gray-50 text-gray-700 text-left text-sm">
+        <tr>
+          <th class="px-6 py-3 font-medium">Fecha</th>
+          <th class="px-6 py-3 font-medium">Caja</th>
+          <th class="px-6 py-3 font-medium">Descripción</th>
+          <th class="px-6 py-3 font-medium">Tipo</th>
+          <th class="px-6 py-3 font-medium text-right">Monto</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100 text-sm text-gray-700">
+        {% for movimiento in movimientos %}
+        <tr>
+          <td class="px-6 py-3">{{ movimiento.fecha }}</td>
+          <td class="px-6 py-3">{{ movimiento.caja.nombre }}</td>
+          <td class="px-6 py-3">{{ movimiento.descripcion }}</td>
+          <td class="px-6 py-3">
+            {% if movimiento.tipo == 'INGRESO' %}
+              <span class="text-green-600 font-semibold">Ingreso</span>
+            {% else %}
+              <span class="text-red-600 font-semibold">Egreso</span>
+            {% endif %}
+          </td>
+          <td class="px-6 py-3 text-right">${{ movimiento.monto|floatformat:2 }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" class="px-6 py-4 text-center text-gray-400">No hay movimientos registrados.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Resumen -->
+  <div class="mt-6 bg-blue-50 border-l-4 border-blue-400 p-4 rounded-md">
+    <p class="text-sm text-gray-700">
+      <strong>Resumen:</strong>
+      <span class="text-green-600 font-semibold">Ingresos:</span> ${{ total_ingresos|floatformat:2 }} &nbsp;|&nbsp;
+      <span class="text-red-600 font-semibold">Egresos:</span> ${{ total_egresos|floatformat:2 }} &nbsp;|&nbsp;
+      <span class="text-blue-700 font-semibold">Saldo neto:</span> ${{ total_ingresos|subtract:total_egresos|floatformat:2 }}
+    </p>
+  </div>
+</div>
+{% endblock %}

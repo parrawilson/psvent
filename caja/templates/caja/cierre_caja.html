@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="flex justify-center py-6 px-4">
+  <div class="w-full max-w-4xl bg-white p-6 rounded-xl shadow-lg">
+    <div class="flex items-center mb-6">
+      <a href="{% url 'caja:detalle_caja' caja.id %}" class="mr-4 text-gray-600 hover:text-gray-800">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+        </svg>
+      </a>
+      <h1 class="text-2xl font-bold text-gray-800">{{ titulo }}</h1>
+    </div>
+
+    {% if messages %}
+      {% for message in messages %}
+        {% if message.tags == 'error' %}
+          <div class="p-4 mb-6 bg-red-100 border border-red-200 text-red-800 rounded">
+            {{ message }}
+          </div>
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+
+    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+      <div class="flex">
+        <div class="flex-shrink-0">
+          <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+          </svg>
+        </div>
+        <div class="ml-3">
+          <p class="text-sm text-yellow-700">
+            Estás a punto de cerrar la caja <strong>{{ caja.nombre }}</strong>. 
+            Verifica que toda la información coincida con el efectivo físico disponible.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+      <!-- Resumen de Caja -->
+      <div class="bg-gray-50 p-4 rounded-lg">
+        <h3 class="text-lg font-semibold text-gray-700 mb-3">Resumen de Caja</h3>
+        <div class="space-y-2">
+          <p><span class="font-medium text-gray-700">Saldo Inicial:</span> S/ {{ caja.saldo_inicial|floatformat:2 }}</p>
+          <p><span class="font-medium text-gray-700">Total Ingresos:</span> S/ {{ ingresos|floatformat:2 }}</p>
+          <p><span class="font-medium text-gray-700">Total Egresos:</span> S/ {{ egresos|floatformat:2 }}</p>
+          <p class="pt-2 border-t border-gray-200">
+            <span class="font-medium text-gray-700">Saldo Final Calculado:</span> 
+            <span class="font-bold">S/ {{ caja.saldo_actual|floatformat:2 }}</span>
+          </p>
+        </div>
+      </div>
+
+      <!-- Movimientos Recientes -->
+      <div class="bg-gray-50 p-4 rounded-lg">
+        <h3 class="text-lg font-semibold text-gray-700 mb-3">Últimos Movimientos</h3>
+        <div class="space-y-2 max-h-60 overflow-y-auto">
+          {% for mov in caja.movimientos.all|slice:":5" %}
+          <div class="flex justify-between items-center py-2 border-b border-gray-100">
+            <div>
+              <p class="text-sm font-medium text-gray-700">{{ mov.fecha|date:"H:i" }} - {{ mov.descripcion|truncatechars:20 }}</p>
+              <p class="text-xs text-gray-500">{{ mov.get_tipo_display }}</p>
+            </div>
+            <div class="text-sm font-medium {% if mov.tipo == 'INGRESO' %}text-green-600{% else %}text-red-600{% endif %}">
+              S/ {{ mov.monto|floatformat:2 }}
+            </div>
+          </div>
+          {% empty %}
+          <p class="text-sm text-gray-500">No hay movimientos registrados</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <form method="post" class="space-y-6">
+      {% csrf_token %}
+      
+      <!-- Campo Observaciones -->
+      <div>
+        <label for="{{ form.observaciones.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+          Observaciones (Opcional)
+        </label>
+        <textarea name="{{ form.observaciones.name }}" 
+                  id="{{ form.observaciones.id_for_label }}"
+                  rows="3"
+                  class="block w-full py-2 px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">{{ form.observaciones.value|default_if_none:'' }}</textarea>
+      </div>
+
+      <!-- Confirmación de Saldo -->
+      <div class="flex items-start">
+        <div class="flex items-center h-5">
+          <input id="confirmar-saldo" 
+                 name="confirmar-saldo" 
+                 type="checkbox" 
+                 class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded"
+                 required>
+        </div>
+        <div class="ml-3 text-sm">
+          <label for="confirmar-saldo" class="font-medium text-gray-700">
+            Confirmo que el saldo físico coincide con el saldo calculado de S/ {{ caja.saldo_actual|floatformat:2 }}
+          </label>
+          <p class="text-gray-500">Es obligatorio verificar el saldo antes de cerrar la caja</p>
+        </div>
+      </div>
+
+      <div class="flex flex-col md:flex-row gap-4 pt-4">
+        <a href="{% url 'caja:detalle_caja' caja.id %}" 
+           class="flex-1 text-center bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-6 rounded-lg">
+          Cancelar
+        </a>
+
+        <a href="{% url 'caja:reporte_cierre_pdf' caja.id %}" 
+        target="_blank"
+        class="flex-1 text-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg flex items-center justify-center">
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"/>
+          </svg>
+          Exportar a PDF
+        </a>
+
+        <button type="submit" 
+                class="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-6 rounded-lg flex items-center justify-center">
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
+          </svg>
+          Confirmar Cierre
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+  textarea {
+    min-height: 100px;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  }
+  
+  textarea:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+  
+  input[type="checkbox"]:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+</style>
+{% endblock %}

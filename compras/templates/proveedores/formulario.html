@@ -1,0 +1,278 @@
+{% extends 'base.html' %}
+{% load form_filters %}
+
+{% block content %}
+<div class="flex justify-center py-4 md:py-10 px-4">
+  <div class="w-full max-w-2xl bg-white p-4 md:p-6 rounded-xl md:rounded-2xl shadow-md md:shadow-xl min-h-[500px] md:min-h-[700px]">
+    <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-6">
+      {% if modo == 'editar' %}Editar Proveedor{% else %}Registrar Proveedor{% endif %}
+    </h2>
+
+    <!-- Mensajes de éxito -->
+    {% if messages %}
+      {% for message in messages %}
+        {% if message.tags == 'success' %}
+          <div class="p-3 md:p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm font-medium mb-4 md:mb-6 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+            </svg>
+            {{ message }}
+          </div>
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+
+    <form method="post"
+          action="{% if modo == 'editar' %}{% url 'compras:editar_proveedor' proveedor.id %}{% else %}{% url 'compras:registrar_proveedor' %}{% endif %}"
+          id="proveedor"
+          class="space-y-4 md:space-y-6"
+          enctype="multipart/form-data">
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <div class="p-3 md:p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm font-medium mb-4 md:mb-6">
+          {% for error in form.non_field_errors %}
+            <p>{{ error }}</p>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <!-- Sección 1: Información Básica -->
+      <div class="grid grid-cols-1 md:grid-cols-1 gap-4 md:gap-6">
+
+
+
+      <!-- Campo RUC con botón consultar -->
+      <div>
+        <label for="{{ form.ruc.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+          {{ form.ruc.label }}
+        </label>
+        <div class="flex flex-col sm:flex-row gap-2">
+          {{ form.ruc|add_attrs:"class=flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" }}
+          <button type="button"
+                  onclick="consultarRUC()"
+                  class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg border border-gray-300 transition flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            Consultar
+          </button>
+        </div>
+        {% if form.ruc.errors %}
+          <p class="text-sm text-red-500 mt-1">{{ form.ruc.errors.0 }}</p>
+        {% endif %}
+      </div>
+
+
+
+
+
+
+        <!-- Campo DV -->
+        <div>
+          <label for="{{ form.dv.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            {{ form.dv.label }}
+          </label>
+          {{ form.dv|add_attrs:"class=w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" }}
+          {% if form.dv.errors %}
+            <p class="text-sm text-red-500 mt-1">{{ form.ruc.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <!-- Campo razon_social -->
+        <div>
+          <label for="{{ form.razon_social.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            {{ form.razon_social.label }}
+          </label>
+          {{ form.razon_social|add_attrs:"class=w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" }}
+          {% if form.razon_social.errors %}
+            <p class="text-sm text-red-500 mt-1">{{ form.razon_social.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+
+        <!-- Campo direccion -->
+        <div>
+          <label for="{{ form.direccion.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            {{ form.direccion.label }}
+          </label>
+          {{ form.direccion|add_attrs:"class=w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition min-h-[100px]" }}
+          {% if form.direccion.errors %}
+            <p class="text-sm text-red-500 mt-1">{{ form.direccion.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+
+        <!-- Campo telefono -->
+        <div>
+          <label for="{{ form.telefono.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            {{ form.telefono.label }}
+          </label>
+          {{ form.telefono|add_attrs:"class=w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" }}
+          {% if form.telefono.errors %}
+            <p class="text-sm text-red-500 mt-1">{{ form.telefono.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+  
+        <!-- Campo email -->
+        <div>
+          <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            {{ form.email.label }}
+          </label>
+          {{ form.email|add_attrs:"class=w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" }}
+          {% if form.email.errors %}
+            <p class="text-sm text-red-500 mt-1">{{ form.email.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+
+
+        <!-- Campo Activo -->
+        <div class="flex items-center">
+          {{ form.activo|add_attrs:"class=h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" }}
+          <label for="{{ form.activo.id_for_label }}" class="ml-2 block text-sm text-gray-700">
+            {{ form.activo.label }}
+          </label>
+        </div>
+      </div>
+
+      <!-- Botones -->
+      <div class="pt-4 flex flex-col md:flex-row gap-3">
+        <button type="submit"
+                class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 md:py-3 px-6 rounded-lg md:rounded-xl shadow-md transition flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          {% if modo == 'editar' %}Actualizar Proveedor{% else %}Registrar Proveedor{% endif %}
+        </button>
+        
+        <a href="{% url 'compras:lista_proveedores' %}"
+           class="w-full md:w-auto bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 md:py-3 px-6 rounded-lg md:rounded-xl shadow-md transition flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+          Cancelar
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('proveedor');   
+    
+    // Mostrar mensaje de éxito si hay parámetro en la URL
+    const urlParams = new URLSearchParams(window.location.search);
+    console.log(urlParams);
+    if (urlParams.has('success')) {
+      const action = urlParams.get('success');
+      let message = '';
+      
+      if (action === 'created') {
+        message = 'Proveedor registrado exitosamente';
+      } else if (action === 'updated') {
+        message = 'Proveedor actualizado exitosamente';
+      }
+      
+      if (message) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Éxito',
+          text: message,
+          confirmButtonColor: '#3b82f6',
+          timer: 3000,
+          timerProgressBar: true
+        });
+      }
+    }
+  });
+
+
+
+
+
+
+  async function consultarRUC() {
+    const rucInput = document.querySelector('input[name="ruc"]');
+    const dvInput = document.querySelector('input[name="dv"]');
+    const nombreInput = document.querySelector('input[name="razon_social"]');
+
+    
+    const ruc = rucInput.value.trim();
+    if (!ruc) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'RUC requerido',
+        text: 'Por favor, introduzca un RUC para consultar',
+        confirmButtonColor: '#3085d6',
+      });
+      return;
+    }
+
+    try {
+      const { value: confirmar } = await Swal.fire({
+        title: 'Consultar RUC',
+        text: `¿Desea consultar los datos para el RUC ${ruc}?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Sí, consultar',
+        cancelButtonText: 'Cancelar'
+      });
+
+      if (!confirmar) return;
+
+      Swal.fire({
+        title: 'Consultando...',
+        html: 'Buscando información del RUC',
+        allowOutsideClick: false,
+        didOpen: () => { Swal.showLoading() }
+      });
+
+      const response = await fetch(`https://turuc.com.py/api/contribuyente?ruc=${ruc}`);
+      const data = await response.json();
+
+      if (data && data.data) {
+        nombreInput.value = data.data.razonSocial || '';
+        dvInput.value = data.data.dv || '';
+        
+        Swal.fire({
+          icon: 'success',
+          title: 'Datos encontrados',
+          text: 'La información del RUC ha sido cargada',
+          confirmButtonColor: '#3085d6',
+        });
+      } else {
+        Swal.fire({
+          icon: 'info',
+          title: 'No encontrado',
+          text: 'No se encontró información para ese RUC',
+          confirmButtonColor: '#3085d6',
+        });
+      }
+    } catch (error) {
+      console.error("Error al consultar RUC:", error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Ocurrió un error al consultar el RUC. Intente más tarde.',
+        confirmButtonColor: '#3085d6',
+      });
+    }
+  }
+
+
+
+
+
+
+
+
+</script>
+{% endblock %}
+
+

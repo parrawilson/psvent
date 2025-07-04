@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+{% load form_filters %}
+
+{% block content %}
+<div class="flex justify-center py-4 md:py-10 px-4">
+  <div class="w-full max-w-2xl bg-white p-4 md:p-6 rounded-xl md:rounded-2xl shadow-md md:shadow-xl min-h-[500px] md:min-h-[700px]">
+    <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-6">
+      {% if modo == 'editar' %}Editar Movimiento{% else %}Registrar Movimiento{% endif %}
+    </h2>
+
+    <!-- Mensajes de éxito -->
+    {% if messages %}
+      {% for message in messages %}
+        {% if message.tags == 'success' %}
+          <div class="p-3 md:p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm font-medium mb-4 md:mb-6 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+            </svg>
+            {{ message }}
+          </div>
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+
+    <form method="post"
+          action="{% if modo == 'editar' %}{% url 'almacen:editar_movimiento' movimiento.id %}{% else %}{% url 'almacen:registrar_movimiento' %}{% endif %}"
+          id="movimiento"
+          class="space-y-4 md:space-y-6"
+          enctype="multipart/form-data">
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <div class="p-3 md:p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm font-medium mb-4 md:mb-6">
+          {% for error in form.non_field_errors %}
+            <p>{{ error }}</p>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <!-- Sección 1: Información Básica -->
+      <div class="grid grid-cols-1 md:grid-cols-1 gap-4 md:gap-6">
+        <!-- Campo Producto -->
+        <div>
+          <label for="{{ form.producto.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            {{ form.producto.label }}
+          </label>
+          {{ form.producto|add_attrs:"class=w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"}}
+          {% if form.producto.errors %}
+            <p class="text-sm text-red-500 mt-1">{{ form.producto.errors.0 }}</p>
+          {% endif %}
+        </div>
+        <!-- Campo Almacen -->
+        <div>
+          <label for="{{ form.almacen.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            {{ form.almacen.label }}
+          </label>
+          {{ form.almacen|add_attrs:"class=w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" }}
+          {% if form.almacen.errors %}
+            <p class="text-sm text-red-500 mt-1">{{ form.almacen.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <!-- Campo Cantidad -->
+        <div>
+          <label for="{{ form.cantidad.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            {{ form.cantidad.label }}
+          </label>
+          {{ form.cantidad|add_attrs:"class=w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" }}
+          {% if form.cantidad.errors %}
+            <p class="text-sm text-red-500 mt-1">{{ form.cantidad.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <!-- Campo Tipo -->
+        <div>
+          <label for="{{ form.tipo.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            {{ form.tipo.label }}
+          </label>
+          {{ form.tipo|add_attrs:"class=w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" }}
+          {% if form.tipo.errors %}
+            <p class="text-sm text-red-500 mt-1">{{ form.tipo.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <!-- Campo Usuario -->
+        <div>
+          <label for="{{ form.usuario.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            {{ form.usuario.label }}
+          </label>
+          {{ form.usuario|add_attrs:"class=w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"}}
+          {% if form.usuario.errors %}
+            <p class="text-sm text-red-500 mt-1">{{ form.usuario.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <!-- Campo Motivo -->
+        <div>
+          <label for="{{ form.motivo.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            {{ form.motivo.label }}
+          </label>
+          {{ form.motivo|add_attrs:"class=w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" }}
+          {% if form.motivo.errors %}
+            <p class="text-sm text-red-500 mt-1">{{ form.motivo.errors.0 }}</p>
+          {% endif %}
+        </div>
+      
+      </div>
+
+      <!-- Botones -->
+      <div class="pt-4 flex flex-col md:flex-row gap-3">
+        <button type="submit"
+                class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 md:py-3 px-6 rounded-lg md:rounded-xl shadow-md transition flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          {% if modo == 'editar' %}Actualizar Movimiento{% else %}Registrar Movimiento{% endif %}
+        </button>
+        
+        <a href="{% url 'almacen:lista_movimientos' %}"
+           class="w-full md:w-auto bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 md:py-3 px-6 rounded-lg md:rounded-xl shadow-md transition flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+          Cancelar
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('movimiento');   
+    
+    // Mostrar mensaje de éxito si hay parámetro en la URL
+    const urlParams = new URLSearchParams(window.location.search);
+    console.log(urlParams);
+    if (urlParams.has('success')) {
+      const action = urlParams.get('success');
+      let message = '';
+      
+      if (action === 'created') {
+        message = 'Movimiento registrado exitosamente';
+      } else if (action === 'updated') {
+        message = 'Movimiento actualizado exitosamente';
+      }
+      
+      if (message) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Éxito',
+          text: message,
+          confirmButtonColor: '#3b82f6',
+          timer: 3000,
+          timerProgressBar: true
+        });
+      }
+    }
+  });
+</script>
+{% endblock %}
+
+

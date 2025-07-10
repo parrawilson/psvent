@@ -14,7 +14,7 @@ class VentaAdmin(admin.ModelAdmin):
     list_filter = ('estado', 'fecha')
     search_fields = ('numero', 'cliente__nombre_completo')
     inlines = [DetalleVentaInline]
-    readonly_fields = ('subtotal', 'igv', 'total', 'fecha')
+    readonly_fields = ('subtotal', 'total', 'fecha')
 
 @admin.register(Cliente)
 class ClienteAdmin(admin.ModelAdmin):

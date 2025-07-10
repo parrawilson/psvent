@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from .models import Caja, MovimientoCaja
+from .models import Caja, MovimientoCaja,SesionCaja
 from .forms import CajaForm, AperturaCajaForm, MovimientoCajaForm, CierreCajaForm
 from usuarios.models import PerfilUsuario
 
@@ -79,19 +79,15 @@ def detalle_caja(request, caja_id):
 def registrar_movimiento(request, caja_id):
     caja = get_object_or_404(Caja, pk=caja_id)
     
-    if caja.estado != 'ABIERTA':
-        messages.error(request, 'La caja debe estar abierta para registrar movimientos')
-        return redirect('caja:detalle_caja', caja_id=caja.id)
-    
     if request.method == 'POST':
-        form = MovimientoCajaForm(request.POST)
+        form = MovimientoCajaForm(request.POST, request.FILES)
         if form.is_valid():
             try:
                 with transaction.atomic():
                     movimiento = form.save(commit=False)
-                    movimiento.caja = caja
+                    movimiento.caja = caja  # Asignación explícita
                     movimiento.responsable = request.user.perfil
-                    movimiento.save()
+                    movimiento.save()  # Ahora se manejará la sesión automáticamente
                     
                     messages.success(request, 'Movimiento registrado correctamente')
                     return redirect('caja:detalle_caja', caja_id=caja.id)
@@ -104,40 +100,6 @@ def registrar_movimiento(request, caja_id):
         'caja': caja,
         'form': form,
         'titulo': f'Registrar Movimiento - {caja.nombre}'
-    })
-
-@login_required
-def cerrar_caja(request, caja_id):
-    caja = get_object_or_404(Caja, pk=caja_id)
-    
-    if caja.estado != 'ABIERTA':
-        messages.error(request, 'La caja ya está cerrada')
-        return redirect('caja:detalle_caja', caja_id=caja.id)
-    
-    if request.method == 'POST':
-        form = CierreCajaForm(request.POST)
-        if form.is_valid():
-            try:
-                with transaction.atomic():
-                    caja.cerrar()
-                    messages.success(request, f'Caja {caja.nombre} cerrada correctamente')
-                    return redirect('caja:detalle_caja', caja_id=caja.id)
-            except Exception as e:
-                messages.error(request, f'Error al cerrar caja: {str(e)}')
-    else:
-        form = CierreCajaForm()
-    
-    # Calcular resumen para el cierre
-    movimientos = MovimientoCaja.objects.filter(caja=caja)
-    ingresos = sum(m.monto for m in movimientos.filter(tipo='INGRESO'))
-    egresos = sum(m.monto for m in movimientos.filter(tipo='EGRESO'))
-    
-    return render(request, 'caja/cierre_caja.html', {
-        'caja': caja,
-        'form': form,
-        'ingresos': ingresos,
-        'egresos': egresos,
-        'titulo': f'Cerrar Caja: {caja.nombre}'
     })
 
 
@@ -282,54 +244,227 @@ def reporte_movimientos(request):
 
 @login_required
 def reporte_cierres(request):
-    # Filtros
-    caja_id = request.GET.get('caja')
-    fecha_inicio = request.GET.get('fecha_inicio')
-    fecha_fin = request.GET.get('fecha_fin')
+    try:
+        # Filtros
+        caja_id = request.GET.get('caja')
+        fecha_inicio = request.GET.get('fecha_inicio')
+        fecha_fin = request.GET.get('fecha_fin')
 
-    # Consulta base
-    cierres = Caja.objects.filter(
-        estado='CERRADA'
-    ).select_related('responsable__usuario').order_by('-fecha_cierre')
+        # Consulta base optimizada (sin prefetch_related si usamos iterator)
+        cierres = SesionCaja.objects.filter(
+            estado='CERRADA'
+        ).select_related(
+            'caja', 
+            'responsable__usuario'
+        ).order_by('-fecha_cierre')
 
-    # Aplicar filtros
-    if caja_id:
-        cierres = cierres.filter(id=caja_id)
-    if fecha_inicio:
-        cierres = cierres.filter(fecha_cierre__gte=make_aware(
-            datetime.datetime.strptime(fecha_inicio, '%Y-%m-%d')
-        ))
-    if fecha_fin:
-        cierres = cierres.filter(fecha_cierre__lte=make_aware(
-            datetime.datetime.strptime(fecha_fin + ' 23:59:59', '%Y-%m-%d %H:%M:%S')
-        ))
+        # Aplicar filtros con validación
+        if caja_id and caja_id.isdigit():
+            cierres = cierres.filter(caja_id=int(caja_id))
+        
+        try:
+            if fecha_inicio:
+                fecha_inicio_dt = make_aware(
+                    datetime.datetime.strptime(fecha_inicio, '%Y-%m-%d')
+                )
+                cierres = cierres.filter(fecha_cierre__gte=fecha_inicio_dt)
+            
+            if fecha_fin:
+                fecha_fin_dt = make_aware(
+                    datetime.datetime.strptime(fecha_fin + ' 23:59:59', '%Y-%m-%d %H:%M:%S')
+                )
+                cierres = cierres.filter(fecha_cierre__lte=fecha_fin_dt)
+        except ValueError as e:
+            messages.error(request, f"Formato de fecha inválido: {str(e)}")
+            cierres = cierres.none()
 
-    # PDF o HTML
-    if 'exportar' in request.GET:
-        context = {
-            'cierres': cierres,
-            'fecha_inicio': fecha_inicio,
-            'fecha_fin': fecha_fin,
-            'fecha_reporte': datetime.datetime.now(),
-            'usuario': request.user,
-        }
+        # Cálculo de totales optimizado
+        total_ingresos = 0
+        total_egresos = 0
+        total_diferencia = 0
 
-        template = get_template('caja/reportes/reporte_cierres_pdf.html')
-        html = template.render(context)
+        # Opción 1: Sin iterator (para conjuntos de datos no muy grandes)
+        for sesion in cierres:
+            try:
+                # Usamos aggregate para evitar cargar todos los movimientos
+                ingresos = sesion.movimientos.filter(tipo='INGRESO').aggregate(
+                    Sum('monto')
+                )['monto__sum'] or 0
+                egresos = sesion.movimientos.filter(tipo='EGRESO').aggregate(
+                    Sum('monto')
+                )['monto__sum'] or 0
+                
+                total_ingresos += ingresos
+                total_egresos += egresos
+                
+                if sesion.saldo_final is not None:
+                    total_diferencia += (sesion.saldo_final - (sesion.saldo_inicial + ingresos - egresos))
+            except Exception as e:
+                messages.warning(request, f"Error calculando totales para sesión {sesion.id}: {str(e)}")
+                continue
 
-        response = HttpResponse(content_type='application/pdf')
-        filename = f"Cierres_Caja_{fecha_inicio}_{fecha_fin}.pdf"
-        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        # Opción 2: Si necesitas iterator para grandes conjuntos de datos
+        # (pero sin prefetch_related)
+        # for sesion in cierres.iterator(chunk_size=2000):
+        #     ... mismo código que arriba ...
 
-        pisa.CreatePDF(html, dest=response, encoding='UTF-8')
-        return response
+        # Generación de PDF
+        if 'exportar' in request.GET:
+            context = {
+                'sesiones': cierres,
+                'fecha_inicio': fecha_inicio,
+                'fecha_fin': fecha_fin,
+                'total_ingresos': total_ingresos,
+                'total_egresos': total_egresos,
+                'total_diferencia': total_diferencia,
+                'fecha_reporte': datetime.datetime.now(),
+                'usuario': request.user,
+                'empresa_nombre': "Su Empresa",
+                'empresa_direccion': "Dirección de la empresa",
+            }
 
-    return render(request, 'caja/reportes/reporte_cierres.html', {
-        'cierres': cierres,
-        'cajas': Caja.objects.all(),
-        'filtros': {
-            'caja_id': caja_id,
-            'fecha_inicio': fecha_inicio,
-            'fecha_fin': fecha_fin,
-        }
+            try:
+                template = get_template('caja/reportes/reporte_cierres_pdf.html')
+                html = template.render(context)
+
+                response = HttpResponse(content_type='application/pdf')
+                filename = f"Reporte_Cierres_{fecha_inicio or 'inicio'}_{fecha_fin or 'hoy'}.pdf"
+                response['Content-Disposition'] = f'attachment; filename="{filename}"'
+
+                pdf_status = pisa.CreatePDF(
+                    html,
+                    dest=response,
+                    encoding='UTF-8'
+                )
+
+                if pdf_status.err:
+                    messages.error(request, 'Error al generar el PDF')
+                    return redirect('caja:reporte_cierres')
+
+                return response
+
+            except Exception as e:
+                messages.error(request, f'Error generando PDF: {str(e)}')
+                return redirect('caja:reporte_cierres')
+
+        # Vista HTML
+        return render(request, 'caja/reportes/reporte_cierres.html', {
+            'sesiones': cierres,
+            'cajas': Caja.objects.all(),
+            'total_ingresos': total_ingresos,
+            'total_egresos': total_egresos,
+            'total_diferencia': total_diferencia,
+            'filtros': {
+                'caja_id': caja_id,
+                'fecha_inicio': fecha_inicio,
+                'fecha_fin': fecha_fin,
+            }
+        })
+
+    except Exception as e:
+        messages.error(request, f'Error inesperado: {str(e)}')
+        return render(request, 'caja/reportes/reporte_cierres.html', {
+            'sesiones': SesionCaja.objects.none(),
+            'cajas': Caja.objects.all(),
+            'total_ingresos': 0,
+            'total_egresos': 0,
+            'total_diferencia': 0,
+            'filtros': {}
+        })
+
+
+@login_required
+def cerrar_caja(request, caja_id):
+    caja = get_object_or_404(Caja, pk=caja_id)
+    
+    if caja.estado != 'ABIERTA':
+        messages.error(request, 'La caja ya está cerrada')
+        return redirect('caja:detalle_caja', caja_id=caja.id)
+    
+    # Calcular resumen para el cierre
+    movimientos = caja.movimientos.filter(
+        sesion=caja.sesion_activa
+    ) if caja.sesion_activa else caja.movimientos.none()
+    
+    ingresos = movimientos.filter(tipo='INGRESO').aggregate(
+        Sum('monto'))['monto__sum'] or 0
+    egresos = movimientos.filter(tipo='EGRESO').aggregate(
+        Sum('monto'))['monto__sum'] or 0
+    
+    if request.method == 'POST':
+        form = CierreCajaForm(request.POST)
+        if form.is_valid():
+            try:
+                with transaction.atomic():
+                    # Cerrar la sesión activa primero
+                    if caja.sesion_activa:
+                        caja.sesion_activa.cerrar(
+                            saldo_final=caja.saldo_actual,
+                            observaciones=form.cleaned_data['observaciones']
+                        )
+                    
+                    # Luego cerrar la caja
+                    caja.cerrar()
+                    
+                    messages.success(request, f'Caja {caja.nombre} cerrada correctamente')
+                    return redirect('caja:detalle_caja', caja_id=caja.id)
+                    
+            except Exception as e:
+                messages.error(request, f'Error al cerrar caja: {str(e)}')
+    else:
+        form = CierreCajaForm()
+    
+    return render(request, 'caja/cierre_caja.html', {
+        'caja': caja,
+        'form': form,
+        'ingresos': ingresos,
+        'egresos': egresos,
+        'titulo': f'Cerrar Caja: {caja.nombre}'
     })
+
+
+
+
+@login_required
+def reporte_sesion_pdf(request, sesion_id):
+    sesion = get_object_or_404(SesionCaja, pk=sesion_id)
+    
+    # Calcular duración de la sesión
+    duracion = sesion.fecha_cierre - sesion.fecha_apertura
+    horas, remainder = divmod(duracion.total_seconds(), 3600)
+    minutos, _ = divmod(remainder, 60)
+    duracion_str = f"{int(horas)}h {int(minutos)}m"
+    
+    # Calcular totales de movimientos
+    total_ingresos = sesion.movimientos.filter(tipo='INGRESO').aggregate(
+        Sum('monto')
+    )['monto__sum'] or 0
+    
+    total_egresos = sesion.movimientos.filter(tipo='EGRESO').aggregate(
+        Sum('monto')
+    )['monto__sum'] or 0
+    
+    context = {
+        'sesion': sesion,
+        'duracion': duracion_str,
+        'fecha_reporte': datetime.datetime.now(),
+        'usuario': request.user,
+        'empresa_nombre': "Su Empresa S.A.",  # Reemplazar con datos reales
+        'empresa_direccion': "Av. Principal 123, Lima, Perú",  # Reemplazar con datos reales
+        'total_ingresos': total_ingresos,
+        'total_egresos': total_egresos,
+    }
+    
+    template = get_template('caja/reportes/reporte_sesion_pdf.html')
+    html = template.render(context)
+    
+    response = HttpResponse(content_type='application/pdf')
+    filename = f"Sesion_Caja_{sesion.caja.nombre}_{sesion.fecha_cierre.date()}.pdf"
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    
+    pisa_status = pisa.CreatePDF(html, dest=response, encoding='UTF-8')
+    
+    if pisa_status.err:
+        return HttpResponse('Error al generar el PDF', status=500)
+    
+    return response

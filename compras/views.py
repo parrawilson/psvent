@@ -4,10 +4,10 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.contrib import messages
 from django.db import transaction
-from django.forms import inlineformset_factory
+from django.forms import ValidationError, inlineformset_factory
 from django.contrib.auth.decorators import login_required
 from .models import OrdenCompra, DetalleOrdenCompra, Proveedor
-from .forms import OrdenCompraForm, DetalleOrdenCompraForm, ProveedorForm
+from .forms import OrdenCompraForm, DetalleOrdenCompraForm, ProveedorForm, RecibirOrdenForm
 from usuarios.models import PerfilUsuario
 from almacen.models import Almacen
 
@@ -193,22 +193,27 @@ def recibir_orden_compra(request, orden_id):
     orden = get_object_or_404(OrdenCompra, pk=orden_id)
     
     if request.method == 'POST':
-        almacen_id = request.POST.get('almacen')
-        almacen = get_object_or_404(Almacen, pk=almacen_id)
-        
-        try:
-            orden.recibir(request.user.perfil, almacen)
-            messages.success(request, 'Orden recibida y stock actualizado correctamente')
-        except Exception as e:
-            messages.error(request, f'Error al recibir la orden: {str(e)}')
-        
-        return redirect('compras:lista_ordenes')
+        form = RecibirOrdenForm(request.POST, user=request.user)
+        if form.is_valid():
+            try:
+                with transaction.atomic():
+                    orden.recibir(
+                        usuario=request.user.perfil,
+                        almacen=form.cleaned_data['almacen'],
+                        caja=form.cleaned_data['caja']
+                    )
+                    messages.success(request, 'Orden recibida y stock actualizado correctamente')
+                    return redirect('compras:detalle_orden', orden_id=orden.id)
+            except ValidationError as e:
+                messages.error(request, str(e))
+            except Exception as e:
+                messages.error(request, f'Error al recibir la orden: {str(e)}')
+    else:
+        form = RecibirOrdenForm(user=request.user)
     
-    # Si es GET, mostrar formulario para seleccionar almacén
-    almacenes = Almacen.objects.filter(activo=True)
     return render(request, 'compras/recibir_orden.html', {
         'orden': orden,
-        'almacenes': almacenes,
+        'form': form,
         'titulo': f'Recibir Orden: {orden.numero}'
     })
 

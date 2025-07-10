@@ -15,5 +15,7 @@ urlpatterns = [
     path('reportes/', views.reportes_caja, name='reportes_caja'),
     path('reportes/movimientos/', views.reporte_movimientos, name='reporte_movimientos'),
     path('reportes/cierres/', views.reporte_cierres, name='reporte_cierres'),
+    path('reportes/sesion/<int:sesion_id>/pdf/', views.reporte_sesion_pdf, name='reporte_sesion_pdf'),
+
     
 ]

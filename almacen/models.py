@@ -3,6 +3,7 @@ from django.core.validators import MinValueValidator
 from django.db import transaction
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
+from django.forms import ValidationError
 from usuarios.models import PerfilUsuario
 
 class UnidadMedida(models.Model):
@@ -36,14 +37,14 @@ class Producto(models.Model):
     codigo = models.CharField(max_length=50, unique=True, blank=True, null=True)
     nombre = models.CharField(max_length=200)
     descripcion = models.TextField(blank=True)
-    precio_compra = models.DecimalField(
+    precio_minorista = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         validators=[MinValueValidator(0)],
         default=0
     )
     
-    precio_venta = models.DecimalField(
+    precio_mayorista = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         validators=[MinValueValidator(0)],
@@ -56,23 +57,6 @@ class Producto(models.Model):
     actualizado = models.DateTimeField(auto_now=True)
     activo = models.BooleanField(default=True)
 
-    @property
-    def margen_ganancia(self):
-        """Calcula el margen de ganancia en porcentaje"""
-        try:
-            if self.precio_compra == 0:
-                return 0
-            return ((self.precio_venta - self.precio_compra) / self.precio_compra) * 100
-        except (TypeError, AttributeError):
-            return 0
-
-    @property
-    def ganancia_unitaria(self):
-        """Calcula la ganancia por unidad con manejo de errores"""
-        try:
-            return float(self.precio_venta) - float(self.precio_compra)
-        except (TypeError, AttributeError):
-            return 0
 
     def __str__(self):
         return self.nombre

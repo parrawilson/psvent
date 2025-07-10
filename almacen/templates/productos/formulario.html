@@ -102,29 +102,29 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
         <!-- Campo Precio de Compra -->
         <div>
-          <label for="{{ form.precio_compra.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
-            {{ form.precio_compra.label }}
+          <label for="{{ form.precio_minorista.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            {{ form.precio_minorista.label }}
           </label>
           <div class="relative">
             <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">$</span>
-            {{ form.precio_compra|add_attrs:"class=w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" }}
+            {{ form.precio_minorista|add_attrs:"class=w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" }}
           </div>
-          {% if form.precio_compra.errors %}
-            <p class="text-sm text-red-500 mt-1">{{ form.precio_compra.errors.0 }}</p>
+          {% if form.precio_minorista.errors %}
+            <p class="text-sm text-red-500 mt-1">{{ form.precio_minorista.errors.0 }}</p>
           {% endif %}
         </div>
 
         <!-- Campo Precio de Venta -->
         <div>
-          <label for="{{ form.precio_venta.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
-            {{ form.precio_venta.label }}
+          <label for="{{ form.precio_mayorista.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            {{ form.precio_mayorista.label }}
           </label>
           <div class="relative">
             <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">$</span>
-            {{ form.precio_venta|add_attrs:"class=w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" }}
+            {{ form.precio_mayorista|add_attrs:"class=w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" }}
           </div>
-          {% if form.precio_venta.errors %}
-            <p class="text-sm text-red-500 mt-1">{{ form.precio_venta.errors.0 }}</p>
+          {% if form.precio_mayorista.errors %}
+            <p class="text-sm text-red-500 mt-1">{{ form.precio_mayorista.errors.0 }}</p>
           {% endif %}
         </div>
       </div>
@@ -219,15 +219,15 @@
   document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('producto');   
     form.addEventListener('submit', function(e) {
-      const precioCompra = parseFloat(document.getElementById('{{ form.precio_compra.id_for_label }}').value);
-      const precioVenta = parseFloat(document.getElementById('{{ form.precio_venta.id_for_label }}').value);
+      const precioMinorista = parseFloat(document.getElementById('{{ form.precio_minorista.id_for_label }}').value);
+      const precioMayorista = parseFloat(document.getElementById('{{ form.precio_mayorista.id_for_label }}').value);
       
-      if (precioVenta < precioCompra) {
+      if (precioMinorista < precioMayorista) {
         e.preventDefault();
         Swal.fire({
           icon: 'error',
           title: 'Error en precios',
-          text: 'El precio de venta no puede ser menor al precio de compra',
+          text: 'El precio mayorista no puede ser menor al precio minorista',
           confirmButtonColor: '#3b82f6',
         });
       }

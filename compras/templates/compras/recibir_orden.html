@@ -42,7 +42,6 @@
         <h3 class="text-lg font-semibold text-gray-700 mb-3">Totales</h3>
         <div class="space-y-2">
           <p><span class="font-medium text-gray-700">Subtotal:</span> S/ {{ orden.subtotal|floatformat:2 }}</p>
-          <p><span class="font-medium text-gray-700">IGV (18%):</span> S/ {{ orden.igv|floatformat:2 }}</p>
           <p><span class="font-medium text-gray-700">Total:</span> S/ {{ orden.total|floatformat:2 }}</p>
         </div>
       </div>
@@ -90,16 +89,28 @@
       {% csrf_token %}
       
       <div class="bg-gray-50 p-4 rounded-lg">
-        <h3 class="text-lg font-semibold text-gray-700 mb-3">Seleccionar Almacén</h3>
+        <h3 class="text-lg font-semibold text-gray-700 mb-3">Datos de Recepción</h3>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Almacén de destino</label>
-            <select name="almacen" id="almacen" class="w-full px-3 py-2 border rounded-lg" required>
-              <option value="">-- Seleccione --</option>
-              {% for almacen in almacenes %}
-              <option value="{{ almacen.id }}">{{ almacen.nombre }}</option>
-              {% endfor %}
-            </select>
+            <label for="{{ form.almacen.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+              {{ form.almacen.label }}
+            </label>
+            {{ form.almacen|add_attrs:"class=w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" }}
+            {% if form.almacen.errors %}
+              <p class="text-sm text-red-500 mt-1">{{ form.almacen.errors.0 }}</p>
+            {% endif %}
+          </div>
+          
+          <div>
+            <label for="{{ form.caja.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+              {{ form.caja.label }}
+              <span class="text-xs text-gray-500">(Opcional)</span>
+            </label>
+            {{ form.caja|add_attrs:"class=w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" }}
+            {% if form.caja.errors %}
+              <p class="text-sm text-red-500 mt-1">{{ form.caja.errors.0 }}</p>
+            {% endif %}
+            <p class="text-xs text-gray-500 mt-1">Seleccione solo si el pago se realiza desde esta caja</p>
           </div>
         </div>
       </div>

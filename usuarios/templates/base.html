@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}PSVent{% endblock %}</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script>
     tailwind.config = {
@@ -295,14 +296,30 @@
 
 
 
-    <!-- Otros ítems de menú -->
-    <a href="#" class="relative flex items-center px-3 py-3 rounded hover:bg-blue-100 text-gray-700 font-medium group {% if request.resolver_match.url_name == 'ventas' %}menu-item-active{% endif %}">
-      <span class="peer flex items-center">
-        <i class="fas fa-shopping-cart w-5 text-center mr-3"></i>
-        <span class="sidebar-text">Ventas</span>
-      </span>
-      <span class="tooltip absolute left-full ml-2 bg-gray-800 text-white text-sm px-2 py-1 rounded">Ventas</span>
-    </a>
+    <!-- Ítem Ventas con submenú -->
+    <div class="relative group">
+      <button class="submenu-toggle w-full flex items-center justify-between px-3 py-3 rounded hover:bg-blue-100 text-gray-700 font-medium {% if 'ventas/' in request.path %}bg-blue-50{% endif %}">
+        <span class="flex items-center">
+          <i class="fa-solid fa-store text-center mr-3"></i>
+          <span class="sidebar-text">Ventas</span>
+        </span>
+        <i class="fas fa-chevron-right text-xs text-gray-500 chevron transform transition-transform duration-200 sidebar-text"></i>
+      </button>
+      <span class="tooltip absolute left-full ml-2 bg-gray-800 text-white text-sm px-2 py-1 rounded">Almacén</span>
+      
+      <!-- Submenú -->
+      <div class="submenu pl-2 space-y-1 {% if 'ventas/' in request.path %}max-h-screen{% else %}max-h-0{% endif %}">
+        <a href="{% url 'ventas:lista_clientes' %}" class="submenu-item block {% if request.resolver_match.url_name == 'lista_clientes' %}menu-item-active{% endif %}">
+          <i class="fas fa-users w-5"></i>
+          <span>Clientes</span>
+        </a>
+        <a href="{% url 'ventas:lista_ventas' %}" class="submenu-item block {% if request.resolver_match.url_name == 'lista_ventas' %}menu-item-active{% endif %}">
+          <i class="fa-solid fa-list-check"></i>
+          <span>Lista de ventas</span>
+        </a>
+        
+      </div>
+    </div>
 
 
 
@@ -336,18 +353,6 @@
       </div>
     </div>
 
-
-
-
-
-
-    <a href="#" class="relative flex items-center px-3 py-3 rounded hover:bg-blue-100 text-gray-700 font-medium group {% if request.resolver_match.url_name == 'clientes' %}menu-item-active{% endif %}">
-      <span class="peer flex items-center">
-        <i class="fas fa-users w-5 text-center mr-3"></i>
-        <span class="sidebar-text">Clientes</span>
-      </span>
-      <span class="tooltip absolute left-full ml-2 bg-gray-800 text-white text-sm px-2 py-1 rounded">Clientes</span>
-    </a>
 
     <a href="{% url 'lista_usuarios' %}" class="relative flex items-center px-3 py-3 rounded hover:bg-blue-100 text-gray-700 font-medium group {% if request.resolver_match.url_name == 'clientes' %}menu-item-active{% endif %}">
       <span class="peer flex items-center">
@@ -695,7 +700,6 @@
 
 
 </script>
-
 </body>
 </html>
 

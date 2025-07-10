@@ -1,6 +1,7 @@
 from django import forms
 from .models import OrdenCompra, DetalleOrdenCompra, Proveedor
-from almacen.models import Producto
+from almacen.models import Producto,Almacen
+from caja.models import Caja
 
 class ProveedorForm(forms.ModelForm):
 
@@ -80,3 +81,32 @@ class DetalleOrdenCompraForm(forms.ModelForm):
             'precio_unitario': forms.NumberInput(attrs={'min': 0, 'step': '0.01'}),
         }
 
+class RecibirOrdenForm(forms.Form):
+    almacen = forms.ModelChoiceField(
+        queryset=Almacen.objects.filter(activo=True),
+        label="Almacén de destino"
+    )
+    caja = forms.ModelChoiceField(
+        queryset=Caja.objects.none(),  # Se actualiza en __init__
+        label="Caja para pago",
+        required=False
+    )
+    
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        
+        if user:
+            self.fields['caja'].queryset = Caja.objects.filter(
+                estado='ABIERTA',
+                responsable=user.perfil
+            )
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        caja = cleaned_data.get('caja')
+        
+        if caja and caja.estado != 'ABIERTA':
+            raise forms.ValidationError('La caja seleccionada no está abierta')
+        
+        return cleaned_data

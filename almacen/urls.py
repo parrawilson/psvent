@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from . import api_views
 
 
 app_name= "almacen"
@@ -9,6 +10,10 @@ urlpatterns = [
     path('productos/nueva/', views.registrar_producto, name='registrar_producto'),
     path('productos/editar/<int:producto_id>/', views.editar_producto, name='editar_producto'),
     path('productos/eliminar/<int:producto_id>/', views.eliminar_producto, name='eliminar_producto'),
+    path('api/productos/buscar/', api_views.buscar_producto, name='buscar_producto'),
+    path('api/productos/<int:pk>/', api_views.obtener_producto_por_id, name='detalle_producto'),
+
+
     path('categorias/lista/', views.lista_categorias, name='lista_categorias'),
     path('categorias/nueva/', views.registrar_categoria, name='registrar_categoria'),
     path('categorias/editar/<int:categoria_id>/', views.editar_categoria, name='editar_categoria'),

@@ -2,10 +2,31 @@
 
 {% block content %}
 <div class="max-w-7xl mx-auto py-10 px-4">
-  <!-- Título -->
-  <h1 class="text-3xl font-bold text-blue-700 mb-6">
-    <i class="fa-solid fa-cash-register mr-2"></i> Reporte de Cierres de Caja
-  </h1>
+  <!-- Título y resumen -->
+  <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+    <h1 class="text-3xl font-bold text-blue-700 mb-4 md:mb-0">
+      <i class="fa-solid fa-cash-register mr-2"></i> Reporte de Sesiones de Caja
+    </h1>
+    
+    <div class="bg-blue-50 p-4 rounded-lg">
+      <div class="grid grid-cols-3 gap-4 text-sm">
+        <div class="text-center">
+          <p class="font-medium">Total Ingresos</p>
+          <p class="text-green-600 font-bold">${{ total_ingresos|floatformat:2 }}</p>
+        </div>
+        <div class="text-center">
+          <p class="font-medium">Total Egresos</p>
+          <p class="text-red-600 font-bold">${{ total_egresos|floatformat:2 }}</p>
+        </div>
+        <div class="text-center">
+          <p class="font-medium">Diferencia Total</p>
+          <p class="{% if total_diferencia >= 0 %}text-green-600{% else %}text-red-600{% endif %} font-bold">
+            ${{ total_diferencia|floatformat:2 }}
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Filtros -->
   <form method="get" class="bg-white shadow-md rounded-lg p-6 mb-8">
@@ -56,34 +77,43 @@
     <table class="min-w-full divide-y divide-gray-200">
       <thead class="bg-gray-100 text-gray-700 text-left text-sm">
         <tr>
+          <th class="px-6 py-3 font-medium">Sesión</th>
           <th class="px-6 py-3 font-medium">Caja</th>
           <th class="px-6 py-3 font-medium">Responsable</th>
-          <th class="px-6 py-3 font-medium">Fecha Apertura</th>
-          <th class="px-6 py-3 font-medium">Fecha Cierre</th>
+          <th class="px-6 py-3 font-medium">Horario</th>
           <th class="px-6 py-3 font-medium text-right">Saldo Inicial</th>
           <th class="px-6 py-3 font-medium text-right">Saldo Final</th>
+          <th class="px-6 py-3 font-medium text-right">Diferencia</th>
           <th class="px-6 py-3 font-medium text-center">Acciones</th>
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-100 text-sm text-gray-800">
-        {% for cierre in cierres %}
+        {% for sesion in sesiones %}
         <tr class="hover:bg-gray-50">
-          <td class="px-6 py-3">{{ cierre.nombre }}</td>
-          <td class="px-6 py-3">{{ cierre.responsable.usuario.get_full_name }}</td>
-          <td class="px-6 py-3">{{ cierre.fecha_apertura|date:"d/m/Y H:i" }}</td>
-          <td class="px-6 py-3">{{ cierre.fecha_cierre|date:"d/m/Y H:i" }}</td>
-          <td class="px-6 py-3 text-right">${{ cierre.saldo_inicial|floatformat:2 }}</td>
-          <td class="px-6 py-3 text-right">${{ cierre.saldo_actual|floatformat:2 }}</td>
+          <td class="px-6 py-3">#{{ forloop.revcounter }}</td>
+          <td class="px-6 py-3">{{ sesion.caja.nombre }}</td>
+          <td class="px-6 py-3">{{ sesion.responsable.usuario.get_full_name }}</td>
+          <td class="px-6 py-3">
+            {{ sesion.fecha_apertura|date:"d/m/Y H:i" }}<br>
+            <span class="text-gray-500">a</span><br>
+            {{ sesion.fecha_cierre|date:"d/m/Y H:i" }}
+          </td>
+          <td class="px-6 py-3 text-right">${{ sesion.saldo_inicial|floatformat:2 }}</td>
+          <td class="px-6 py-3 text-right">${{ sesion.saldo_final|floatformat:2 }}</td>
+          <td class="px-6 py-3 text-right {% if sesion.diferencia >= 0 %}text-green-600{% else %}text-red-600{% endif %}">
+            ${{ sesion.diferencia|floatformat:2|default:"0.00" }}
+          </td>
           <td class="px-6 py-3 text-center">
-            <a href="{% url 'caja:reporte_cierre_pdf' cierre.id %}"
-               class="inline-flex items-center px-3 py-1 text-sm font-medium text-blue-600 border border-blue-600 rounded hover:bg-blue-600 hover:text-white transition">
-              <i class="fa-solid fa-eye mr-1"></i> Ver
+            <a href="{% url 'caja:reporte_sesion_pdf' sesion.id %}"
+               class="inline-flex items-center px-3 py-1 text-sm font-medium text-blue-600 border border-blue-600 rounded hover:bg-blue-600 hover:text-white transition"
+               title="Ver detalle de sesión">
+              <i class="fa-solid fa-eye mr-1"></i> Detalle
             </a>
           </td>
         </tr>
         {% empty %}
         <tr>
-          <td colspan="7" class="text-center py-4 text-gray-500">No se encontraron cierres</td>
+          <td colspan="8" class="text-center py-4 text-gray-500">No se encontraron sesiones cerradas</td>
         </tr>
         {% endfor %}
       </tbody>

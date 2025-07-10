@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Caja, MovimientoCaja
+from .models import Caja, MovimientoCaja,SesionCaja
 
 class MovimientoCajaInline(admin.TabularInline):
     model = MovimientoCaja
@@ -22,3 +22,8 @@ class MovimientoCajaAdmin(admin.ModelAdmin):
     list_filter = ('tipo', 'caja')
     search_fields = ('descripcion', 'comprobante', 'caja__nombre')
     readonly_fields = ('fecha', 'responsable')
+
+@admin.register(SesionCaja)
+class SesionCajaAdmin(admin.ModelAdmin):
+    list_display = ('caja', 'responsable', 'estado')
+

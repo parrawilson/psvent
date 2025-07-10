@@ -14,12 +14,20 @@ class Cliente(models.Model):
         ('CE', 'Carnet de Extranjería'),
     ]
 
+    TIPO_CLIENTE_CHOICES = [
+        ('MINORISTA', 'Minorista'),
+        ('MAYORISTA', 'Mayorista'),   
+    ]
+
     tipo_documento = models.CharField(max_length=3, choices=TIPO_DOCUMENTO_CHOICES, default='DNI')
     numero_documento = models.CharField(max_length=20, unique=True)
+    dv = models.CharField(max_length=2,blank=True)
     nombre_completo = models.CharField(max_length=200)
     direccion = models.TextField(blank=True)
     telefono = models.CharField(max_length=20, blank=True)
     email = models.EmailField(blank=True)
+    tipo_cliente= models.CharField(choices=TIPO_CLIENTE_CHOICES, default='MINORISTA')
+    activo = models.BooleanField(default=True)
     creado = models.DateTimeField(auto_now_add=True)
     actualizado = models.DateTimeField(auto_now=True)
 
@@ -45,11 +53,27 @@ class Venta(models.Model):
         ('MIXTO', 'Mixto'),
     ]
 
+    TIPO_DOCUMENTO = [
+        ('F','FACTURA'),
+        ('T','TICKET'),
+        ('BV','BOLETA DE VENTA'),
+    ]
+
+    TIPO_CONDICION =[
+        ('1','CONTADO'),
+        ('2','CREDITO'),
+    ]
+
     numero = models.CharField(max_length=20, unique=True)
+    tipo_documento = models.CharField(max_length=20,choices=TIPO_DOCUMENTO, default='T')
+    numero_documento = models.CharField(max_length=15,blank=True)
+    timbrado = models.CharField(max_length=8, blank=True)
+    condicion = models.CharField(max_length=20,choices=TIPO_CONDICION, null=True, blank=True)
+    num_doc_asociado = models.CharField(max_length=15,blank=True)
+    timbrado_asociado = models.CharField(max_length=8, blank=True)
     cliente = models.ForeignKey(Cliente, on_delete=models.PROTECT, null=True, blank=True)
     fecha = models.DateTimeField(auto_now_add=True)
     subtotal = models.DecimalField(max_digits=12, decimal_places=2, default=0)
-    igv = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     total = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='BORRADOR')
     tipo_pago = models.CharField(max_length=20, choices=TIPO_PAGO_CHOICES, blank=True)
@@ -68,10 +92,9 @@ class Venta(models.Model):
     def calcular_totales(self):
         """Calcula los totales basados en los detalles"""
         detalles = self.detalles.all()
-        self.subtotal = sum(detalle.subtotal for detalle in detalles)
-        self.igv = self.subtotal * 0.18  # 18% IGV (ajustar según tu país)
-        self.total = self.subtotal + self.igv
+        self.total = sum(detalle.subtotal for detalle in detalles)
         self.save()
+
 
     @transaction.atomic
     def finalizar(self, caja, tipo_pago):
@@ -109,31 +132,64 @@ class Venta(models.Model):
             comprobante=f"V-{self.numero}"
         )
         
-        # Actualizar stock y crear movimientos de inventario
+        # Solo crear movimientos de inventario (ellos actualizarán el stock automáticamente)
         for detalle in self.detalles.all():
-            # Actualizar stock
-            stock = Stock.objects.get(
-                producto=detalle.producto,
-                almacen=detalle.almacen
-            )
-            stock.cantidad -= detalle.cantidad
-            stock.save()
-            
-            # Registrar movimiento de inventario
             MovimientoInventario.objects.create(
                 producto=detalle.producto,
                 almacen=detalle.almacen,
                 cantidad=detalle.cantidad,
                 tipo='SALIDA',
-                usuario=self.vendedor.usuario,
+                usuario=self.vendedor,
                 motivo=f"Venta {self.numero}"
             )
+
+
+
+    @transaction.atomic
+    def cancelar(self, usuario):
+        """Cancela una venta y revierte los movimientos asociados"""
+        if self.estado != 'FINALIZADA':
+            raise ValidationError('Solo se pueden cancelar ventas finalizadas')
+        
+        # Revertir movimiento de caja si existe
+        movimiento_caja = MovimientoCaja.objects.filter(venta=self).first()
+        if movimiento_caja:
+            MovimientoCaja.objects.create(
+                caja=movimiento_caja.caja,
+                tipo='EGRESO',
+                monto=movimiento_caja.monto,
+                responsable=usuario,
+                descripcion=f"Cancelación Venta {self.numero}",
+                venta=self,
+                comprobante=f"NC-{self.numero}"
+            )
+        
+        # Revertir movimientos de inventario (creando entradas por cada salida)
+        movimientos_inventario = MovimientoInventario.objects.filter(
+            motivo=f"Venta {self.numero}"
+        )
+        
+        for movimiento in movimientos_inventario:
+            MovimientoInventario.objects.create(
+                producto=movimiento.producto,
+                almacen=movimiento.almacen,
+                cantidad=movimiento.cantidad,
+                tipo='ENTRADA',
+                usuario=usuario,
+                motivo=f"Cancelación Venta {self.numero}"
+            )
+        
+        # Actualizar estado de la venta
+        self.estado = 'CANCELADA'
+        self.save()
+
 
 class DetalleVenta(models.Model):
     venta = models.ForeignKey(Venta, on_delete=models.CASCADE, related_name='detalles')
     producto = models.ForeignKey(Producto, on_delete=models.PROTECT)
     cantidad = models.PositiveIntegerField()
     precio_unitario = models.DecimalField(max_digits=12, decimal_places=2)
+    tasa_iva = models.PositiveIntegerField()
     subtotal = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     almacen = models.ForeignKey(Almacen, on_delete=models.PROTECT)
 

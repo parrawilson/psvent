@@ -33,20 +33,13 @@ class ProductoAdmin(admin.ModelAdmin):
         return obj.codigo if obj.codigo else "N/A"
     codigo_display.short_description = "Código"
     
-    def margen_display(self, obj):
-        return f"{obj.margen_ganancia:.2f}%" if obj.precio_compra else "N/A"
-    margen_display.short_description = "Margen %"
-    
-    def ganancia_display(self, obj):
-        return f"${obj.ganancia_unitaria:.2f}"
-    ganancia_display.short_description = "Ganancia"
 
     def get_form(self, request, obj=None, **kwargs):
         form = super().get_form(request, obj, **kwargs)
         # Establecer valores por defecto para nuevos productos
         if obj is None:
-            form.base_fields['precio_compra'].initial = 0
-            form.base_fields['precio_venta'].initial = 0
+            form.base_fields['precio_minorista'].initial = 0
+            form.base_fields['precio_mayorista'].initial = 0
         return form
 
     list_display = (
@@ -54,16 +47,14 @@ class ProductoAdmin(admin.ModelAdmin):
         'nombre',
         'categoria',
         'unidad_medida',
-        'precio_compra',
-        'precio_venta',
-        'ganancia_display',
-        'margen_display',
+        'precio_minorista',
+        'precio_mayorista',
         'activo'
     )
     
     list_filter = ('categoria', 'unidad_medida', 'activo')
     search_fields = ('nombre', 'codigo', 'descripcion')
-    readonly_fields = ('ganancia_display', 'margen_display', 'creado', 'actualizado')
+    readonly_fields = ('creado', 'actualizado')
     
     fieldsets = (
         ('Información Básica', {
@@ -71,9 +62,8 @@ class ProductoAdmin(admin.ModelAdmin):
         }),
         ('Precios y Stock', {
             'fields': (
-                'precio_compra',
-                'precio_venta',
-                ('ganancia_display', 'margen_display'),
+                'precio_minorista',
+                'precio_mayorista',
                 ('stock', 'stock_minimo')
             )
         }),

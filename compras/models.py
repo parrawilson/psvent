@@ -6,6 +6,7 @@ from almacen.models import Producto, MovimientoInventario, Almacen
 from usuarios.models import PerfilUsuario
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from caja.models import MovimientoCaja
 
 class Proveedor(models.Model):
     ruc = models.CharField(max_length=20, unique=True)
@@ -41,6 +42,9 @@ class OrdenCompra(models.Model):
     actualizado = models.DateTimeField(auto_now=True)
     notas = models.TextField(blank=True)
 
+    caja = models.ForeignKey('caja.Caja', on_delete=models.PROTECT, null=True, blank=True)
+    movimiento_caja = models.ForeignKey('caja.MovimientoCaja', on_delete=models.SET_NULL, null=True, blank=True)
+
     class Meta:
         ordering = ['-fecha']
         verbose_name = 'Orden de Compra'
@@ -63,39 +67,59 @@ class OrdenCompra(models.Model):
             self.save()
             # Aquí podrías agregar notificaciones o historial
 
-    def recibir(self, usuario, almacen):
+    @transaction.atomic
+    def recibir(self, usuario, almacen, caja=None):
         """Marca la orden como recibida y actualiza inventario"""
-        if self.estado == 'APROBADA':
-            with transaction.atomic():
-                recepcion = RecepcionCompra.objects.create(
-                    orden=self,
-                    recibido_por=usuario,
-                    almacen=almacen
+        if self.estado != 'APROBADA':
+            raise ValidationError('Solo se pueden recibir órdenes aprobadas')
+        
+        with transaction.atomic():
+            # Registrar recepción
+            recepcion = RecepcionCompra.objects.create(
+                orden=self,
+                recibido_por=usuario,
+                almacen=almacen
+            )
+            
+            # Registrar movimiento de caja si se especificó
+            movimiento = None
+            if caja and caja.estado == 'ABIERTA':
+                movimiento = MovimientoCaja.objects.create(
+                    caja=caja,
+                    tipo='EGRESO',
+                    monto=self.total,
+                    responsable=usuario,
+                    descripcion=f"Compra {self.numero}",
+                    compra=self,
+                    comprobante=f"OC-{self.numero}"
                 )
+            
+            # Procesar cada detalle
+            for detalle in self.detalles.all():
+                detalle.cantidad_recibida = detalle.cantidad
+                detalle.recibido = True
+                detalle.save()
                 
-                for detalle in self.detalles.all():
-                    # Actualizar cantidad recibida
-                    detalle.cantidad_recibida = detalle.cantidad
-                    detalle.recibido = True
-                    detalle.save()
-                    
-                    # Actualizar precio de compra del producto si es diferente
-                    if detalle.producto.precio_compra != detalle.precio_unitario:
-                        detalle.producto.precio_compra = detalle.precio_unitario
-                        detalle.producto.save()
-                    
-                    # Crear movimiento de inventario
-                    MovimientoInventario.objects.create(
-                        producto=detalle.producto,
-                        almacen=almacen,
-                        cantidad=detalle.cantidad,
-                        tipo='ENTRADA',
-                        usuario=usuario,
-                        motivo=f"Recepción de OC-{self.numero}"
-                    )
+                # Actualizar precio de compra
+                if detalle.producto.precio_compra != detalle.precio_unitario:
+                    detalle.producto.precio_compra = detalle.precio_unitario
+                    detalle.producto.save()
                 
-                self.estado = 'RECIBIDA'
-                self.save()
+                # Registrar movimiento de inventario
+                MovimientoInventario.objects.create(
+                    producto=detalle.producto,
+                    almacen=almacen,
+                    cantidad=detalle.cantidad,
+                    tipo='ENTRADA',
+                    usuario=usuario,
+                    motivo=f"Recepción de OC-{self.numero}"
+                )
+            
+            # Actualizar estado de la orden
+            self.estado = 'RECIBIDA'
+            self.caja = caja
+            self.movimiento_caja = movimiento
+            self.save()
 
 class DetalleOrdenCompra(models.Model):
     orden = models.ForeignKey(OrdenCompra, on_delete=models.CASCADE, related_name='detalles')

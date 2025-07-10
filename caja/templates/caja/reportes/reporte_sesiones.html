@@ -1,0 +1,28 @@
+<table class="table">
+    <thead>
+        <tr>
+            <th>Sesión</th>
+            <th>Responsable</th>
+            <th>Apertura</th>
+            <th>Cierre</th>
+            <th class="text-end">Saldo Inicial</th>
+            <th class="text-end">Saldo Final</th>
+            <th class="text-end">Diferencia</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for sesion in sesiones %}
+        <tr>
+            <td>#{{ forloop.counter }}</td>
+            <td>{{ sesion.responsable.usuario.get_full_name }}</td>
+            <td>{{ sesion.fecha_apertura|date:"d/m/Y H:i" }}</td>
+            <td>{{ sesion.fecha_cierre|date:"d/m/Y H:i"|default:"-" }}</td>
+            <td class="text-end">${{ sesion.saldo_inicial|floatformat:2 }}</td>
+            <td class="text-end">${{ sesion.saldo_final|floatformat:2|default:"-" }}</td>
+            <td class="text-end {% if sesion.diferencia < 0 %}text-danger{% endif %}">
+                ${{ sesion.diferencia|floatformat:2|default:"0.00" }}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>

@@ -11,8 +11,8 @@ class ProductoForm(forms.ModelForm):
             'descripcion',
             'categoria',
             'unidad_medida',
-            'precio_compra',
-            'precio_venta',
+            'precio_minorista',
+            'precio_mayorista',
             'tasa_iva',
             'stock_minimo',
             'imagen',
@@ -38,12 +38,12 @@ class ProductoForm(forms.ModelForm):
             'unidad_medida': forms.Select(attrs={
                 'class': 'form-select'
             }),
-            'precio_compra': forms.NumberInput(attrs={
+            'precio_minorista': forms.NumberInput(attrs={
                 'class': 'form-control',
                 'step': '0.01',
                 'min': '0'
             }),
-            'precio_venta': forms.NumberInput(attrs={
+            'precio_mayorista': forms.NumberInput(attrs={
                 'class': 'form-control',
                 'step': '0.01',
                 'min': '0'
@@ -66,8 +66,8 @@ class ProductoForm(forms.ModelForm):
             'codigo': 'Código del Producto',
             'nombre': 'Nombre',
             'descripcion': 'Descripción',
-            'precio_compra': 'Precio de Compra ($)',
-            'precio_venta': 'Precio de Venta ($)',
+            'precio_minorista': 'Precio Minorista (Gs)',
+            'precio_mayorista': 'Precio Mayorista (Gs)',
             'stock_minimo': 'Stock Mínimo',
             'imagen': 'Imagen del Producto',
             'activo': 'Producto Activo'
@@ -85,14 +85,14 @@ class ProductoForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        precio_compra = cleaned_data.get('precio_compra')
-        precio_venta = cleaned_data.get('precio_venta')
+        precio_minorista = cleaned_data.get('precio_minorista')
+        precio_mayorista = cleaned_data.get('precio_mayorista')
         
         # Validar que el precio de venta no sea menor que el de compra
-        if precio_compra is not None and precio_venta is not None:
-            if precio_venta < precio_compra:
-                self.add_error('precio_venta', 
-                    'El precio de venta no puede ser menor al precio de compra')
+        if precio_minorista is not None and precio_mayorista is not None:
+            if precio_mayorista > precio_minorista:
+                self.add_error('precio_mayorista', 
+                    'El precio mayorista no puede ser mayor al precio minorista')
         
         return cleaned_data
 

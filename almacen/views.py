@@ -4,29 +4,16 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse
 from .models import Producto, Categoria, UnidadMedida,MovimientoInventario, Almacen, Stock
 from .forms import ProductoForm, CategoriaForm, UnidadMedidaForm, MovimientoInventarioForm, AlmacenForm
-
+from django.contrib.auth.decorators import login_required
 from django.db import transaction
 
 
+@login_required
 def lista_productos(request):
     producto = Producto.objects.all()
     return render(request, 'productos/lista.html', {'productos': producto})
 
-def lista_categorias(request):
-    categoria = Categoria.objects.all()
-    return render(request, 'categorias/lista.html', {'categorias': categoria})
-
-def lista_unidades_medidas(request):
-    unidad_medida= UnidadMedida.objects.all()
-    return render(request,'unidades_medidas/lista.html', {'unidades_medidas': unidad_medida})
-
-def lista_almacenes(request):
-    almacenes = Almacen.objects.all()
-    return render(request, 'almacenes/lista.html', {
-        'almacenes': almacenes,
-        'titulo': 'Lista de Almacenes'
-    })
-
+@login_required
 def registrar_producto(request):
     if request.method == 'POST':
         form = ProductoForm(request.POST)
@@ -41,37 +28,8 @@ def registrar_producto(request):
         'modo': 'registrar',
         'titulo': 'Registrar Producto',
     })
-def registrar_categoria(request):
-    if request.method == 'POST':
-        form = CategoriaForm(request.POST)
-        if form.is_valid():
-            form.save()
-            messages.success(request,'Categoría registrado exitosamente')
-            return redirect ('almacen:lista_categorias')
-    else:
-        form = CategoriaForm
-    return render(request, 'categorias/formulario.html', {
-        'form': form,
-        'modo': 'registrar',
-        'titulo': 'Registrar Categoria',
-    })
 
-def registrar_unidad_medida(request):
-    if request.method=='POST':
-        form= UnidadMedidaForm(request.POST)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Unidad de medida registrado correctamente')
-            return redirect('almacen:lista_unidades_medidas')
-    else:
-        form = UnidadMedidaForm
-    return render(request,'unidades_medidas/formulario.html',{
-        'form': form,
-        'modo': 'registrar',
-        'titulo': 'Registar Unidad de Medida'
-    })
-        
-
+@login_required
 def editar_producto(request, producto_id):
     producto= get_object_or_404(Producto, pk= producto_id)
     if request.method == 'POST':
@@ -92,6 +50,68 @@ def editar_producto(request, producto_id):
                   }
                   )
 
+
+
+
+
+def registrar_categoria(request):
+    if request.method == 'POST':
+        form = CategoriaForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request,'Categoría registrado exitosamente')
+            return redirect ('almacen:lista_categorias')
+    else:
+        form = CategoriaForm
+    return render(request, 'categorias/formulario.html', {
+        'form': form,
+        'modo': 'registrar',
+        'titulo': 'Registrar Categoria',
+    })
+
+
+
+
+@login_required
+def lista_categorias(request):
+    categoria = Categoria.objects.all()
+    return render(request, 'categorias/lista.html', {'categorias': categoria})
+
+@login_required
+def lista_unidades_medidas(request):
+    unidad_medida= UnidadMedida.objects.all()
+    return render(request,'unidades_medidas/lista.html', {'unidades_medidas': unidad_medida})
+
+@login_required
+def lista_almacenes(request):
+    almacenes = Almacen.objects.all()
+    return render(request, 'almacenes/lista.html', {
+        'almacenes': almacenes,
+        'titulo': 'Lista de Almacenes'
+    })
+
+
+
+@login_required
+def registrar_unidad_medida(request):
+    if request.method=='POST':
+        form= UnidadMedidaForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Unidad de medida registrado correctamente')
+            return redirect('almacen:lista_unidades_medidas')
+    else:
+        form = UnidadMedidaForm
+    return render(request,'unidades_medidas/formulario.html',{
+        'form': form,
+        'modo': 'registrar',
+        'titulo': 'Registar Unidad de Medida'
+    })
+        
+
+
+
+@login_required
 def editar_categoria(request, categoria_id):
     categoria = get_object_or_404(Categoria, pk=categoria_id)
     if request.method == 'POST':
@@ -109,6 +129,8 @@ def editar_categoria(request, categoria_id):
         'categoria': categoria,
     })
 
+
+@login_required
 def editar_unidad_medida(request, unidad_medida_id):
     unidad_medida= get_object_or_404(UnidadMedida, pk=unidad_medida_id)
     if request.method == 'POST':
@@ -127,6 +149,8 @@ def editar_unidad_medida(request, unidad_medida_id):
         'unidad_medida': unidad_medida,
     })
 
+
+@login_required
 def eliminar_producto(request, producto_id):
     if request.method== 'POST':
         producto= get_object_or_404(Producto, pk= producto_id)
@@ -137,6 +161,7 @@ def eliminar_producto(request, producto_id):
             return redirect('almacen:lista_productos')
     return HttpResponseNotAllowed(['POST'])
 
+@login_required
 def eliminar_categoria(request, categoria_id):
     if request.method == 'POST':
         categoria= get_object_or_404(Categoria, pk=categoria_id)
@@ -147,6 +172,7 @@ def eliminar_categoria(request, categoria_id):
             return redirect('almacen:lista_categorias')
     return HttpResponseNotAllowed(['POST'])
 
+@login_required
 def eliminar_unidad_medida(request, unidad_medida_id):
     if request.method == 'POST':
         unidad_medida = get_object_or_404(UnidadMedida, pk= unidad_medida_id)
@@ -157,6 +183,7 @@ def eliminar_unidad_medida(request, unidad_medida_id):
             return redirect('almacen:lista_unidades_medidas')
     return HttpResponseNotAllowed(['POST'])
 
+@login_required
 def registrar_almacen(request):
     if request.method == 'POST':
         form = AlmacenForm(request.POST)
@@ -173,6 +200,7 @@ def registrar_almacen(request):
         'titulo': 'Registrar Almacén'
     })
 
+@login_required
 def editar_almacen(request, almacen_id):
     almacen = get_object_or_404(Almacen, pk=almacen_id)
     if request.method == 'POST':
@@ -191,6 +219,7 @@ def editar_almacen(request, almacen_id):
         'almacen': almacen
     })
 
+@login_required
 def eliminar_almacen(request, almacen_id):
     if request.method == 'POST':
         almacen = get_object_or_404(Almacen, pk=almacen_id)
@@ -201,6 +230,7 @@ def eliminar_almacen(request, almacen_id):
         return redirect('almacen:lista_almacenes')
     return HttpResponseNotAllowed(['POST'])
 
+@login_required
 @transaction.atomic
 def registrar_movimiento(request):
     if request.method == 'POST':
@@ -241,6 +271,8 @@ def registrar_movimiento(request):
         'titulo': 'Registrar Movimiento'
     })
 
+
+@login_required
 def lista_movimientos(request):
     movimientos = MovimientoInventario.objects.select_related(
         'producto', 'almacen', 'usuario'
@@ -251,6 +283,8 @@ def lista_movimientos(request):
         'titulo': 'Historial de Movimientos'
     })
 
+
+@login_required
 @transaction.atomic
 def editar_movimiento(request, movimiento_id):
     movimiento = get_object_or_404(MovimientoInventario, pk=movimiento_id)
@@ -317,6 +351,7 @@ def editar_movimiento(request, movimiento_id):
         'movimiento': movimiento
     })
 
+@login_required
 @transaction.atomic
 def eliminar_movimiento(request, movimiento_id):
     if request.method == 'POST':
@@ -348,6 +383,8 @@ def eliminar_movimiento(request, movimiento_id):
     
     return HttpResponseNotAllowed(['POST'])
 
+
+@login_required
 def lista_stock(request):
     stocks = Stock.objects.select_related('producto', 'almacen').order_by(
         'almacen__nombre', 'producto__nombre'

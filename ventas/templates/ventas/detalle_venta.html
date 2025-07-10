@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+{% load filtros_paraguay %}
+
+{% block content %}
+<div x-data="{ open: false }">
+  <div class="max-w-6xl mx-auto bg-white shadow-md rounded-xl p-6">
+    <!-- Encabezado -->
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-2xl font-bold text-gray-800">{{ titulo }}</h2>
+      <span class="px-3 py-1 rounded-full text-sm font-semibold
+        {% if venta.estado == 'FINALIZADA' %} bg-green-100 text-green-800
+        {% elif venta.estado == 'CANCELADA' %} bg-red-100 text-red-800
+        {% else %} bg-yellow-100 text-yellow-800 {% endif %}">
+        {{ venta.get_estado_display }}
+      </span>
+    </div>
+
+    <!-- Información General -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+      <div>
+        <h3 class="font-semibold text-gray-700 mb-2">Información de la Venta</h3>
+        <p><strong>Número:</strong> {{ venta.numero }}</p>
+        <p><strong>Fecha:</strong> {{ venta.fecha|date:"d/m/Y H:i" }}</p>
+        <p><strong>Vendedor:</strong> {{ venta.vendedor.usuario.get_full_name }}</p>
+        {% if venta.caja %}
+        <p><strong>Caja:</strong> {{ venta.caja.nombre }}</p>
+        {% endif %}
+      </div>
+
+      <div>
+        <h3 class="font-semibold text-gray-700 mb-2">Información del Cliente</h3>
+        {% if venta.cliente %}
+        <p><strong>Nombre:</strong> {{ venta.cliente.nombre_completo }}</p>
+        <p><strong>Documento:</strong> {{ venta.cliente.get_tipo_documento_display }}: {{ venta.cliente.numero_documento }}</p>
+        <p><strong>Dirección:</strong> {{ venta.cliente.direccion|default:"-" }}</p>
+        {% else %}
+        <p class="italic text-gray-600">Consumidor Final</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Detalles de productos -->
+    <div class="mb-6">
+      <h3 class="font-semibold text-gray-700 mb-3">Detalles de Productos</h3>
+      <div class="overflow-x-auto">
+        <table class="min-w-full border border-gray-200 text-sm">
+          <thead class="bg-gray-100 text-gray-700">
+            <tr>
+              <th class="px-4 py-2 text-left">Producto</th>
+              <th class="px-4 py-2 text-left">Almacén</th>
+              <th class="px-4 py-2 text-right">Precio Unitario</th>
+              <th class="px-4 py-2 text-right">Cantidad</th>
+              <th class="px-4 py-2 text-right">Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for detalle in venta.detalles.all %}
+            <tr class="border-t">
+              <td class="px-4 py-2">{{ detalle.producto.nombre }}</td>
+              <td class="px-4 py-2">{{ detalle.almacen.nombre }}</td>
+              <td class="px-4 py-2 text-right">Gs. {{ detalle.precio_unitario|pyg_intcomma }}</td>
+              <td class="px-4 py-2 text-right">{{ detalle.cantidad }}</td>
+              <td class="px-4 py-2 text-right">Gs. {{ detalle.subtotal|pyg_intcomma }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+          <tfoot class="bg-gray-50 font-semibold">
+            <tr>
+              <td colspan="4" class="px-4 py-2 text-right">Subtotal:</td>
+              <td class="px-4 py-2 text-right">Gs. {{ venta.subtotal|pyg_intcomma }}</td>
+            </tr>
+            <tr>
+              <td colspan="4" class="px-4 py-2 text-right">IVA (10%):</td>
+              <td class="px-4 py-2 text-right">Gs. {{ venta.igv|pyg_intcomma }}</td>
+            </tr>
+            <tr>
+              <td colspan="4" class="px-4 py-2 text-right">Total:</td>
+              <td class="px-4 py-2 text-right">Gs. {{ venta.total|pyg_intcomma }}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+
+    <!-- Información adicional -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+      {% if venta.estado == 'FINALIZADA' %}
+      <div class="bg-green-50 p-4 rounded">
+        <h4 class="font-semibold text-green-700 mb-2">Información de Pago</h4>
+        <p><strong>Método de Pago:</strong> {{ venta.get_tipo_pago_display }}</p>
+        <p><strong>Fecha de Finalización:</strong> {{ venta.fecha|date:"d/m/Y H:i" }}</p>
+        {% if venta.caja %}
+        <p><strong>Caja:</strong> {{ venta.caja.nombre }}</p>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      {% if venta.notas %}
+      <div class="bg-gray-100 p-4 rounded">
+        <h4 class="font-semibold text-gray-700 mb-2">Notas Adicionales</h4>
+        <p class="text-gray-800">{{ venta.notas }}</p>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Footer con botones -->
+    <div class="mt-6 flex justify-between items-center">
+      <a href="{% url 'ventas:lista_ventas' %}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded">
+        ← Volver al Listado
+      </a>
+
+      <div class="flex gap-3">
+        {% if venta.estado == 'BORRADOR' %}
+        <a href="{% url 'ventas:editar_venta' venta.id %}" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded">
+          Editar
+        </a>
+        <a href="{% url 'ventas:finalizar_venta' venta.id %}" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded">
+          Finalizar Venta
+        </a>
+        {% endif %}
+
+        {% if venta.estado == 'FINALIZADA' %}
+        <button @click="open = true"
+                class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded">
+          Cancelar Venta
+        </button>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+
+
+    <!-- Modal con Alpine.js -->
+  <div x-show="open"
+      x-transition
+      class="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50"
+      style="display: none;">
+      <div class="bg-white rounded-lg p-6 max-w-md w-full shadow-xl">
+          <h3 class="text-lg font-semibold text-gray-800 mb-4">¿Cancelar esta venta?</h3>
+          <p class="text-gray-600 mb-6">Esta acción no se puede deshacer. ¿Estás seguro?</p>
+          
+          <form method="post" action="{% url 'ventas:cancelar_venta' venta.id %}">
+              {% csrf_token %}
+              <div class="mb-4">
+                  <label for="motivo_cancelacion" class="block text-gray-700 text-sm font-bold mb-2">
+                      Motivo de cancelación (opcional):
+                  </label>
+                  <textarea id="motivo_cancelacion" name="motivo" 
+                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            rows="3"></textarea>
+              </div>
+              
+              <div class="flex justify-end gap-4">
+                  <button @click="open = false" type="button"
+                          class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded text-gray-800">
+                      Cerrar
+                  </button>
+                  <button type="submit"
+                          class="px-4 py-2 bg-red-600 hover:bg-red-700 rounded text-white font-semibold">
+                      Confirmar Cancelación
+                  </button>
+              </div>
+          </form>
+      </div>
+  </div>
+
+
+
+
+</div>
+{% endblock %}
+
+
+

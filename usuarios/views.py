@@ -1,5 +1,5 @@
 # usuarios/views.py
-from django.shortcuts import render, redirect
+from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib import messages
@@ -34,7 +34,7 @@ def registro_usuario(request):
                     perfil.save()
                     
                 messages.success(request, "Usuario creado correctamente.")
-                return redirect('login')
+                return redirect('lista_usuarios')
                 
             except IntegrityError as e:
                 user.delete()  # Elimina el usuario si hay error
@@ -47,26 +47,46 @@ def registro_usuario(request):
 
     return render(request, 'usuarios/registro.html', {
         'form_usuario': form_usuario,
-        'form_perfil': form_perfil
+        'form_perfil': form_perfil,
+
     })
 
 
-def login_usuario(request):
+
+@login_required
+def editar_usuario(request, usuario_id):
+    usuario = get_object_or_404(User, pk=usuario_id)
+    perfil = usuario.perfil  # Asume relación OneToOneField con PerfilUsuario
+
     if request.method == 'POST':
-        username = request.POST['username']
-        password = request.POST['password']
-        user = authenticate(request, username=username, password=password)
-        
-        if user is not None:
-            # Verificar y crear perfil si no existe
-            if not hasattr(user, 'perfil'):
-                PerfilUsuario.objects.create(usuario=user)
-                
-            login(request, user)
-            return redirect('dashboard')
-        else:
-            messages.error(request, "Credenciales inválidas.")
-    return render(request, 'usuarios/login.html')
+        #form_usuario = EditarUsuarioForm(request.POST, instance=usuario)
+        form_usuario = UserEditForm(request.POST, instance=usuario)
+        form_perfil = PerfilUsuarioForm(request.POST, request.FILES, instance=perfil)
+
+        if form_usuario.is_valid() and form_perfil.is_valid():
+            try:
+                with transaction.atomic():
+                    form_usuario.save()
+                    form_perfil.save()
+                    
+                    messages.success(request, "Usuario actualizado correctamente.")
+                    return redirect('lista_usuarios')
+                    
+            except Exception as e:
+                messages.error(request, f"Error al actualizar el usuario: {str(e)}")
+                return redirect('editar_usuario', usuario_id=usuario.id)
+    else:
+        form_usuario = UserEditForm(instance=usuario)
+        form_perfil = PerfilUsuarioForm(instance=perfil)
+
+    return render(request, 'usuarios/editar_usuario.html', {
+        'form_usuario': form_usuario,
+        'form_perfil': form_perfil,
+        'usuario': usuario,
+        'modo': 'editar',
+        'titulo': f'Editar Usuario: {usuario.username}'
+    })
+
 
 @login_required
 def perfil_usuario(request):
@@ -91,6 +111,26 @@ def perfil_usuario(request):
         'form_usuario': form_usuario,
         'form_perfil': form_perfil
     })
+
+
+
+def login_usuario(request):
+    if request.method == 'POST':
+        username = request.POST['username']
+        password = request.POST['password']
+        user = authenticate(request, username=username, password=password)
+        
+        if user is not None:
+            # Verificar y crear perfil si no existe
+            if not hasattr(user, 'perfil'):
+                PerfilUsuario.objects.create(usuario=user)
+                
+            login(request, user)
+            return redirect('dashboard')
+        else:
+            messages.error(request, "Credenciales inválidas.")
+    return render(request, 'usuarios/login.html')
+
 
 
 

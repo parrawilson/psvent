@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% load filtros_paraguay %}
+{% load form_filters %}
+{% block content %}
+<div class="max-w-3xl mx-auto bg-white shadow-md rounded-xl p-6">
+  <!-- Encabezado -->
+  <div class="mb-6 border-b pb-4">
+    <h2 class="text-2xl font-bold text-gray-800">{{ titulo }}</h2>
+  </div>
+
+  <!-- Resumen de Venta -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+    <div>
+      <h4 class="text-lg font-semibold text-gray-700 mb-2">Resumen de Venta</h4>
+      <p><strong>Cliente:</strong> {{ venta.cliente|default:"Consumidor Final" }}</p>
+      <p><strong>Total:</strong> Gs. {{ venta.total|pyg_intcomma }}</p>
+    </div>
+  </div>
+
+  <!-- Formulario -->
+  <form method="post" class="space-y-6">
+    {% csrf_token %}
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Caja -->
+      <div>
+        <label for="{{ form.caja.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+          {{ form.caja.label }}
+        </label>
+        {{ form.caja|add_attrs:"class=w-full border border-gray-300 rounded-lg p-2" }}
+        {% if form.caja.errors %}
+          <p class="text-sm text-red-600 mt-1">{{ form.caja.errors.0 }}</p>
+        {% endif %}
+      </div>
+
+      <!-- Tipo de Pago -->
+      <div>
+        <label for="{{ form.tipo_pago.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+          {{ form.tipo_pago.label }}
+        </label>
+        {{ form.tipo_pago|add_attrs:"class=w-full border border-gray-300 rounded-lg p-2" }}
+        {% if form.tipo_pago.errors %}
+          <p class="text-sm text-red-600 mt-1">{{ form.tipo_pago.errors.0 }}</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Botones -->
+    <div class="flex justify-between items-center pt-4 border-t">
+      <button type="submit"
+              class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded inline-flex items-center gap-2">
+        <i class="fas fa-check"></i> Confirmar Venta
+      </button>
+
+      <a href="{% url 'ventas:editar_venta' venta.id %}"
+         class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded inline-flex items-center gap-2">
+        <i class="fas fa-edit"></i> Volver a Editar
+      </a>
+    </div>
+  </form>
+</div>
+{% endblock %}

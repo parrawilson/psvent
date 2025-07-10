@@ -24,8 +24,8 @@
         <tr>
           <th class="px-4 py-3">Codigo</th>
           <th class="px-4 py-3">Nombre</th>
-          <th class="px-4 py-3">Precio C.</th>
-          <th class="px-4 py-3">Precio V.</th>
+          <th class="px-4 py-3">Precio Min.</th>
+          <th class="px-4 py-3">Precio May.</th>
           <th class="px-4 py-3">Tasa IVA</th>
           <th class="px-4 py-3 text-center">Acciones</th>
         </tr>
@@ -37,8 +37,8 @@
     <tr id="producto-{{ producto.id }}" class="hover:bg-gray-50">
       <td class="px-4 py-3">{{ producto.codigo }}</td>
       <td class="px-4 py-3 font-mono">{{ producto.nombre }}</td>
-      <td class="px-4 py-3 whitespace-nowrap">{{ producto.precio_compra }}</td>
-      <td class="px-4 py-3 whitespace-nowrap">{{ producto.precio_venta }}</td>
+      <td class="px-4 py-3 whitespace-nowrap">{{ producto.precio_minorista }}</td>
+      <td class="px-4 py-3 whitespace-nowrap">{{ producto.precio_mayorista }}</td>
       <td class="px-4 py-3 whitespace-nowrap">{{ producto.tasa_iva }}</td>
       <td class="px-4 py-3">
         <div class="flex flex-wrap justify-center gap-2">

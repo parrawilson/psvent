@@ -39,7 +39,7 @@
       </div>
     </div>
 
-    <form method="post" class="space-y-6">
+    <form method="post" enctype="multipart/form-data" class="space-y-6">
       {% csrf_token %}
       
       <div class="grid grid-cols-1 gap-6">
@@ -116,30 +116,89 @@
         </div>
 
         <!-- Comprobante -->
-        <div>
-          <label for="{{ form.comprobante.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
-            N° Comprobante (Opcional)
-          </label>
-          <input type="text" 
-                 name="{{ form.comprobante.name }}"
-                 id="{{ form.comprobante.id_for_label }}"
-                 class="block w-full py-2 px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                 value="{{ form.comprobante.value|default_if_none:'' }}">
-          {% if form.comprobante.errors %}
-            <div class="mt-1 text-sm text-red-600">
-              {{ form.comprobante.errors.as_text }}
-            </div>
-          {% endif %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label for="{{ form.comprobante.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+              N° Comprobante (Opcional)
+            </label>
+            <input type="text" 
+                  name="{{ form.comprobante.name }}"
+                  id="{{ form.comprobante.id_for_label }}"
+                  class="block w-full py-2 px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  value="{{ form.comprobante.value|default_if_none:'' }}">
+            {% if form.comprobante.errors %}
+              <div class="mt-1 text-sm text-red-600">
+                {{ form.comprobante.errors.as_text }}
+              </div>
+            {% endif %}
+          </div>
+
+          <!-- Imagen de Comprobante -->
+          <div>
+            <label for="{{ form.imagen_comprobante.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+              Imagen de Comprobante (Opcional)
+            </label>
+            <input type="file"
+                  name="{{ form.imagen_comprobante.name }}"
+                  id="{{ form.imagen_comprobante.id_for_label }}"
+                  class="block w-full text-sm text-gray-500
+                        file:mr-4 file:py-2 file:px-4
+                        file:rounded-md file:border-0
+                        file:text-sm file:font-semibold
+                        file:bg-blue-50 file:text-blue-700
+                        hover:file:bg-blue-100"
+                  accept="image/*">
+            {% if form.imagen_comprobante.errors %}
+              <div class="mt-1 text-sm text-red-600">
+                {{ form.imagen_comprobante.errors.as_text }}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Relaciones con Venta/Compra -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label for="{{ form.venta.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+              Venta Relacionada (Opcional)
+            </label>
+            <select name="{{ form.venta.name }}"
+                    id="{{ form.venta.id_for_label }}"
+                    class="block w-full py-2 px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+              <option value="">--- Seleccionar Venta ---</option>
+              {% for venta in form.venta.field.queryset %}
+                <option value="{{ venta.id }}" {% if form.venta.value == venta.id %}selected{% endif %}>
+                  Venta #{{ venta.id }} - {{ venta.cliente.nombre|default:"Sin cliente" }} (S/ {{ venta.total|floatformat:2 }})
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div>
+            <label for="{{ form.compra.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+              Compra Relacionada (Opcional)
+            </label>
+            <select name="{{ form.compra.name }}"
+                    id="{{ form.compra.id_for_label }}"
+                    class="block w-full py-2 px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+              <option value="">--- Seleccionar Compra ---</option>
+              {% for compra in form.compra.field.queryset %}
+                <option value="{{ compra.id }}" {% if form.compra.value == compra.id %}selected{% endif %}>
+                  Compra #{{ compra.id }} - {{ compra.proveedor.nombre|default:"Sin proveedor" }} (S/ {{ compra.total|floatformat:2 }})
+                </option>
+              {% endfor %}
+            </select>
+          </div>
         </div>
       </div>
 
       <div class="flex flex-col md:flex-row gap-4 pt-4">
         <a href="{% url 'caja:detalle_caja' caja.id %}" 
-           class="flex-1 text-center bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-6 rounded-lg">
+           class="flex-1 text-center bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-6 rounded-lg transition duration-200">
           Cancelar
         </a>
         <button type="submit" 
-                class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg flex items-center justify-center">
+                class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg flex items-center justify-center transition duration-200">
           <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
           </svg>
@@ -176,7 +235,7 @@
     const amount = parseFloat(this.value) || 0;
     
     if (amount > currentBalance) {
-      this.setCustomValidity('El monto no puede ser mayor al saldo actual');
+      this.setCustomValidity('El monto no puede ser mayor al saldo actual (S/ ' + currentBalance.toFixed(2) + ')');
     } else {
       this.setCustomValidity('');
     }
@@ -191,6 +250,17 @@
     tipoSelect.addEventListener('change', function() {
       updateAmountLabel(this);
     });
+
+    // Validar campo de monto al enviar el formulario
+    document.querySelector('form').addEventListener('submit', function(e) {
+      const tipo = tipoSelect.value;
+      const monto = parseFloat(document.getElementById('{{ form.monto.id_for_label }}').value) || 0;
+      
+      if (tipo === 'EGRESO' && monto > parseFloat({{ caja.saldo_actual }})) {
+        e.preventDefault();
+        alert('No puede egresar un monto mayor al saldo actual de la caja (S/ {{ caja.saldo_actual|floatformat:2 }})');
+      }
+    });
   });
 </script>
 
@@ -203,6 +273,14 @@
     outline: none;
     border-color: #3b82f6;
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+
+  .btn-transition {
+    transition: all 0.2s ease-in-out;
+  }
+
+  .file-input::-webkit-file-upload-button {
+    visibility: hidden;
   }
 </style>
 {% endblock %}

@@ -40,8 +40,6 @@
               {{ orden.get_estado_display }}
             </span>
           </p>
-          <p><span class="font-medium text-gray-700">Subtotal:</span> S/ {{ orden.subtotal|floatformat:2 }}</p>
-          <p><span class="font-medium text-gray-700">IGV (18%):</span> S/ {{ orden.igv|floatformat:2 }}</p>
           <p><span class="font-medium text-gray-700">Total:</span> S/ {{ orden.total|floatformat:2 }}</p>
         </div>
       </div>

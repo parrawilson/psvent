@@ -3,6 +3,8 @@
 from pathlib import Path
 from decouple import config
 
+import os
+
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 SECRET_KEY = config('SECRET_KEY')
@@ -22,6 +24,7 @@ INSTALLED_APPS = [
     'compras',
     'caja',
     'ventas',
+    'facturacion',
     'django.contrib.staticfiles',
 ]
 
@@ -70,3 +73,7 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+
+# Agrega esto al final de settings.py
+SIFEN_CERT_PATH = os.path.join(BASE_DIR, 'sifen_certs', 'cert.pem')
+SIFEN_KEY_PATH = os.path.join(BASE_DIR, 'sifen_certs', 'key.pem')

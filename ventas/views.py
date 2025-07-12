@@ -3,13 +3,14 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from django.forms import ValidationError, inlineformset_factory
+from django.forms import ValidationError, inlineformset_factory,BooleanField,CheckboxInput
 from .models import Venta, DetalleVenta, Cliente
 from .forms import VentaForm, DetalleVentaForm, ClienteForm, FinalizarVentaForm
 from usuarios.models import PerfilUsuario
 from almacen.models import Stock
 import logging
 from django.views.decorators.http import require_POST
+from facturacion.services.sifen import SifenService
 
 
 # Configuración del logger
@@ -96,7 +97,7 @@ def crear_venta(request):
         Venta, 
         DetalleVenta, 
         form=DetalleVentaForm,
-        extra=1,
+        extra=0,
         can_delete=True
     )
     
@@ -212,38 +213,76 @@ def finalizar_venta(request, venta_id):
         if form.is_valid():
             try:
                 with transaction.atomic():
-                    # Finalizar la venta (esto incluye los movimientos de caja e inventario)
+                    # 1. Finalizar la venta (esto incluye los movimientos de caja e inventario)
                     venta.finalizar(
                         caja=form.cleaned_data['caja'],
                         tipo_pago=form.cleaned_data['tipo_pago']
                     )
                     
-                    messages.success(request, 'Venta finalizada correctamente')
-                    return redirect('ventas:crear_venta')
+                    # 2. Generar documento electrónico si es necesario
+                    if (venta.cliente and 
+                        venta.cliente.tipo_documento in ['RUC', 'Cédula'] and 
+                        form.cleaned_data.get('generar_documento', False)):
+                        
+                        documento = SifenService.generar_documento(venta)
+                        if documento.estado == 'AUTORIZADO':
+                            messages.success(request, f'Documento electrónico generado: {documento.numero}')
+                        else:
+                            messages.warning(request, f'Documento electrónico generado con estado: {documento.get_estado_display()}')
                     
-            except ValidationError as e:
-                messages.error(request, f'Error de validación: {str(e)}')
+                    messages.success(request, 'Venta finalizada correctamente')
+                    return redirect('ventas:detalle_venta', venta_id=venta.id)
+                    
             except Exception as e:
                 messages.error(request, f'Error al finalizar venta: {str(e)}')
-                # Loggear el error completo para debugging
-                import logging
-                logger = logging.getLogger(__name__)
                 logger.error(f'Error al finalizar venta {venta.id}: {str(e)}', exc_info=True)
         else:
             messages.error(request, 'Por favor corrija los errores en el formulario')
     else:
         form = FinalizarVentaForm()
     
-    # Contexto para la plantilla
+    # Mostrar opción de documento electrónico solo si aplica
+    if venta.cliente and venta.cliente.tipo_documento in ['RUC', 'Cédula']:
+        form.fields['generar_documento'] = BooleanField(
+            initial=True,
+            required=False,
+            label='Generar documento electrónico',
+            help_text='Marque para generar factura electrónica',
+            widget= CheckboxInput(attrs={'class': 'rounded'})
+        )
+    
     context = {
         'venta': venta,
         'form': form,
         'titulo': f'Finalizar Venta: {venta.numero}',
         'detalles': venta.detalles.select_related('producto', 'almacen'),
         'total': venta.total,
+        'puede_generar_documento': venta.cliente and venta.cliente.tipo_documento in ['RUC', 'Cédula']
     }
     
     return render(request, 'ventas/finalizar_venta.html', context)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 @login_required
 def detalle_venta(request, venta_id):

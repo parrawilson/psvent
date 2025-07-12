@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">{{ titulo }}</h1>
+    
+    <form method="get" class="flex items-center">
+      {{ search_form.q }}
+      <button type="submit" class="ml-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+        <i class="fas fa-search"></i>
+      </button>
+    </form>
+  </div>
+
+  <!-- Filtros de estado -->
+  <div class="mb-6 bg-white p-4 rounded-lg shadow">
+    <div class="flex space-x-2">
+      <a href="{% url 'facturacion:lista_documentos' %}" 
+         class="px-3 py-1 rounded-full text-sm {% if not estado_seleccionado %}bg-blue-100 text-blue-800{% else %}bg-gray-100 text-gray-800{% endif %}">
+        Todos
+      </a>
+      {% for estado in estados %}
+        <a href="{% url 'facturacion:lista_documentos' %}?estado={{ estado.0 }}" 
+           class="px-3 py-1 rounded-full text-sm {% if estado_seleccionado == estado.0 %}bg-blue-100 text-blue-800{% else %}bg-gray-100 text-gray-800{% endif %}">
+          {{ estado.1 }}
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Lista -->
+  <div class="bg-white rounded-lg shadow overflow-hidden">
+    <div class="divide-y divide-gray-200">
+      {% for documento in documentos %}
+        <div class="p-4 hover:bg-gray-50">
+          <div class="flex justify-between items-start">
+            <div>
+              <div class="flex items-center space-x-2">
+                <a href="{% url 'facturacion:detalle_documento' documento.id %}" 
+                   class="font-medium text-blue-600 hover:underline">
+                  {{ documento.venta.numero }}
+                </a>
+                <span class="px-2 py-1 text-xs rounded-full 
+                  {% if documento.estado == 'ACEPTADO' %}bg-green-100 text-green-800
+                  {% elif documento.estado == 'ERROR' %}bg-red-100 text-red-800
+                  {% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                  {{ documento.get_estado_display }}
+                </span>
+              </div>
+              <div class="mt-1 text-sm text-gray-500">
+                {{ documento.venta.cliente.nombre_completo|default:"Consumidor Final" }}
+                <span class="mx-2">•</span>
+                {{ documento.venta.fecha_creacion|date:"d/m/Y H:i" }}
+              </div>
+            </div>
+            {% if documento.codigo_set %}
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                {{ documento.codigo_set }}
+              </span>
+            {% endif %}
+          </div>
+        </div>
+      {% empty %}
+        <div class="p-6 text-center text-gray-500">
+          No se encontraron documentos electrónicos
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

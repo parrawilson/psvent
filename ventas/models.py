@@ -189,7 +189,7 @@ class DetalleVenta(models.Model):
     producto = models.ForeignKey(Producto, on_delete=models.PROTECT)
     cantidad = models.PositiveIntegerField()
     precio_unitario = models.DecimalField(max_digits=12, decimal_places=2)
-    tasa_iva = models.PositiveIntegerField()
+    tasa_iva = models.PositiveIntegerField(default=10)
     subtotal = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     almacen = models.ForeignKey(Almacen, on_delete=models.PROTECT)
 

@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">
+      Documento Electrónico #{{ documento.pk }}
+    </h1>
+    <a href="{% url 'facturacion:lista_documentos' %}" 
+       class="text-blue-600 hover:text-blue-800">
+      <i class="fas fa-arrow-left mr-1"></i> Volver
+    </a>
+  </div>
+
+  <div class="bg-white rounded-lg shadow overflow-hidden mb-6">
+    <div class="p-6 border-b">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div>
+          <h3 class="text-sm font-medium text-gray-500">Venta</h3>
+          <p class="mt-1 text-sm text-gray-900">
+            <a href="{% url 'ventas:detalle_venta' documento.venta.pk %}" 
+               class="text-blue-600 hover:underline">
+              {{ documento.venta.numero }}
+            </a>
+          </p>
+        </div>
+        <div>
+          <h3 class="text-sm font-medium text-gray-500">Estado</h3>
+          <p class="mt-1">
+            <span class="px-2 py-1 text-xs rounded-full 
+              {% if documento.estado == 'ACEPTADO' %}bg-green-100 text-green-800
+              {% elif documento.estado == 'ERROR' %}bg-red-100 text-red-800
+              {% else %}bg-yellow-100 text-yellow-800{% endif %}">
+              {{ documento.get_estado_display }}
+            </span>
+          </p>
+        </div>
+        <div>
+          <h3 class="text-sm font-medium text-gray-500">Fecha</h3>
+          <p class="mt-1 text-sm text-gray-900">
+            {{ documento.venta.fecha_creacion|date:"d/m/Y H:i" }}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="p-6 border-b">
+      <h3 class="text-lg font-medium text-gray-900 mb-4">Datos del Documento</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <h4 class="text-sm font-medium text-gray-500">Cliente</h4>
+          <p class="mt-1 text-sm text-gray-900">
+            {{ documento.venta.cliente|default:"Consumidor Final" }}
+          </p>
+          <p class="text-sm text-gray-500">
+            {{ documento.venta.cliente.tipo_documento }} 
+            {{ documento.venta.cliente.numero_documento|default:"" }}
+          </p>
+        </div>
+        <div>
+          <h4 class="text-sm font-medium text-gray-500">Código SET</h4>
+          <p class="mt-1 text-sm text-gray-900">
+            {% if documento.codigo_set %}
+              {{ documento.codigo_set }}
+            {% else %}
+              <span class="text-gray-400">No asignado</span>
+            {% endif %}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="p-6">
+      <h3 class="text-lg font-medium text-gray-900 mb-4">Acciones</h3>
+      <div class="flex flex-wrap gap-3">
+        {% if documento.xml_firmado %}
+          <a href="{% url 'facturacion:descargar_xml' documento.pk %}" 
+             class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+            <i class="fas fa-file-code mr-2"></i> Descargar XML
+          </a>
+        {% endif %}
+
+        {% if documento.qr_url %}
+          <a href="{{ documento.qr_url }}" target="_blank" 
+             class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+            <i class="fas fa-qrcode mr-2"></i> Ver QR
+          </a>
+        {% endif %}
+
+        {% if puede_reenviar %}
+          <form method="post" action="{% url 'facturacion:reenviar_set' documento.pk %}">
+            {% csrf_token %}
+            <button type="submit" 
+                    class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
+              <i class="fas fa-paper-plane mr-2"></i> Reenviar al SET
+            </button>
+          </form>
+        {% endif %}
+      </div>
+
+      {% if documento.errores %}
+        <div class="mt-4 p-4 bg-red-50 rounded-md">
+          <h4 class="text-sm font-medium text-red-800">Errores</h4>
+          <p class="mt-1 text-sm text-red-700">{{ documento.errores }}</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

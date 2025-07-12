@@ -105,7 +105,7 @@
         {{ formset.management_form }}
         <div id="formset-container" class="space-y-4">
           {% for form_detalle in formset %}
-            {% if form_detalle.producto.value or not forloop.first %}
+            {% if form_detalle.producto.value or forloop.last and not forloop.first %}
             <div class="formset-item grid grid-cols-1 md:grid-cols-6 gap-4 border-b pb-4 relative">
               {{ form_detalle.id }}
               <div>
@@ -384,20 +384,37 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Función para validar el formulario antes de enviar
   function validarFormularioVenta(event) {
+    // Primero eliminar formularios vacíos
     const formItems = container.querySelectorAll('.formset-item');
-    let tieneItemsValidos = false;
-    let itemsVacios = 0;
-
-    // Verificar cada item del formset
+    let itemsEliminados = 0;
+    
     formItems.forEach(item => {
       const productoSelect = item.querySelector('.producto-select');
       const cantidadInput = item.querySelector('.cantidad-input');
       const precioInput = item.querySelector('.precio-input');
       
-      // Verificar si el item está vacío
-      if (!productoSelect.value || !cantidadInput.value || !precioInput.value) {
-        itemsVacios++;
-        
+      // Si todos los campos están vacíos, eliminar el formulario
+      if (!productoSelect.value && !cantidadInput.value && !precioInput.value) {
+        item.remove();
+        itemsEliminados++;
+      }
+    });
+    
+    // Actualizar el contador de formularios
+    const formsRestantes = container.querySelectorAll('.formset-item');
+    totalForms.value = formsRestantes.length;
+    
+    // Ahora validar que haya al menos un formulario válido
+    let tieneItemsValidos = false;
+    
+    formsRestantes.forEach(item => {
+      const productoSelect = item.querySelector('.producto-select');
+      const cantidadInput = item.querySelector('.cantidad-input');
+      const precioInput = item.querySelector('.precio-input');
+      
+      if (productoSelect.value && cantidadInput.value && precioInput.value) {
+        tieneItemsValidos = true;
+      } else {
         // Resaltar campos vacíos
         if (!productoSelect.value) {
           productoSelect.classList.add('border-red-500');
@@ -408,13 +425,11 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!precioInput.value) {
           precioInput.classList.add('border-red-500');
         }
-      } else {
-        tieneItemsValidos = true;
       }
     });
 
     // Mostrar mensaje de error si no hay items válidos
-    if (!tieneItemsValidos || itemsVacios === formItems.length) {
+    if (!tieneItemsValidos) {
       event.preventDefault();
       
       // Crear o actualizar mensaje de error
@@ -426,7 +441,7 @@ document.addEventListener('DOMContentLoaded', function () {
         document.querySelector('form').prepend(errorDiv);
       }
       
-      if (formItems.length === 0) {
+      if (formsRestantes.length === 0) {
         errorDiv.textContent = 'Error: Debe agregar al menos un producto a la venta.';
       } else {
         errorDiv.textContent = 'Error: Todos los items están incompletos. Complete al menos un producto o elimine los items vacíos.';
@@ -594,6 +609,20 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Enfocar el campo de código al cargar la página
   codigoProductoInput.focus();
+
+  // Eliminar formulario vacío inicial si existe
+  const formsIniciales = container.querySelectorAll('.formset-item');
+  if (formsIniciales.length === 1) {
+    const primerForm = formsIniciales[0];
+    const productoSelect = primerForm.querySelector('.producto-select');
+    const cantidadInput = primerForm.querySelector('.cantidad-input');
+    const precioInput = primerForm.querySelector('.precio-input');
+    
+    if (!productoSelect.value && !cantidadInput.value && !precioInput.value) {
+      primerForm.remove();
+      totalForms.value = '0';
+    }
+  }
 });
 </script>
 {% endblock %}

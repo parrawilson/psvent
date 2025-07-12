@@ -353,6 +353,13 @@
       </div>
     </div>
 
+    <a href="{% url 'facturacion:lista_documentos' %}" class="relative flex items-center px-3 py-3 rounded hover:bg-blue-100 text-gray-700 font-medium group {% if request.resolver_match.url_name == 'Facturación E.' %}menu-item-active{% endif %}">
+      <span class="peer flex items-center">
+        <i class="fa-solid fa-file-invoice text-center mr-3"></i>
+        <span class="sidebar-text">Facturación E.</span>
+      </span>
+      <span class="tooltip absolute left-full ml-2 bg-gray-800 text-white text-sm px-2 py-1 rounded">Facturación E.</span>
+    </a>
 
     <a href="{% url 'lista_usuarios' %}" class="relative flex items-center px-3 py-3 rounded hover:bg-blue-100 text-gray-700 font-medium group {% if request.resolver_match.url_name == 'clientes' %}menu-item-active{% endif %}">
       <span class="peer flex items-center">
@@ -361,6 +368,8 @@
       </span>
       <span class="tooltip absolute left-full ml-2 bg-gray-800 text-white text-sm px-2 py-1 rounded">Clientes</span>
     </a>
+
+    
   </nav>
 
   <div class="p-4 border-t mt-auto">

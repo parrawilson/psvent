@@ -1,0 +1,375 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6 max-w-5xl">
+    <div class="bg-white shadow rounded-lg p-6">
+        <div class="flex justify-between items-start mb-6">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">Traslado {{ traslado.referencia }}</h1>
+                <div class="flex items-center mt-2 space-x-4">
+                    <span class="text-sm text-gray-500">
+                        <span class="font-medium">Estado:</span>
+                        <span class="ml-2 px-2 py-1 text-xs rounded-full 
+                            {% if traslado.estado == 'COMPLETADO' %}bg-green-100 text-green-800
+                            {% elif traslado.estado == 'EN_PROCESO' %}bg-yellow-100 text-yellow-800
+                            {% elif traslado.estado == 'CANCELADO' %}bg-red-100 text-red-800
+                            {% else %}bg-blue-100 text-blue-800{% endif %}">
+                            {{ traslado.get_estado_display }}
+                        </span>
+                    </span>
+                    <span class="text-sm text-gray-500">
+                        <span class="font-medium">Productos:</span> {{ detalles|length }}
+                    </span>
+                    
+                </div>
+            </div>
+            
+            <div class="text-right">
+                <div class="text-sm text-gray-500">Solicitado: {{ traslado.fecha_solicitud|date:"d/m/Y H:i" }}</div>
+                {% if traslado.fecha_completado %}
+                <div class="text-sm text-gray-500">Completado: {{ traslado.fecha_completado|date:"d/m/Y H:i" }}</div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div class="border rounded-lg p-4 bg-gray-50">
+                <h3 class="font-medium text-gray-800 mb-2 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
+                    </svg>
+                    Origen
+                </h3>
+                <p class="text-lg font-semibold">{{ traslado.almacen_origen }}</p>
+                <p class="text-sm text-gray-600">{{ traslado.almacen_origen.ubicacion }}</p>
+                <div class="mt-2 space-y-1">
+                    <p class="text-sm text-gray-600">
+                        <span class="font-medium">Responsable:</span> 
+                        {{ traslado.almacen_origen.responsable.get_full_name|default:"Sin asignar" }}
+                    </p>
+                    <p class="text-sm text-gray-600">
+                        <span class="font-medium">Sucursal:</span> 
+                        {{ traslado.almacen_origen.sucursal }}
+                    </p>
+                </div>
+            </div>
+            
+            <div class="border rounded-lg p-4 bg-gray-50">
+                <h3 class="font-medium text-gray-800 mb-2 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                    </svg>
+                    Destino
+                </h3>
+                <p class="text-lg font-semibold">{{ traslado.almacen_destino }}</p>
+                <p class="text-sm text-gray-600">{{ traslado.almacen_destino.ubicacion }}</p>
+                <div class="mt-2 space-y-1">
+                    <p class="text-sm text-gray-600">
+                        <span class="font-medium">Responsable:</span> 
+                        {{ traslado.almacen_destino.responsable.get_full_name|default:"Sin asignar" }}
+                    </p>
+                    <p class="text-sm text-gray-600">
+                        <span class="font-medium">Sucursal:</span> 
+                        {{ traslado.almacen_destino.sucursal }}
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mb-6">
+            <h3 class="font-medium text-gray-800 mb-2">Motivo del traslado</h3>
+            <div class="bg-gray-50 rounded-lg p-4">
+                <p class="text-gray-700">{{ traslado.motivo }}</p>
+            </div>
+        </div>
+        
+        {% if traslado.estado == 'PENDIENTE' %}
+        <form method="post" action="{% url 'almacen:procesar_traslado' traslado.id %}" id="form-procesar" enctype="multipart/form-data">
+            {% csrf_token %}
+        {% elif traslado.estado == 'EN_PROCESO' %}
+        <form method="post" action="{% url 'almacen:recibir_traslado' traslado.id %}" id="form-recibir" enctype="multipart/form-data">
+            {% csrf_token %}
+        {% endif %}
+            <div class="mb-8">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-medium text-gray-800">Detalle de Productos</h3>
+                    <span class="text-sm text-gray-500">
+                        {% if traslado.estado == 'PENDIENTE' %}
+                        <span class="font-medium">Acciones disponibles:</span> Procesar envío
+                        {% elif traslado.estado == 'EN_PROCESO' %}
+                        <span class="font-medium">Acciones disponibles:</span> Confirmar recepción
+                        {% endif %}
+                    </span>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Producto</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Solicitado</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Enviado</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Recibido</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock Origen</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock Destino</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Disponible</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for detalle in detalles %}
+                            <tr class="{% if detalle.cantidad_enviada < detalle.cantidad_solicitada %}bg-yellow-50{% endif %}">
+                                <td class="px-6 py-4">
+                                    <div class="font-medium">{{ detalle.producto.nombre }}</div>
+                                    <div class="text-sm text-gray-500">{{ detalle.producto.codigo|default:"Sin código" }}</div>
+                                    <div class="text-xs text-gray-400 mt-1">{{ detalle.producto.unidad_medida.abreviatura_sifen }}</div>
+                                </td>
+                                <td class="px-6 py-4">{{ detalle.cantidad_solicitada }}</td>
+                                <td class="px-6 py-4">
+                                    {% if traslado.estado == 'PENDIENTE' and request.user == traslado.almacen_origen.responsable %}
+                                    <input type="number" 
+                                           name="detalle-{{ detalle.id }}-cantidad_enviada" 
+                                           value="{{ detalle.cantidad_enviada|default:detalle.cantidad_solicitada }}" 
+                                           min="1" 
+                                           max="{{ detalle.cantidad_solicitada }}"
+                                           class="w-20 p-1 border rounded {% if detalle.stock_origen.cantidad < detalle.cantidad_solicitada %}border-red-300 bg-red-50{% endif %}"
+                                           required
+                                           data-product-name="{{ detalle.producto.nombre }}">
+                                    {% else %}
+                                    <span class="{% if detalle.cantidad_enviada < detalle.cantidad_solicitada %}text-yellow-600 font-medium{% endif %}">
+                                        {{ detalle.cantidad_enviada }}
+                                    </span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4">
+                                    {% if traslado.estado == 'EN_PROCESO' and request.user == traslado.almacen_destino.responsable %}
+                                    <input type="number" 
+                                           name="detalle-{{ detalle.id }}-cantidad_recibida" 
+                                           value="{{ detalle.cantidad_recibida|default:detalle.cantidad_enviada }}" 
+                                           min="1" 
+                                           max="{{ detalle.cantidad_enviada }}"
+                                           class="w-20 p-1 border rounded"
+                                           required
+                                           data-product-name="{{ detalle.producto.nombre }}">
+                                    {% else %}
+                                    <span class="{% if detalle.cantidad_recibida < detalle.cantidad_enviada %}text-yellow-600 font-medium{% endif %}">
+                                        {{ detalle.cantidad_recibida }}
+                                    </span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4">
+                                    <span class="{% if detalle.stock_origen.cantidad < detalle.cantidad_solicitada %}text-red-600 font-medium{% endif %}">
+                                        {{ detalle.stock_origen.cantidad|default:0 }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    {{ detalle.stock_destino.cantidad|default:0 }}
+                                </td>
+                                <td class="px-6 py-4">
+                                    {% with disponible=detalle.stock_origen.cantidad|default:0 %}
+                                    <span class="{% if disponible < detalle.cantidad_solicitada %}text-red-600 font-medium{% endif %}">
+                                        {{ disponible }}
+                                    </span>
+                                    {% endwith %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            {% if traslado.observaciones %}
+            <div class="mb-6">
+                <h3 class="font-medium text-gray-800 mb-2">Observaciones</h3>
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <p class="text-gray-700">{{ traslado.observaciones }}</p>
+                </div>
+            </div>
+            {% endif %}
+            
+            <div class="flex justify-between pt-6 border-t border-gray-200">
+                <div class="space-y-1">
+                    <p class="text-sm text-gray-600">
+                        <span class="font-medium">Solicitante:</span> 
+                        {{ traslado.solicitante.usuario.get_full_name }}
+                    </p>
+                    {% if traslado.responsable %}
+                    <p class="text-sm text-gray-600">
+                        <span class="font-medium">Responsable:</span> 
+                        {{ traslado.responsable.usuario.get_full_name }}
+                    </p>
+                    {% endif %}
+                    <p class="text-xs text-gray-500 mt-2">
+                        Última actualización: {{ traslado.actualizado|date:"d/m/Y H:i" }}
+                    </p>
+                </div>
+                
+                <div class="flex gap-4">
+                    {% if traslado.estado == 'PENDIENTE' and request.user == traslado.almacen_origen.responsable %}
+                    <button type="submit" 
+                            class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        Procesar Envío
+                    </button>
+                    {% endif %}
+
+                    {% if traslado.estado == 'EN_PROCESO' and request.user == traslado.almacen_destino.responsable %}
+                    <button type="submit" 
+                            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        Confirmar Recepción
+                    </button>
+                    {% endif %}
+                    
+                    <a href="{% url 'almacen:lista_traslados' %}" 
+                       class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                        </svg>
+                        Volver
+                    </a>
+                </div>
+            </div>
+        {% if traslado.estado == 'PENDIENTE' or traslado.estado == 'EN_PROCESO' %}
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const formProcesar = document.getElementById('form-procesar');
+    if (formProcesar) {
+        formProcesar.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const inputs = document.querySelectorAll('input[name^="detalle-"][name$="-cantidad_enviada"]');
+            let valid = true;
+            let warning = false;
+            let warningMessage = "Los siguientes productos tienen menor disponibilidad que lo solicitado:\n";
+
+            for (const input of inputs) {
+                const cantidad = parseInt(input.value);
+                const max = parseInt(input.max);
+                const disponible = parseInt(input.closest('tr').querySelector('td:nth-child(7)').textContent.trim());
+
+                if (isNaN(cantidad)) {
+                    await Swal.fire('Cantidad inválida', `La cantidad para ${input.dataset.productName} no es válida`, 'error');
+                    input.focus();
+                    return;
+                }
+
+                if (cantidad <= 0) {
+                    await Swal.fire('Cantidad inválida', `La cantidad para ${input.dataset.productName} debe ser mayor a cero`, 'error');
+                    input.focus();
+                    return;
+                }
+
+                if (cantidad > max) {
+                    await Swal.fire('Cantidad excedida', `No puedes enviar más de ${max} unidades para ${input.dataset.productName}`, 'error');
+                    input.focus();
+                    return;
+                }
+
+                if (cantidad > disponible) {
+                    warning = true;
+                    warningMessage += `- ${input.dataset.productName}: Solicitado ${cantidad}, Disponible ${disponible}\n`;
+                }
+            }
+
+            if (warning) {
+                const result = await Swal.fire({
+                    title: 'Advertencia',
+                    text: warningMessage + '\n¿Deseas continuar con el envío?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí, continuar',
+                    cancelButtonText: 'Cancelar'
+                });
+                if (!result.isConfirmed) return;
+            } else {
+                const result = await Swal.fire({
+                    title: '¿Procesar Envío?',
+                    text: '¿Estás seguro de procesar este traslado?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí, procesar',
+                    cancelButtonText: 'Cancelar'
+                });
+                if (!result.isConfirmed) return;
+            }
+
+            formProcesar.submit();
+        });
+    }
+
+    const formRecibir = document.getElementById('form-recibir');
+    if (formRecibir) {
+        formRecibir.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const inputs = document.querySelectorAll('input[name^="detalle-"][name$="-cantidad_recibida"]');
+
+            for (const input of inputs) {
+                const cantidad = parseInt(input.value);
+                const max = parseInt(input.max);
+
+                if (isNaN(cantidad)) {
+                    await Swal.fire('Cantidad inválida', `La cantidad para ${input.dataset.productName} no es válida`, 'error');
+                    input.focus();
+                    return;
+                }
+
+                if (cantidad <= 0) {
+                    await Swal.fire('Cantidad inválida', `La cantidad para ${input.dataset.productName} debe ser mayor a cero`, 'error');
+                    input.focus();
+                    return;
+                }
+
+                if (cantidad > max) {
+                    await Swal.fire('Cantidad excedida', `No puedes recibir más de ${max} unidades para ${input.dataset.productName}`, 'error');
+                    input.focus();
+                    return;
+                }
+            }
+
+            const result = await Swal.fire({
+                title: '¿Confirmar Recepción?',
+                text: '¿Estás seguro de confirmar la recepción de estos productos?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, confirmar',
+                cancelButtonText: 'Cancelar'
+            });
+
+            if (result.isConfirmed) {
+                formRecibir.submit();
+            }
+        });
+    }
+});
+</script>
+
+<!-- Mensajes de Django usando SweetAlert2 -->
+{% if messages %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    {% for message in messages %}
+    Swal.fire({
+        icon: '{% if message.tags == "success" %}success{% elif message.tags == "error" %}error{% else %}info{% endif %}',
+        title: '{{ message|escapejs }}',
+        timer: 3000,
+        showConfirmButton: false
+    });
+    {% endfor %}
+});
+</script>
+{% endif %}
+
+{% endblock %}

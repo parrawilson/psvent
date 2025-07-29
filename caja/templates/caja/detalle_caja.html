@@ -1,5 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load form_filters %}
+{% load filtros_paraguay %}
 
 {% block content %}
 <div class="flex justify-center py-6 px-4">
@@ -21,6 +23,7 @@
         <div class="space-y-2">
           <p><span class="font-medium text-gray-700">Nombre:</span> {{ caja.nombre }}</p>
           <p><span class="font-medium text-gray-700">Responsable:</span> {{ caja.responsable.usuario.username }}</p>
+          <p><span class="font-medium text-gray-700">Punto de Expedición:</span> {{ caja.punto_expedicion }}</p>
           <p><span class="font-medium text-gray-700">Estado:</span> 
             <span class="px-2 py-1 text-xs rounded-full 
               {% if caja.estado == 'ABIERTA' %}bg-green-100 text-green-800
@@ -34,8 +37,8 @@
       <div class="bg-gray-50 p-4 rounded-lg">
         <h3 class="text-lg font-semibold text-gray-700 mb-3">Saldos</h3>
         <div class="space-y-2">
-          <p><span class="font-medium text-gray-700">Saldo Inicial:</span> S/ {{ caja.saldo_inicial|floatformat:2 }}</p>
-          <p><span class="font-medium text-gray-700">Saldo Actual:</span> S/ {{ caja.saldo_actual|floatformat:2 }}</p>
+          <p><span class="font-medium text-gray-700">Saldo Inicial:</span> Gs/ {{ caja.saldo_inicial|pyg_intcomma }}</p>
+          <p><span class="font-medium text-gray-700">Saldo Actual:</span> Gs/ {{ caja.saldo_actual|pyg_intcomma }}</p>
         </div>
       </div>
 

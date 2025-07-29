@@ -7,10 +7,10 @@ from compras.models import OrdenCompra
 class CajaForm(forms.ModelForm):
     class Meta:
         model = Caja
-        fields = ['nombre', 'saldo_inicial', 'responsable']
+        fields = ['nombre', 'punto_expedicion', 'responsable']
         widgets = {
             'nombre': forms.TextInput(attrs={'class': 'form-control'}),
-            'saldo_inicial': forms.NumberInput(attrs={'class': 'form-control', 'min': '0', 'step': '0.01'}),
+            'punto_expedicion': forms.Select(attrs={'class': 'form-control'}),
             'responsable': forms.Select(attrs={'class': 'form-control'}),
         }
 

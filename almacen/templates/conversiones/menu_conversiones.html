@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto py-10 px-4">
+  <!-- Título -->
+  <div class="text-center mb-10">
+    <h1 class="text-3xl font-bold text-blue-600">
+      <i class="fa-solid fa-boxes-packing mr-2"></i> Gestión de Conversiones
+    </h1>
+    <p class="text-gray-500 mt-2">Administra las conversiones entre productos</p>
+  </div>
+
+  <!-- Opciones principales -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+    <!-- Tarjeta: Lista de conversiones -->
+    <a href="{% url 'almacen:lista_conversiones' %}" 
+       class="block rounded-xl shadow-lg p-6 bg-white hover:shadow-xl transition transform hover:-translate-y-1">
+      <div class="flex items-center space-x-4">
+        <div class="text-blue-500 text-4xl">
+          <i class="fa-solid fa-arrows-rotate"></i>
+        </div>
+        <div>
+          <h2 class="text-xl font-semibold text-gray-800">Conversiones Configuradas</h2>
+          <p class="text-sm text-gray-500">Ver y administrar todas las conversiones entre productos</p>
+        </div>
+      </div>
+    </a>
+
+    <!-- Tarjeta: Tipos de conversión -->
+    <a href="{% url 'almacen:lista_tipos_conversion' %}" 
+       class="block rounded-xl shadow-lg p-6 bg-white hover:shadow-xl transition transform hover:-translate-y-1">
+      <div class="flex items-center space-x-4">
+        <div class="text-green-500 text-4xl">
+          <i class="fa-solid fa-tags"></i>
+        </div>
+        <div>
+          <h2 class="text-xl font-semibold text-gray-800">Tipos de Conversión</h2>
+          <p class="text-sm text-gray-500">Administrar categorías de conversiones (ensamblaje/desensamblaje)</p>
+        </div>
+      </div>
+    </a>
+  </div>
+
+  <!-- Acciones rápidas -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+    <!-- Ejecutar conversión -->
+    <a href="{% url 'almacen:ejecutar_conversion' %}" 
+       class="block rounded-xl shadow-lg p-6 bg-white hover:shadow-xl transition transform hover:-translate-y-1 border-l-4 border-yellow-400">
+      <div class="flex items-center space-x-4">
+        <div class="text-yellow-500 text-3xl">
+          <i class="fa-solid fa-gears"></i>
+        </div>
+        <div>
+          <h2 class="text-lg font-semibold text-gray-800">Ejecutar Conversión</h2>
+          <p class="text-xs text-gray-500">Convertir productos ahora</p>
+        </div>
+      </div>
+    </a>
+
+    <!-- Historial -->
+    <a href="{% url 'almacen:historial_conversiones' %}" 
+       class="block rounded-xl shadow-lg p-6 bg-white hover:shadow-xl transition transform hover:-translate-y-1 border-l-4 border-purple-400">
+      <div class="flex items-center space-x-4">
+        <div class="text-purple-500 text-3xl">
+          <i class="fa-solid fa-clock-rotate-left"></i>
+        </div>
+        <div>
+          <h2 class="text-lg font-semibold text-gray-800">Historial</h2>
+          <p class="text-xs text-gray-500">Ver todas las operaciones realizadas</p>
+        </div>
+      </div>
+    </a>
+
+    <!-- Nueva conversión -->
+    <a href="{% url 'almacen:crear_conversion' %}" 
+       class="block rounded-xl shadow-lg p-6 bg-white hover:shadow-xl transition transform hover:-translate-y-1 border-l-4 border-blue-400">
+      <div class="flex items-center space-x-4">
+        <div class="text-blue-500 text-3xl">
+          <i class="fa-solid fa-circle-plus"></i>
+        </div>
+        <div>
+          <h2 class="text-lg font-semibold text-gray-800">Nueva Conversión</h2>
+          <p class="text-xs text-gray-500">Crear nueva relación entre productos</p>
+        </div>
+      </div>
+    </a>
+  </div>
+
+  <!-- Instrucciones -->
+  <div class="mt-10 bg-blue-50 border-l-4 border-blue-400 p-6 rounded-lg">
+    <h3 class="text-gray-700 font-semibold mb-3">
+      <i class="fa-solid fa-circle-info text-blue-400 mr-2"></i> ¿Cómo funciona?
+    </h3>
+    <ol class="list-decimal list-inside text-sm text-gray-600 space-y-1">
+      <li><strong>Configura tipos</strong>: Define categorías como "Desensamblaje" o "Combos"</li>
+      <li><strong>Crea conversiones</strong>: Establece relaciones entre productos (ej: 1 pack → 6 unidades)</li>
+      <li><strong>Ejecuta</strong>: Convierte productos cuando lo necesites</li>
+      <li><strong>Monitorea</strong>: Revisa el historial y revierte si es necesario</li>
+    </ol>
+  </div>
+</div>
+
+<!-- Estilos para iconos de Font Awesome -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+
+<style>
+  .transition {
+    transition: all 0.3s ease;
+  }
+  .transform {
+    transform: translateY(0);
+  }
+  .hover\:-translate-y-1:hover {
+    transform: translateY(-4px);
+  }
+</style>
+{% endblock %}

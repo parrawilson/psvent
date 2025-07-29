@@ -4,13 +4,14 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.forms import ValidationError, inlineformset_factory,BooleanField,CheckboxInput
-from .models import Venta, DetalleVenta, Cliente
-from .forms import VentaForm, DetalleVentaForm, ClienteForm, FinalizarVentaForm
+from .models import Venta, DetalleVenta, Cliente, Timbrado
+from .forms import VentaForm, DetalleVentaForm, ClienteForm, FinalizarVentaForm, TimbradoForm
 from usuarios.models import PerfilUsuario
 from almacen.models import Stock
 import logging
 from django.views.decorators.http import require_POST
 from facturacion.services.sifen import SifenService
+
 
 
 # Configuración del logger
@@ -25,8 +26,19 @@ def lista_clientes(request):
         'titulo': 'Lista de Clientes'
     })
 
+import json
+from django.conf import settings
+import os
+
 @login_required
 def crear_cliente(request):
+
+    # Cargar el JSON de países
+    file_path = os.path.join(settings.BASE_DIR, 'ventas', 'paises.json')
+    with open(file_path, 'r', encoding='utf-8') as f:
+        paises_json = json.load(f)
+
+
     if request.method == 'POST':
         form = ClienteForm(request.POST)
         if form.is_valid():
@@ -36,10 +48,12 @@ def crear_cliente(request):
     else:
         form = ClienteForm()
     
+    
     return render(request, 'ventas/formulario_cliente.html', {
         'form': form,
         'titulo': 'Nuevo Cliente',
-        'modo': 'registrar'
+        'modo': 'registrar',
+        'paises_json': json.dumps(paises_json),  # aquí cargás el JSON al contexto
     })
 
 
@@ -47,6 +61,11 @@ def crear_cliente(request):
 @login_required
 def editar_cliente(request, cliente_id):
     cliente = get_object_or_404(Cliente, pk=cliente_id)
+
+    # Cargar el JSON de países
+    file_path = os.path.join(settings.BASE_DIR, 'ventas', 'paises.json')
+    with open(file_path, 'r', encoding='utf-8') as f:
+        paises_json = json.load(f)
     
     if request.method == 'POST':
         form = ClienteForm(request.POST, instance=cliente)
@@ -61,7 +80,8 @@ def editar_cliente(request, cliente_id):
         'form': form,
         'cliente': cliente,
         'modo': 'editar',
-        'titulo': f'Editar Cliente: {cliente.nombre_completo}'
+        'titulo': f'Editar Cliente: {cliente.nombre_completo}',
+        'paises_json': json.dumps(paises_json),  # aquí cargás el JSON al contexto
     })
 
 
@@ -216,19 +236,31 @@ def finalizar_venta(request, venta_id):
                     # 1. Finalizar la venta (esto incluye los movimientos de caja e inventario)
                     venta.finalizar(
                         caja=form.cleaned_data['caja'],
-                        tipo_pago=form.cleaned_data['tipo_pago']
+                        tipo_pago=form.cleaned_data['tipo_pago'],
+                        tipo_documento=form.cleaned_data['tipo_documento'],
+                        condicion=form.cleaned_data['condicion'],
+                        timbrado=form.cleaned_data.get('timbrado')
                     )
+                    generar_doc = form.cleaned_data.get('generar_documento', False)
                     
-                    # 2. Generar documento electrónico si es necesario
-                    if (venta.cliente and 
-                        venta.cliente.tipo_documento in ['RUC', 'Cédula'] and 
-                        form.cleaned_data.get('generar_documento', False)):
+                    if generar_doc:
                         
                         documento = SifenService.generar_documento(venta)
-                        if documento.estado == 'AUTORIZADO':
-                            messages.success(request, f'Documento electrónico generado: {documento.numero}')
-                        else:
-                            messages.warning(request, f'Documento electrónico generado con estado: {documento.get_estado_display()}')
+                        
+                        # 3. Generar KUDE automáticamente si el documento se generó correctamente
+
+                        if documento and documento.estado == 'VALIDADO':
+                            try:
+                                if SifenService.generar_kude(documento):
+                                    messages.info(request, 'Documento electrónico y KUDE generados correctamente')
+                                else:
+                                    messages.warning(request, 'Documento generado pero no se pudo crear el KUDE')
+                            except Exception as e:
+                                logger.error(f'Error generando KUDE para venta {venta.id}: {str(e)}', exc_info=True)
+                                messages.warning(request, 'Documento generado pero ocurrió un error al crear el KUDE')
+                        
+                        if documento:
+                            messages.success(request, f'Documento electrónico generado: {documento.get_estado_display()}')
                     
                     messages.success(request, 'Venta finalizada correctamente')
                     return redirect('ventas:detalle_venta', venta_id=venta.id)
@@ -247,8 +279,8 @@ def finalizar_venta(request, venta_id):
             initial=True,
             required=False,
             label='Generar documento electrónico',
-            help_text='Marque para generar factura electrónica',
-            widget= CheckboxInput(attrs={'class': 'rounded'})
+            help_text='Marque para generar factura electrónica (XML y KUDE)',
+            widget=CheckboxInput(attrs={'class': 'rounded'})
         )
     
     context = {
@@ -257,30 +289,10 @@ def finalizar_venta(request, venta_id):
         'titulo': f'Finalizar Venta: {venta.numero}',
         'detalles': venta.detalles.select_related('producto', 'almacen'),
         'total': venta.total,
-        'puede_generar_documento': venta.cliente and venta.cliente.tipo_documento in ['RUC', 'Cédula']
+        'puede_generar_documento': venta.cliente
     }
     
     return render(request, 'ventas/finalizar_venta.html', context)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -347,3 +359,69 @@ def cancelar_venta(request, venta_id):
         
     # Redireccionar a la vista de detalle en caso de error
     return redirect('ventas:detalle_venta', venta_id=venta.id)
+
+@login_required
+def lista_timbrados(request):
+    timbrados = Timbrado.objects.all().order_by('-fecha_inicio')
+    return render(request, 'ventas/lista_timbrados.html', {
+        'timbrados': timbrados,
+        'titulo': 'Listado de Timbrados'
+    })
+
+@login_required
+def crear_timbrado(request):
+    if request.method == 'POST':
+        form = TimbradoForm(request.POST)
+        if form.is_valid():
+            timbrado = form.save()
+            messages.success(request, 'Timbrado creado correctamente')
+            return redirect('ventas:lista_timbrados')
+    else:
+        form = TimbradoForm()
+    
+    return render(request, 'ventas/formulario_timbrado.html', {
+        'form': form,
+        'titulo': 'Nuevo Timbrado',
+        'modo': 'registrar'
+    })
+
+@login_required
+def editar_timbrado(request, timbrado_id):
+    timbrado = get_object_or_404(Timbrado, pk=timbrado_id)
+    
+    if request.method == 'POST':
+        form = TimbradoForm(request.POST, instance=timbrado)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Timbrado actualizado correctamente')
+            return redirect('ventas:lista_timbrados')
+    else:
+        form = TimbradoForm(instance=timbrado)
+    
+    return render(request, 'ventas/formulario_timbrado.html', {
+        'form': form,
+        'timbrado': timbrado,
+        'modo': 'editar',
+        'titulo': f'Editar Timbrado: {timbrado.numero}'
+    })
+
+@login_required
+def eliminar_timbrado(request, timbrado_id):
+    if request.method == 'POST':
+        timbrado = get_object_or_404(Timbrado, pk=timbrado_id)
+        try:
+            timbrado.delete()
+            messages.success(request, 'Timbrado eliminado correctamente')
+            
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({'success': True})
+            return redirect('ventas:lista_timbrados')
+            
+        except Exception as e:
+            messages.error(request, f'Error al eliminar timbrado: {str(e)}')
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({'success': False, 'error': str(e)}, status=400)
+            return redirect('ventas:lista_timbrados')
+    
+    return HttpResponseNotAllowed(['POST'])
+

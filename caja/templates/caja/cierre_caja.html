@@ -1,5 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load form_filters %}
+{% load filtros_paraguay %}
 
 {% block content %}
 <div class="flex justify-center py-6 px-4">
@@ -44,12 +46,12 @@
       <div class="bg-gray-50 p-4 rounded-lg">
         <h3 class="text-lg font-semibold text-gray-700 mb-3">Resumen de Caja</h3>
         <div class="space-y-2">
-          <p><span class="font-medium text-gray-700">Saldo Inicial:</span> S/ {{ caja.saldo_inicial|floatformat:2 }}</p>
-          <p><span class="font-medium text-gray-700">Total Ingresos:</span> S/ {{ ingresos|floatformat:2 }}</p>
-          <p><span class="font-medium text-gray-700">Total Egresos:</span> S/ {{ egresos|floatformat:2 }}</p>
+          <p><span class="font-medium text-gray-700">Saldo Inicial:</span> Gs/ {{ caja.saldo_inicial|pyg_intcomma }}</p>
+          <p><span class="font-medium text-gray-700">Total Ingresos:</span> Gs/ {{ ingresos|pyg_intcomma }}</p>
+          <p><span class="font-medium text-gray-700">Total Egresos:</span> Gs/ {{ egresos|pyg_intcomma }}</p>
           <p class="pt-2 border-t border-gray-200">
             <span class="font-medium text-gray-700">Saldo Final Calculado:</span> 
-            <span class="font-bold">S/ {{ caja.saldo_actual|floatformat:2 }}</span>
+            <span class="font-bold">Gs/ {{ caja.saldo_actual|pyg_intcomma }}</span>
           </p>
         </div>
       </div>

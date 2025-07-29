@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load form_filters %}
+
+{% block content %}
+<div class="flex justify-center py-6 px-4">
+  <div class="w-full max-w-6xl bg-white p-6 rounded-xl shadow-lg">
+    
+    <!-- Encabezado -->
+    <div class="flex justify-between items-center mb-6">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-800">Secuencias Documentales</h1>
+        <p class="text-gray-600">
+          Punto: {{ punto_expedicion.get_codigo_completo }} - {{ punto_expedicion.descripcion }}
+        </p>
+      </div>
+      <div>
+        
+        <a href="{% url 'empresa:editar_punto' punto_expedicion.sucursal.id  punto_expedicion.id %}" 
+           class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-lg inline-flex items-center">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+          </svg>
+          Volver al Punto
+        </a>
+      </div>
+    </div>
+
+    <!-- Mensajes -->
+    {% if messages %}
+      {% for message in messages %}
+        <div class="mb-4 p-4 rounded-lg {% if message.tags == 'success' %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    <!-- Tabla de Secuencias -->
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo Documento</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prefijo</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Próximo Número</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Formato</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          {% for secuencia in object_list %}
+          <tr>
+            <td class="px-6 py-4 whitespace-nowrap">
+              {{ secuencia.get_tipo_documento_display }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              {{ secuencia.prefijo }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              {{ secuencia.siguiente_numero }}
+            </td>
+            <td class="px-6 py-4">
+              <code class="text-xs bg-gray-100 p-1 rounded">{{ secuencia.formato }}</code>
+              <p class="text-xs text-gray-500 mt-1">
+                Ejemplo: {{ secuencia.formato|format_ejemplo:secuencia }}
+              </p>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <span class="px-2 py-1 text-xs rounded-full {% if secuencia.activo %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                {{ secuencia.activo|yesno:"Activa,Inactiva" }}
+              </span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="flex space-x-2">
+                <!-- Botón Editar -->
+                <a href="{% url 'empresa:editar_secuencia' secuencia.pk %}"
+                   class="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded hover:bg-blue-200 transition"
+                   title="Editar esta secuencia">
+                  <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                  </svg>
+                  Editar
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" class="px-6 py-4 text-center text-gray-500">
+              No hay secuencias configuradas para este punto
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Información adicional -->
+    <div class="mt-6 p-4 bg-gray-50 rounded-lg">
+      <h3 class="text-lg font-medium text-gray-800 mb-2">Variables disponibles para formato:</h3>
+      <ul class="list-disc pl-5 text-sm text-gray-600 space-y-1">
+        <li><code>{sucursal-punto}</code> - El prefijo de la secuencia (ej: 001-001)</li>
+        <li><code>{sucursal}</code> - Código de la sucursal (ej: 001)</li>
+        <li><code>{punto}</code> - Código del punto (ej: 001)</li>
+        <li><code>{numero}</code> - Número secuencial (puede formatearse: {numero:07d} para 7 dígitos)</li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

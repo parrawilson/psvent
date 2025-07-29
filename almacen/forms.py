@@ -1,6 +1,6 @@
 from django import forms
 from django.core.exceptions import ValidationError
-from .models import Producto, Categoria, UnidadMedida, MovimientoInventario, Almacen, Stock
+from .models import Producto, Categoria, UnidadMedida, MovimientoInventario, Almacen, Stock, ConversionProducto, ComponenteConversion
 
 class ProductoForm(forms.ModelForm):
     class Meta:
@@ -142,7 +142,7 @@ class UnidadMedidaForm(forms.ModelForm):
         model= UnidadMedida
         fields =[
             'nombre',
-            'abreviatura',
+            'abreviatura_sifen',
             'descripcion',
         ]
         widgets ={
@@ -151,9 +151,8 @@ class UnidadMedidaForm(forms.ModelForm):
                 'placeholder': 'Nombre'
 
             }),
-            'abreviatura': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Abrebiatura'
+            'abreviatura_sifen': forms.Select(attrs={
+                'class': 'form-select'
             }),
             'descripcion': forms.Textarea(attrs={
                 'class': 'form-control',
@@ -173,7 +172,7 @@ class UnidadMedidaForm(forms.ModelForm):
 class AlmacenForm(forms.ModelForm):
     class Meta:
         model = Almacen
-        fields = ['nombre', 'ubicacion', 'responsable', 'activo']
+        fields = ['nombre', 'ubicacion', 'responsable', 'sucursal', 'activo']
         widgets = {
             'nombre': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -184,6 +183,9 @@ class AlmacenForm(forms.ModelForm):
                 'placeholder': 'Ubicación física'
             }),
             'responsable': forms.Select(attrs={
+                'class': 'form-select'
+            }),
+            'sucursal': forms.Select(attrs={
                 'class': 'form-select'
             }),
             'activo': forms.CheckboxInput(attrs={
@@ -249,6 +251,249 @@ class MovimientoInventarioForm(forms.ModelForm):
 
 
 
+# forms.py
+from django import forms
+from django.core.exceptions import ValidationError
+from .models import TipoConversion, ConversionProducto, Producto, Almacen
+
+class TipoConversionForm(forms.ModelForm):
+    class Meta:
+        model = TipoConversion
+        fields = ['nombre', 'descripcion']
+        widgets = {
+            'nombre': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ej: Ensamblaje de kits'
+            }),
+            'descripcion': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Descripción detallada del tipo de conversión'
+            })
+        }
+        labels = {
+            'nombre': 'Nombre del Tipo',
+            'descripcion': 'Descripción'
+        }
+
+from django import forms
+from django.core.exceptions import ValidationError
+from .models import ConversionProducto, Almacen, Stock
+
+class EjecutarConversionForm(forms.Form):
+    conversion = forms.ModelChoiceField(
+        queryset=ConversionProducto.objects.none(),
+        label="Conversión a ejecutar",
+        widget=forms.Select(attrs={
+            'class': 'form-select select2',
+            'data-placeholder': 'Seleccione conversión'
+        })
+    )
+    almacen = forms.ModelChoiceField(
+        queryset=Almacen.objects.filter(activo=True),
+        label="Almacén",
+        widget=forms.Select(attrs={
+            'class': 'form-select select2',
+            'data-placeholder': 'Seleccione almacén'
+        })
+    )
+    cantidad = forms.IntegerField(
+        min_value=1,
+        label="Cantidad a convertir",
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Ej: 5'
+        })
+    )
+    motivo = forms.CharField(
+        required=False,
+        label="Motivo (opcional)",
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'rows': 2,
+            'placeholder': 'Ej: Preparación para venta navideña'
+        })
+    )
+
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Filtrar conversiones activas
+        self.fields['conversion'].queryset = ConversionProducto.objects.filter(
+            activo=True
+        ).prefetch_related('componentes__producto')
+        
+        # Si el usuario no es superuser, filtrar almacenes accesibles
+        if user and not user.is_superuser:
+            self.fields['almacen'].queryset = Almacen.objects.filter(
+                activo=True,
+                responsable=user
+            )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        conversion = cleaned_data.get('conversion')
+        almacen = cleaned_data.get('almacen')
+        cantidad = cleaned_data.get('cantidad')
+
+        if not all([conversion, almacen, cantidad]):
+            return cleaned_data
+
+        # Verificar stock para todos los componentes origen
+        componentes_origen = conversion.componentes.filter(tipo='ORIGEN')
+        for componente in componentes_origen:
+            stock = Stock.objects.filter(
+                producto=componente.producto,
+                almacen=almacen
+            ).first()
+            cantidad_necesaria = componente.cantidad * cantidad
+
+            if not stock or stock.cantidad < cantidad_necesaria:
+                self.add_error('cantidad', 
+                    f'Stock insuficiente de {componente.producto.nombre}. '
+                    f'Necesario: {cantidad_necesaria}, Disponible: {stock.cantidad if stock else 0}'
+                )
+
+        return cleaned_data
+
+    def clean_cantidad(self):
+        cantidad = self.cleaned_data['cantidad']
+        if cantidad <= 0:
+            raise ValidationError("La cantidad debe ser mayor a cero")
+        return cantidad
+
+class FiltroHistorialForm(forms.Form):
+    fecha_inicio = forms.DateField(
+        required=False,
+        label="Desde",
+        widget=forms.DateInput(attrs={
+            'class': 'form-control',
+            'type': 'date'
+        })
+    )
+    fecha_fin = forms.DateField(
+        required=False,
+        label="Hasta",
+        widget=forms.DateInput(attrs={
+            'class': 'form-control',
+            'type': 'date'
+        })
+    )
+    tipo = forms.ChoiceField(
+        required=False,
+        choices=[
+            ('', 'Todos'),
+            ('ENSAMBLE', 'Ensamblajes'),
+            ('DESENSAMBLE', 'Desensamblajes'),
+            ('REVERSION', 'Reversiones')
+        ],
+        widget=forms.Select(attrs={
+            'class': 'form-select'
+        })
+    )
 
 
 
+
+
+
+
+
+class ConversionComplejaForm(forms.ModelForm):
+    class Meta:
+        model = ConversionProducto
+        fields = ['nombre', 'tipo_conversion', 'costo_adicional', 'activo']
+        widgets = {
+            'nombre': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ej: "Harina 50kg a paquetes"'
+            }),
+            'tipo_conversion': forms.Select(attrs={
+                'class': 'form-select select2',
+                'data-placeholder': 'Seleccione tipo'
+            }),
+            'costo_adicional': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'step': '0.01',
+                'min': '0'
+            }),
+        }
+
+class ComponenteConversionForm(forms.ModelForm):
+    class Meta:
+        model = ComponenteConversion
+        fields = ['producto', 'tipo', 'cantidad']
+        widgets = {
+            'producto': forms.Select(attrs={
+                'class': 'form-select select2',
+                'data-placeholder': 'Seleccione producto'
+            }),
+            'tipo': forms.Select(attrs={
+                'class': 'form-select'
+            }),
+            'cantidad': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': 1
+            })
+        }
+
+ComponenteConversionFormSet = forms.inlineformset_factory(
+    ConversionProducto,
+    ComponenteConversion,
+    form=ComponenteConversionForm,
+    extra=1,
+    can_delete=True,
+    min_num=1,
+    validate_min=True
+)
+
+
+
+
+
+
+
+
+
+# forms.py
+from django import forms
+from .models import TrasladoProducto, DetalleTraslado
+
+class TrasladoForm(forms.ModelForm):
+    class Meta:
+        model = TrasladoProducto
+        fields = ['almacen_origen', 'almacen_destino', 'motivo']
+        widgets = {
+            'almacen_origen': forms.Select(attrs={'class': 'form-select'}),
+            'almacen_destino': forms.Select(attrs={'class': 'form-select'}),
+            'motivo': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        }
+    
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if user and not user.is_superuser:
+            # Filtrar almacenes a los que el usuario tiene acceso
+            self.fields['almacen_origen'].queryset = Almacen.objects.filter(
+                activo=True,
+                responsable=user
+            )
+            self.fields['almacen_destino'].queryset = Almacen.objects.filter(
+                activo=True
+            ).exclude(id__in=self.fields['almacen_origen'].queryset.values_list('id', flat=True))
+
+class DetalleTrasladoForm(forms.ModelForm):
+    class Meta:
+        model = DetalleTraslado
+        fields = ['producto', 'cantidad_solicitada']
+        widgets = {
+            'producto': forms.Select(attrs={'class': 'form-select'}),
+            'cantidad_solicitada': forms.NumberInput(attrs={'class': 'form-control'}),
+        }
+
+DetalleTrasladoFormSet = forms.inlineformset_factory(
+    TrasladoProducto,
+    DetalleTraslado,
+    form=DetalleTrasladoForm,
+    extra=1,
+    can_delete=True,
+    min_num=1
+)

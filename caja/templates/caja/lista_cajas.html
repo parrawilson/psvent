@@ -1,5 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load form_filters %}
+{% load filtros_paraguay %}
 
 {% block content %}
 <div class="flex justify-center py-6 px-4">
@@ -37,7 +39,7 @@
                 {{ caja.get_estado_display }}
               </span>
             </td>
-            <td class="px-6 py-4 whitespace-nowrap">S/ {{ caja.saldo_actual|floatformat:2 }}</td>
+            <td class="px-6 py-4 whitespace-nowrap">Gs/ {{ caja.saldo_actual|pyg_intcomma }}</td>
             <td class="px-6 py-4 whitespace-nowrap">
               <a href="{% url 'caja:detalle_caja' caja.id %}" class="text-blue-600 hover:text-blue-800 mr-3">Detalle</a>
               {% if caja.estado == 'CERRADA' %}

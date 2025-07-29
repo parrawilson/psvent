@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+  <div class="bg-white rounded-lg shadow-md overflow-hidden">
+    <!-- Encabezado -->
+    <div class="bg-blue-600 px-6 py-4 border-b border-blue-700">
+      <h1 class="text-xl font-semibold text-white">
+        Editar Secuencia: {{ object.get_tipo_documento_display }}
+      </h1>
+      <p class="text-blue-100 text-sm mt-1">
+        Punto: {{ punto_expedicion.get_codigo_completo }} - {{ punto_expedicion.descripcion }}
+      </p>
+    </div>
+
+    <!-- Mensajes -->
+    {% if messages %}
+      {% for message in messages %}
+        <div class="{% if message.tags == 'success' %}bg-green-100 border-green-200 text-green-800{% else %}bg-red-100 border-red-200 text-red-800{% endif %} px-4 py-3 mb-4 rounded">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    <!-- Errores del formulario -->
+    {% if form.non_field_errors %}
+      <div class="bg-red-100 border border-red-200 text-red-800 px-4 py-3 mb-4 rounded">
+        {% for error in form.non_field_errors %}
+          <p>{{ error }}</p>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <!-- Formulario -->
+    <form method="post" class="p-6">
+      {% csrf_token %}
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Prefijo -->
+        <div>
+          <label for="{{ form.prefijo.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            {{ form.prefijo.label }} *
+          </label>
+          {{ form.prefijo }}
+          {% if form.prefijo.errors %}
+            <div class="mt-1 text-sm text-red-600">
+              {{ form.prefijo.errors.as_text }}
+            </div>
+          {% endif %}
+          <p class="mt-1 text-xs text-gray-500">3 dígitos que identifican esta secuencia</p>
+        </div>
+
+        <!-- Siguiente Número -->
+        <div>
+          <label for="{{ form.siguiente_numero.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            {{ form.siguiente_numero.label }} *
+          </label>
+          {{ form.siguiente_numero }}
+          {% if form.siguiente_numero.errors %}
+            <div class="mt-1 text-sm text-red-600">
+              {{ form.siguiente_numero.errors.as_text }}
+            </div>
+          {% endif %}
+          <p class="mt-1 text-xs text-gray-500">
+            Documentos emitidos: {{ view.get_documentos_emitidos.count }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Formato -->
+      <div class="mt-6">
+        <label for="{{ form.formato.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+          {{ form.formato.label }} *
+        </label>
+        {{ form.formato }}
+        {% if form.formato.errors %}
+          <div class="mt-1 text-sm text-red-600">
+            {{ form.formato.errors.as_text }}
+          </div>
+        {% endif %}
+        <div class="mt-1 text-xs text-gray-500">
+          {{ form.formato.help_text|safe }}
+        </div>
+      </div>
+
+      <!-- Activo -->
+      <div class="mt-6 flex items-center">
+        {{ form.activo }}
+        <label for="{{ form.activo.id_for_label }}" class="ml-2 text-sm font-medium text-gray-700">
+          {{ form.activo.label }}
+        </label>
+      </div>
+      {% if form.activo.errors %}
+        <div class="mt-1 text-sm text-red-600">
+          {{ form.activo.errors.as_text }}
+        </div>
+      {% endif %}
+
+      <!-- Botones -->
+      <div class="mt-8 flex justify-end space-x-3">
+        <a href="{% url 'empresa:editar_punto' punto_expedicion.id %}" 
+           class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+          Volver al Punto
+        </a>
+        <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+          Guardar Cambios
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Script para mostrar ejemplo de formato -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const formatoInput = document.querySelector('#{{ form.formato.id_for_label }}');
+  const ejemploOutput = document.createElement('p');
+  ejemploOutput.className = 'mt-2 text-xs text-gray-600';
+  formatoInput.parentNode.appendChild(ejemploOutput);
+
+  function actualizarEjemplo() {
+    const formato = formatoInput.value || '{prefijo}-{sucursal}-{punto}-{numero:07d}';
+    ejemploOutput.textContent = `Ejemplo: ${formato}
+      → ${formato
+        .replace('{prefijo}', '001')
+        .replace('{sucursal}', '{{ punto_expedicion.sucursal.codigo }}')
+        .replace('{punto}', '{{ punto_expedicion.codigo }}')
+        .replace('{numero:07d}', '0000001')}`;
+  }
+
+  formatoInput.addEventListener('input', actualizarEjemplo);
+  actualizarEjemplo();
+});
+</script>
+{% endblock %}

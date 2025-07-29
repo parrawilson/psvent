@@ -18,3 +18,15 @@ DATABASES = {
        'PORT': config('DB_PORT'),
    }
 }
+
+
+# Configuración específica para desarrollo
+USE_SIFEN_MOCK = os.getenv('USE_SIFEN_MOCK', 'True') == 'True'
+
+SIFEN_CONFIG.update({
+    'ENDPOINT': 'http://localhost:8000/mock-sifen/',
+    'API_KEY': os.getenv('SIFEN_API_KEY'),
+    'CERTIFICADO': str(BASE_DIR / 'certs' / 'certificado_prueba.pfx'),
+    'CERTIFICADO_PASSWORD': os.getenv('SIFEN_CERT_PASSWORD'),
+    'WKHTMLTOPDF_PATH': os.getenv('WKHTMLTOPDF_PATH', '/usr/local/bin/wkhtmltopdf'),
+})

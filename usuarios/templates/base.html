@@ -242,16 +242,16 @@
           <i class="fas fa-exchange-alt"></i>
           <span>Movimientos</span>
         </a>
-        <a href="{% url 'almacen:reportes' %}" class="submenu-item block {% if request.resolver_match.url_name == 'reportes' %}menu-item-active{% endif %}">
-          <i class="fas fa-chart-pie"></i>
-          <span>Reportes</span>
+        <a href="{% url 'almacen:menu_conversiones' %}" class="submenu-item block {% if request.resolver_match.url_name == 'lista_conversiones' %}menu-item-active{% endif %}">
+          <i class="fa-solid fa-arrows-to-dot"></i>
+          <span>Conversiones</span>
         </a>
         <a href="{% url 'almacen:lista_unidades_medidas' %}" class="submenu-item {% if request.resolver_match.url_name == 'lista_unidades_medida' %}menu-item-active{% endif %}">
           <i class="fas fa-ruler-combined"></i>
           <span>Unidades de M.</span>
         </a>
 
-        <a href="{% url 'almacen:lista_almacenes' %}" class="submenu-item {% if request.resolver_match.url_name == 'almacen:lista_almacenes' %}menu-item-active{% endif %}">
+        <a href="{% url 'almacen:menu_almacenes' %}" class="submenu-item {% if request.resolver_match.url_name == 'almacen:menu_almacenes' %}menu-item-active{% endif %}">
           <i class="fas fa-warehouse w-5 text-center mr-3"></i>
           <span>Deposito</span>
         </a>
@@ -313,6 +313,10 @@
           <i class="fas fa-users w-5"></i>
           <span>Clientes</span>
         </a>
+        <a href="{% url 'ventas:lista_timbrados' %}" class="submenu-item block {% if request.resolver_match.url_name == 'lista_timbrados' %}menu-item-active{% endif %}">
+          <i class="fa-solid fa-stamp"></i>
+          <span>Timbrados</span>
+        </a>
         <a href="{% url 'ventas:lista_ventas' %}" class="submenu-item block {% if request.resolver_match.url_name == 'lista_ventas' %}menu-item-active{% endif %}">
           <i class="fa-solid fa-list-check"></i>
           <span>Lista de ventas</span>
@@ -327,7 +331,7 @@
 
 
 
-        <!-- Ítem Caja con submenú -->
+    <!-- Ítem Caja con submenú -->
     <div class="relative group">
       <button class="submenu-toggle w-full flex items-center justify-between px-3 py-3 rounded hover:bg-blue-100 text-gray-700 font-medium {% if 'caja/' in request.path %}bg-blue-50{% endif %}">
         <span class="flex items-center">
@@ -368,6 +372,36 @@
       </span>
       <span class="tooltip absolute left-full ml-2 bg-gray-800 text-white text-sm px-2 py-1 rounded">Clientes</span>
     </a>
+
+
+    <!-- Ítem empresa con submenú -->
+    <div class="relative group">
+      <button class="submenu-toggle w-full flex items-center justify-between px-3 py-3 rounded hover:bg-blue-100 text-gray-700 font-medium {% if 'empresa/' in request.path %}bg-blue-50{% endif %}">
+        <span class="flex items-center">
+          <i class="fa-solid fa-building mr-3"></i>
+          <span class="sidebar-text">Empresa</span>
+        </span>
+        <i class="fas fa-chevron-right text-xs text-gray-500 chevron transform transition-transform duration-200 sidebar-text"></i>
+      </button>
+      <span class="tooltip absolute left-full ml-2 bg-gray-800 text-white text-sm px-2 py-1 rounded">Empresa</span>
+      
+      <!-- Submenú -->
+      <div class="submenu pl-2 space-y-1 {% if 'empresa/' in request.path %}max-h-screen{% else %}max-h-0{% endif %}">
+        <a href="{% url 'empresa:editar_empresa' 0 %}" class="submenu-item block {% if request.resolver_match.url_name == 'editar_empresa' %}menu-item-active{% endif %}">
+          <i class="fa-solid fa-info"></i>
+          <span>Datos</span>
+        </a>
+        
+        <a href="{% url 'empresa:lista_sucursales' %}" class="submenu-item block {% if request.resolver_match.url_name == 'lista_sucursales' %}menu-item-active{% endif %}">
+          <i class="fa-solid fa-code-branch"></i>
+          <span>Surusales</span>
+        </a>
+        <a href="{% url 'empresa:lista_actividades' %}" class="submenu-item block {% if request.resolver_match.url_name == 'lista_actividades' %}menu-item-active{% endif %}">
+          <i class="fa-solid fa-briefcase"></i>
+          <span>Act. Económicas</span>
+        </a>
+      </div>
+    </div>
 
     
   </nav>

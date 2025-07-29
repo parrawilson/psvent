@@ -1,0 +1,366 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load form_filters %}
+
+{% block content %}
+<div class="flex justify-center py-6 px-4">
+  <div class="w-full max-w-5xl bg-white p-6 rounded-xl shadow-lg">
+    <h1 class="text-2xl font-bold text-gray-800 mb-6">
+      {% if object.pk %}Editar Empresa{% else %}Crear Nueva Empresa{% endif %}
+    </h1>
+
+    <!-- Mensajes -->
+    {% if messages %}
+      {% for message in messages %}
+        <div class="p-4 mb-4 rounded border 
+          {% if message.tags == 'success' %}
+            bg-green-100 border-green-200 text-green-800
+          {% elif message.tags == 'error' %}
+            bg-red-100 border-red-200 text-red-800
+          {% endif %}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data" class="space-y-6">
+      {% csrf_token %}
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- RUC y botón consultar -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">RUC *</label>
+          <div class="flex flex-col sm:flex-row gap-2">
+            {{ form.ruc|add_attrs:"class=w-full flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" }}
+            <button type="button"
+              onclick="consultarRUC()"
+              class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium px-4 py-2 rounded-md border border-gray-300 flex items-center justify-center transition">
+              <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+              </svg>
+              Consultar
+            </button>
+          </div>
+          {{ form.ruc.errors }}
+        </div>
+
+        <!-- DV -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Dígito Verificador</label>
+          {{ form.dv|add_attrs:"class=w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" }}
+          {{ form.dv.errors }}
+        </div>
+
+        <!-- Nombre legal -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Razón Social *</label>
+          {{ form.nombre|add_attrs:"class=w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" }}
+          {{ form.nombre.errors }}
+        </div>
+
+        <!-- Nombre comercial -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Nombre Comercial</label>
+          {{ form.nombre_comercial|add_attrs:"class=w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" }}
+          {{ form.nombre_comercial.errors }}
+        </div>
+
+        <!-- Teléfono -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
+          {{ form.telefono|add_attrs:"class=w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" }}
+          {{ form.telefono.errors }}
+        </div>
+
+        <!-- Email -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+          {{ form.email|add_attrs:"class=w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" }}
+          {{ form.email.errors }}
+        </div>
+        <!-- Tipo Contribuyente  -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Tipo Contribuyente</label>
+          {{ form.t_contribuyente|add_attrs:"class=w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" }}
+          {{ form.t_contribuyente.errors }}
+        </div>
+        <!-- Régimnen  -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Régimen</label>
+          {{ form.regimen|add_attrs:"class=w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" }}
+          {{ form.regimen.errors }}
+        </div>
+      
+      </div>
+
+      
+
+      
+
+      <!-- Ubicación -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Departamento -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Departamento *</label>
+          <select name="departamento_codigo" id="id_departamento_codigo" 
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+            <option value="">---------</option>
+            {% for depto in form.fields.departamento_codigo.choices %}
+              <option value="{{ depto.0 }}" {% if form.departamento_codigo.value == depto.0 %}selected{% endif %}>{{ depto.1 }}</option>
+            {% endfor %}
+          </select>
+          {{ form.departamento_codigo.errors }}
+        </div>
+
+        <!-- Distrito -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Distrito</label>
+          <select name="distrito_codigo" id="id_distrito_codigo" 
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                  {% if not form.departamento_codigo.value %}disabled{% endif %}>
+            <option value="">---------</option>
+            {% if form.distrito_codigo.field.choices %}
+              {% for distrito in form.distrito_codigo.field.choices %}
+                <option value="{{ distrito.0 }}" {% if form.distrito_codigo.value == distrito.0 %}selected{% endif %}>{{ distrito.1 }}</option>
+              {% endfor %}
+            {% endif %}
+          </select>
+          {{ form.distrito_codigo.errors }}
+        </div>
+
+        <!-- Ciudad -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Ciudad</label>
+          <select name="ciudad_codigo" id="id_ciudad_codigo" 
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                  {% if not form.distrito_codigo.value %}disabled{% endif %}>
+            <option value="">---------</option>
+            {% if form.ciudad_codigo.field.choices %}
+              {% for ciudad in form.ciudad_codigo.field.choices %}
+                <option value="{{ ciudad.0 }}" {% if form.ciudad_codigo.value == ciudad.0 %}selected{% endif %}>{{ ciudad.1 }}</option>
+              {% endfor %}
+            {% endif %}
+          </select>
+          {{ form.ciudad_codigo.errors }}
+        </div>
+
+        <!-- Barrio -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Barrio</label>
+          <select name="barrio_codigo" id="id_barrio_codigo" 
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                  {% if not form.ciudad_codigo.value %}disabled{% endif %}>
+            <option value="">---------</option>
+            {% if form.barrio_codigo.field.choices %}
+              {% for barrio in form.barrio_codigo.field.choices %}
+                <option value="{{ barrio.0 }}" {% if form.barrio_codigo.value == barrio.0 %}selected{% endif %}>{{ barrio.1 }}</option>
+              {% endfor %}
+            {% endif %}
+          </select>
+          {{ form.barrio_codigo.errors }}
+        </div>
+
+
+         <!-- Calle principal -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Calle principal *</label>
+          {{ form.direccion|add_attrs:"class=w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" }}
+          {{ form.direccion.errors }}
+        </div>
+
+      
+        <!-- Numero de casa -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">No. de Casa</label>
+          {{ form.num_casa|add_attrs:"class=w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" }}
+          {{ form.num_casa.errors }}
+        </div>
+
+
+        <!-- Calle secundaria -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Calle secundaria</label>
+          {{ form.calle_sec|add_attrs:"class=w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" }}
+          {{ form.calle_sec.errors }}
+        </div>
+
+        <!-- No edificio-piso-dpto -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">No Edificio/Piso/Dpto...</label>
+          {{ form.no_edificio|add_attrs:"class=w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" }}
+          {{ form.no_edificio.errors }}
+        </div>
+
+      </div>
+
+      <!-- Logo -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Logotipo</label>
+        {% if object.logo %}
+          <div class="mb-2">
+            <img src="{{ object.logo.url }}" alt="Logo actual" class="h-16 object-contain">
+            <label class="inline-flex items-center mt-2">
+              <input type="checkbox" name="logo-clear" class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-200">
+              <span class="ml-2 text-sm text-gray-600">Eliminar logo actual</span>
+            </label>
+          </div>
+        {% endif %}
+        <input type="file" name="logo" accept="image/*" class="block w-full text-sm text-gray-500
+          file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0
+          file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700
+          hover:file:bg-blue-100" />
+        {{ form.logo.errors }}
+      </div>
+
+      <!-- Botones -->
+      <div class="flex justify-end pt-4 gap-4">
+        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg">
+          Guardar Empresa
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- SweetAlert para notificaciones -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  // Función para consultar RUC
+  async function consultarRUC() {
+    const rucInput = document.querySelector('input[name="ruc"]');
+    const dvInput = document.querySelector('input[name="dv"]');
+    const nombreInput = document.querySelector('input[name="nombre"]');
+    
+    const ruc = rucInput.value.trim();
+    if (!ruc) {
+      Swal.fire({ icon: 'warning', title: 'RUC requerido', text: 'Ingrese un RUC para consultar' });
+      return;
+    }
+
+    const { value: confirmar } = await Swal.fire({
+      title: `¿Consultar RUC ${ruc}?`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, consultar',
+      cancelButtonText: 'Cancelar'
+    });
+
+    if (!confirmar) return;
+
+    Swal.fire({ title: 'Consultando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+    try {
+      const res = await fetch(`https://turuc.com.py/api/contribuyente?ruc=${ruc}`);
+      const data = await res.json();
+      if (data && data.data) {
+        nombreInput.value = data.data.razonSocial || '';
+        dvInput.value = data.data.dv || '';
+        Swal.fire({ icon: 'success', title: 'Datos encontrados', text: 'RUC cargado correctamente' });
+      } else {
+        Swal.fire({ icon: 'info', title: 'No encontrado', text: 'No se encontraron datos para ese RUC' });
+      }
+    } catch (err) {
+      Swal.fire({ icon: 'error', title: 'Error', text: 'Ocurrió un error al consultar el RUC.' });
+    }
+  }
+
+  // Funciones para cargar ubicaciones dinámicas
+  document.addEventListener('DOMContentLoaded', function() {
+    const deptoSelect = document.getElementById('id_departamento_codigo');
+    const distritoSelect = document.getElementById('id_distrito_codigo');
+    const ciudadSelect = document.getElementById('id_ciudad_codigo');
+    const barrioSelect = document.getElementById('id_barrio_codigo');
+
+    // Cargar distritos cuando cambia el departamento
+    deptoSelect.addEventListener('change', function() {
+      const departamentoCodigo = this.value;
+      
+      // Resetear selects dependientes
+      distritoSelect.innerHTML = '<option value="">---------</option>';
+      ciudadSelect.innerHTML = '<option value="">---------</option>';
+      barrioSelect.innerHTML = '<option value="">---------</option>';
+      
+      if (departamentoCodigo) {
+        distritoSelect.disabled = false;
+        loadOptions('{% url "empresa:get_distritos" %}', {departamento: departamentoCodigo}, distritoSelect);
+      } else {
+        distritoSelect.disabled = true;
+        ciudadSelect.disabled = true;
+        barrioSelect.disabled = true;
+      }
+    });
+
+    // Cargar ciudades cuando cambia el distrito
+    distritoSelect.addEventListener('change', function() {
+      const departamentoCodigo = deptoSelect.value;
+      const distritoCodigo = this.value;
+      
+      // Resetear selects dependientes
+      ciudadSelect.innerHTML = '<option value="">---------</option>';
+      barrioSelect.innerHTML = '<option value="">---------</option>';
+      
+      if (departamentoCodigo && distritoCodigo) {
+        ciudadSelect.disabled = false;
+        loadOptions('{% url "empresa:get_ciudades" %}', {
+          departamento: departamentoCodigo,
+          distrito: distritoCodigo
+        }, ciudadSelect);
+      } else {
+        ciudadSelect.disabled = true;
+        barrioSelect.disabled = true;
+      }
+    });
+
+    // Cargar barrios cuando cambia la ciudad
+    ciudadSelect.addEventListener('change', function() {
+      const departamentoCodigo = deptoSelect.value;
+      const distritoCodigo = distritoSelect.value;
+      const ciudadCodigo = this.value;
+      
+      // Resetear select de barrios
+      barrioSelect.innerHTML = '<option value="">---------</option>';
+      
+      if (departamentoCodigo && distritoCodigo && ciudadCodigo) {
+        barrioSelect.disabled = false;
+        loadOptions('{% url "empresa:get_barrios" %}', {
+          departamento: departamentoCodigo,
+          distrito: distritoCodigo,
+          ciudad: ciudadCodigo
+        }, barrioSelect);
+      } else {
+        barrioSelect.disabled = true;
+      }
+    });
+
+    // Función genérica para cargar opciones
+    async function loadOptions(url, params, targetSelect) {
+      try {
+        const queryString = new URLSearchParams(params).toString();
+        const response = await fetch(`${url}?${queryString}`);
+        
+        if (!response.ok) {
+          throw new Error('Error al cargar los datos');
+        }
+        
+        const data = await response.json();
+        
+        // Limpiar opciones existentes (excepto la primera opción vacía)
+        while (targetSelect.options.length > 1) {
+          targetSelect.remove(1);
+        }
+        
+        // Agregar nuevas opciones
+        data.forEach(item => {
+          const option = document.createElement('option');
+          option.value = item.codigo;
+          option.textContent = item.nombre;
+          targetSelect.appendChild(option);
+        });
+      } catch (error) {
+        console.error('Error:', error);
+      }
+    }
+  });
+</script>
+{% endblock %}

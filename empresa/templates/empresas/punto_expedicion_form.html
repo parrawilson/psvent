@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load form_filters %}
+
+{% block content %}
+<div class="flex justify-center py-6 px-4">
+  <div class="w-full max-w-2xl bg-white p-6 rounded-xl shadow-lg">
+    <h1 class="text-2xl font-bold text-gray-800 mb-6">
+      {% if object %}Editar Punto de Expedición{% else %}Crear Nuevo Punto de Expedición{% endif %}
+    </h1>
+
+    <!-- Mensajes de éxito o error -->
+    {% if messages %}
+      {% for message in messages %}
+        {% if message.tags == 'success' %}
+          <div class="p-4 mb-6 bg-green-100 border border-green-200 text-green-800 rounded">
+            {{ message }}
+          </div>
+        {% elif message.tags == 'error' %}
+          <div class="p-4 mb-6 bg-red-100 border border-red-200 text-red-800 rounded">
+            {{ message }}
+          </div>
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+
+    <form method="post" class="space-y-6">
+      {% csrf_token %}
+      {{ form.sucursal.as_hidden }}
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Campo Código -->
+        <div>
+          <label for="{{ form.codigo.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            Código del Punto *
+          </label>
+          {{ form.codigo }}
+          {% if form.codigo.errors %}
+            <div class="mt-1 text-sm text-red-600">
+              {{ form.codigo.errors.as_text }}
+            </div>
+          {% endif %}
+          <p class="mt-1 text-sm text-gray-500">3 dígitos numéricos únicos para esta sucursal</p>
+        </div>
+
+        <!-- Campo Descripción -->
+        <div>
+          <label for="{{ form.descripcion.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            Descripción *
+          </label>
+          {{ form.descripcion }}
+          {% if form.descripcion.errors %}
+            <div class="mt-1 text-sm text-red-600">
+              {{ form.descripcion.errors.as_text }}
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Campo Activo -->
+      <div class="flex items-center space-x-2">
+        {{ form.activo|add_class:"h-4 w-4 text-blue-600 border-gray-300 rounded" }}
+        <label for="{{ form.activo.id_for_label }}" class="text-sm text-gray-700">
+          {{ form.activo.label }}
+        </label>
+      </div>
+
+      {% if form.activo.errors %}
+        <div class="mt-1 text-sm text-red-600">
+          {{ form.activo.errors.0 }}
+        </div>
+      {% endif %}
+
+
+      <!-- Información de sucursal -->
+      <div class="pt-4 text-sm text-gray-600 bg-gray-100 p-3 rounded">
+        <strong>Sucursal:</strong> {{ sucursal.nombre }} (Código: {{ sucursal.codigo }})
+      </div>
+
+      <!-- Botones -->
+      <div class="flex flex-col md:flex-row gap-4 pt-6">
+        <a href="{% url 'empresa:lista_puntos' object.sucursal.id|default:view.kwargs.sucursal_id %}" 
+           class="flex-1 text-center bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-6 rounded-lg">
+          Cancelar
+        </a>
+        <button type="submit" 
+                class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg">
+          {% if object %}Actualizar{% else %}Crear{% endif %} Punto
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Estilos para campos -->
+<style>
+  input, select, textarea {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    background-color: #fff;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  }
+
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+
+  input[type="number"] {
+    padding-left: 0.75rem;
+  }
+</style>
+
+<!-- Validación en tiempo real -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const codigoInput = document.querySelector('#{{ form.codigo.id_for_label }}');
+  if (codigoInput) {
+    codigoInput.addEventListener('input', function() {
+      this.value = this.value.replace(/[^0-9]/g, '').slice(0, 3);
+    });
+  }
+});
+</script>
+{% endblock %}
+
+

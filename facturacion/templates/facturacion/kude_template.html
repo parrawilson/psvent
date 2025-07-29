@@ -1,0 +1,80 @@
+<!-- templates/facturacion/kude_template.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>KUDE {{ documento.venta.numero }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+        .header { text-align: center; margin-bottom: 20px; }
+        .header h1 { margin: 0; font-size: 24px; }
+        .header h2 { margin: 5px 0 0; font-size: 18px; color: #555; }
+        .info-box { display: flex; justify-content: space-between; margin-bottom: 20px; }
+        .info-section { width: 48%; }
+        .info-section h3 { border-bottom: 1px solid #ddd; padding-bottom: 5px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .totals { text-align: right; margin-top: 20px; }
+        .footer { margin-top: 30px; font-size: 12px; text-align: center; color: #777; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>KUDE - Documento Electrónico</h1>
+        <h2>N° {{ documento.venta.numero }}</h2>
+    </div>
+
+    <div class="info-box">
+        <div class="info-section">
+            <h3>Datos del Emisor</h3>
+            <p><strong>Razón Social:</strong> Tu Empresa S.A.</p>
+            <p><strong>RUC:</strong> 80012345-1</p>
+            <p><strong>Dirección:</strong> Av. Principal 123</p>
+            <p><strong>Teléfono:</strong> (021) 123456</p>
+        </div>
+
+        <div class="info-section">
+            <h3>Datos del Cliente</h3>
+            <p><strong>Nombre:</strong> {{ venta.cliente.nombre_completo|default:"Consumidor Final" }}</p>
+            <p><strong>Documento:</strong> {{ venta.cliente.tipo_documento }} {{ venta.cliente.numero_documento|default:"-" }}</p>
+            <p><strong>Fecha:</strong> {{ fecha }}</p>
+        </div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Código</th>
+                <th>Descripción</th>
+                <th>Cantidad</th>
+                <th>Precio Unit.</th>
+                <th>Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for detalle in detalles %}
+            <tr>
+                <td>{{ detalle.producto.codigo }}</td>
+                <td>{{ detalle.producto.nombre }}</td>
+                <td>{{ detalle.cantidad }}</td>
+                <td>{{ detalle.precio_unitario|floatformat:0 }}</td>
+                <td>{{ detalle.subtotal|floatformat:0 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="totals">
+        <p><strong>Subtotal:</strong> {{ venta.subtotal|floatformat:0 }}</p>
+        <p><strong>IVA 10%:</strong> {{ venta.iva10|floatformat:0 }}</p>
+        <p><strong>IVA 5%:</strong> {{ venta.iva5|floatformat:0 }}</p>
+        <p><strong>Total:</strong> {{ venta.total|floatformat:0 }}</p>
+    </div>
+
+    <div class="footer">
+        <p>Este documento es una representación impresa del comprobante electrónico</p>
+        <p>N° de documento: {% if documento.codigo_set %}{{ documento.codigo_set }}{% else %}PENDIENTE{% endif %}</p>
+    </div>
+</body>
+</html>

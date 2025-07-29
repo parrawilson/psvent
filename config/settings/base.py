@@ -25,6 +25,7 @@ INSTALLED_APPS = [
     'caja',
     'ventas',
     'facturacion',
+    'empresa',
     'django.contrib.staticfiles',
 ]
 
@@ -77,3 +78,48 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Agrega esto al final de settings.py
 SIFEN_CERT_PATH = os.path.join(BASE_DIR, 'sifen_certs', 'cert.pem')
 SIFEN_KEY_PATH = os.path.join(BASE_DIR, 'sifen_certs', 'key.pem')
+
+WKHTMLTOPDF_PATH = r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe'
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': 'debug.log',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+        'facturacion': {
+            'handlers': ['file'],
+            'level': 'ERROR',
+        },
+    },
+}
+
+
+
+# Configuración común para todos los entornos
+SIFEN_CONFIG = {
+    'API_TIMEOUT': 30,  # Tiempo máximo de espera en segundos
+    'MAX_REINTENTOS': 3,  # Número máximo de reintentos
+    'TIEMPO_ENTRE_REINTENTOS': 5,  # Segundos entre reintentos
+    'LOG_LEVEL': 'INFO',  # Nivel de logging
+    
+    # Plantillas para documentos
+    'TEMPLATES': {
+        'FACTURA': 'facturacion/templates/factura.xml',
+        'KUDE': 'facturacion/templates/kude.html',
+    },
+    
+    # Certificados digitales (se sobreescriben en producción)
+    'CERTIFICADO': None,
+    'CERTIFICADO_PASSWORD': None,
+}

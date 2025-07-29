@@ -3,13 +3,14 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils import timezone
 from usuarios.models import PerfilUsuario
+from empresa.models import PuntoExpedicion
 
 class Caja(models.Model):
     ESTADO_CHOICES = [
         ('ABIERTA', 'Abierta'),
         ('CERRADA', 'Cerrada'),
     ]
-
+    punto_expedicion = models.OneToOneField(PuntoExpedicion, on_delete=models.PROTECT,related_name='caja')
     nombre = models.CharField(max_length=100, unique=True)
     saldo_inicial = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     saldo_actual = models.DecimalField(max_digits=12, decimal_places=2, default=0)

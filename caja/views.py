@@ -6,7 +6,7 @@ from .models import Caja, MovimientoCaja,SesionCaja
 from .forms import CajaForm, AperturaCajaForm, MovimientoCajaForm, CierreCajaForm
 from usuarios.models import PerfilUsuario
 
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.template.loader import get_template
 from xhtml2pdf import pisa
 from io import BytesIO
@@ -468,3 +468,24 @@ def reporte_sesion_pdf(request, sesion_id):
         return HttpResponse('Error al generar el PDF', status=500)
     
     return response
+
+
+from empresa.models import SecuenciaDocumento
+
+def obtener_datos_caja(request, caja_id):
+    try:
+        caja = Caja.objects.get(pk=caja_id)
+        punto_expedicion = caja.punto_expedicion
+        
+        # Obtener todas las secuencias disponibles para este punto de expedición
+        secuencias = SecuenciaDocumento.objects.filter(
+            punto_expedicion=punto_expedicion
+        ).values('tipo_documento', 'siguiente_numero', 'formato')
+        
+        return JsonResponse({
+            'codigo': punto_expedicion.get_codigo_completo(),
+            'descripcion': punto_expedicion.descripcion,
+            'secuencias': list(secuencias)
+        })
+    except Caja.DoesNotExist:
+        return JsonResponse({'error': 'Caja no encontrada'}, status=404)

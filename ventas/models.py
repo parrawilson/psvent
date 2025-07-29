@@ -5,13 +5,26 @@ from django.utils import timezone
 from almacen.models import Producto, Almacen, Stock, MovimientoInventario
 from usuarios.models import PerfilUsuario
 from caja.models import MovimientoCaja
+from empresa.models import PuntoExpedicion, SecuenciaDocumento
+from django.core.validators import RegexValidator
 
 
 class Cliente(models.Model):
+    TIPO_CONTRIBUYENTE = (
+        ('1', 'Persona Física'),
+        ('2', 'Persona Jurídica'),
+    )
+    TIPO_NATURALEZA = [
+        ('1', 'Contribuyente'),
+        ('2', 'No Contribuyente'),   
+    ]
     TIPO_DOCUMENTO_CHOICES = [
-        ('DNI', 'DNI'),
-        ('RUC', 'RUC'),
-        ('CE', 'Carnet de Extranjería'),
+        ('1', 'Cédula paraguaya'),
+        ('2', 'Pasaporte'),
+        ('3', 'Cédula extranjera'),
+        ('4', 'Carnet de residencia'),
+        ('5', 'Innominado'),
+        ('6', 'Tarjeta Diplomática de exoneración fiscal'),
     ]
 
     TIPO_CLIENTE_CHOICES = [
@@ -19,7 +32,11 @@ class Cliente(models.Model):
         ('MAYORISTA', 'Mayorista'),   
     ]
 
-    tipo_documento = models.CharField(max_length=3, choices=TIPO_DOCUMENTO_CHOICES, default='DNI')
+    pais_cod = models.CharField(max_length=5, default='PRY')
+    pais = models.CharField(max_length=50, default='Paraguay')
+    naturaleza = models.CharField(max_length=3, choices=TIPO_NATURALEZA, default='2')
+    t_contribuyente = models.CharField(max_length=1, choices=TIPO_CONTRIBUYENTE, blank=True)
+    tipo_documento = models.CharField(max_length=3, choices=TIPO_DOCUMENTO_CHOICES, default='1')
     numero_documento = models.CharField(max_length=20, unique=True)
     dv = models.CharField(max_length=2,blank=True)
     nombre_completo = models.CharField(max_length=200)
@@ -31,6 +48,7 @@ class Cliente(models.Model):
     creado = models.DateTimeField(auto_now_add=True)
     actualizado = models.DateTimeField(auto_now=True)
 
+
     class Meta:
         verbose_name = 'Cliente'
         verbose_name_plural = 'Clientes'
@@ -38,6 +56,73 @@ class Cliente(models.Model):
 
     def __str__(self):
         return f"{self.nombre_completo} ({self.tipo_documento}:{self.numero_documento})"
+
+
+
+class Timbrado(models.Model):
+    TIPO_EMISION_CHOICES = [
+        ('FISICO', 'Comprobante Físico'),
+        ('ELECTRONICO', 'Comprobante Electrónico'),
+    ]
+    
+    ESTADO_CHOICES = [
+        ('ACTIVO', 'Activo'),
+        ('VENCIDO', 'Vencido'),
+    ]
+
+    numero = models.CharField(
+        max_length=8,
+        unique=True,
+        verbose_name='Número de Timbrado',
+        validators=[RegexValidator(r'^\d{8}$', 'Debe ser un número de 8 dígitos')]
+    )
+    tipo_emision = models.CharField(
+        max_length=20,
+        choices=TIPO_EMISION_CHOICES,
+        default='ELECTRONICO',
+        verbose_name='Tipo de Emisión'
+    )
+    fecha_inicio = models.DateField(verbose_name='Fecha de Inicio Vigencia')
+    fecha_fin = models.DateField(verbose_name='Fecha de Fin Vigencia')
+    estado = models.CharField(
+        max_length=20,
+        choices=ESTADO_CHOICES,
+        default='ACTIVO',
+        editable=False
+    )
+    activo = models.BooleanField(default=True)
+    creado = models.DateTimeField(auto_now_add=True)
+    actualizado = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Timbrado'
+        verbose_name_plural = 'Timbrados'
+        ordering = ['-fecha_inicio']
+
+    def __str__(self):
+        return f"Timbrado {self.numero}"
+
+    def clean(self):
+        # Validar fechas
+        if self.fecha_inicio >= self.fecha_fin:
+            raise ValidationError("La fecha de inicio debe ser anterior a la fecha de fin")
+
+    def save(self, *args, **kwargs):
+        # Actualizar estado según fechas
+        hoy = timezone.now().date()
+        if hoy > self.fecha_fin:
+            self.estado = 'VENCIDO'
+        else:
+            self.estado = 'ACTIVO'
+        
+        super().save(*args, **kwargs)
+
+    @property
+    def vigente(self):
+        """Indica si el timbrado está vigente"""
+        hoy = timezone.now().date()
+        return self.activo and self.fecha_inicio <= hoy <= self.fecha_fin
+
 
 class Venta(models.Model):
     ESTADO_CHOICES = [
@@ -56,7 +141,6 @@ class Venta(models.Model):
     TIPO_DOCUMENTO = [
         ('F','FACTURA'),
         ('T','TICKET'),
-        ('BV','BOLETA DE VENTA'),
     ]
 
     TIPO_CONDICION =[
@@ -67,10 +151,16 @@ class Venta(models.Model):
     numero = models.CharField(max_length=20, unique=True)
     tipo_documento = models.CharField(max_length=20,choices=TIPO_DOCUMENTO, default='T')
     numero_documento = models.CharField(max_length=15,blank=True)
-    timbrado = models.CharField(max_length=8, blank=True)
+    timbrado = models.ForeignKey(Timbrado, on_delete=models.PROTECT, null=True, blank=True)
     condicion = models.CharField(max_length=20,choices=TIPO_CONDICION, null=True, blank=True)
     num_doc_asociado = models.CharField(max_length=15,blank=True)
-    timbrado_asociado = models.CharField(max_length=8, blank=True)
+    timbrado_asociado = models.CharField(
+        max_length=8,
+        blank=True,
+        null=True,
+        verbose_name='Timbrado Documento Asociado',
+        validators=[RegexValidator(r'^\d{8}$', 'Debe ser un número de 8 dígitos')]
+    )
     cliente = models.ForeignKey(Cliente, on_delete=models.PROTECT, null=True, blank=True)
     fecha = models.DateTimeField(auto_now_add=True)
     subtotal = models.DecimalField(max_digits=12, decimal_places=2, default=0)
@@ -89,15 +179,73 @@ class Venta(models.Model):
     def __str__(self):
         return f"Venta-{self.numero}"
 
+    @property
+    def formato_numero_preview(self):
+        """Devuelve el formato del número de documento para previsualización"""
+        if not self.caja or not self.tipo_documento:
+            return None
+            
+        # Obtener el prefijo del punto de expedición
+        prefijo = self.caja.punto_expedicion.get_codigo_completo()
+        
+        # Si ya tenemos número, mostrarlo completo
+        if self.numero_documento:
+            return self.numero_documento
+            
+        # Si no, mostrar solo el prefijo
+        return f"{prefijo}-[Número secuencial]"
+
+    
     def calcular_totales(self):
         """Calcula los totales basados en los detalles"""
         detalles = self.detalles.all()
         self.total = sum(detalle.subtotal for detalle in detalles)
         self.save()
+    
+
+    @property
+    def punto_expedicion(self):
+        """Obtiene el punto de expedición a través de la caja"""
+        return self.caja.punto_expedicion if self.caja else None
+    
+    @property
+    def secuencia_documento(self):
+        """Obtiene la secuencia documental según el tipo de documento"""
+        if not self.caja or not self.tipo_documento:
+            return None
+            
+        tipo_secuencia = {
+            'F': 'FACTURA',
+            'T': 'TICKET'
+        }.get(self.tipo_documento)
+        
+        if tipo_secuencia:
+            return SecuenciaDocumento.objects.filter(
+                punto_expedicion=self.caja.punto_expedicion,
+                tipo_documento=tipo_secuencia
+            ).first()
+        return None
+    
+    
+    
+    def generar_numero_documento(self):
+        """Genera el número de documento usando la secuencia"""
+        if not self.numero_documento and self.secuencia_documento:
+            self.numero_documento = self.secuencia_documento.generar_numero()
+            self.save()
+        return self.numero_documento
+    
+    
+    @property
+    def formato_numero_documento(self):
+        """Muestra el formato completo del documento"""
+        if self.numero_documento:
+            return f"{self.punto_expedicion.get_codigo_completo()}-{self.numero_documento.split('-')[-1]}"
+        return "Número no generado"
 
 
     @transaction.atomic
-    def finalizar(self, caja, tipo_pago):
+    def finalizar(self, caja, tipo_pago, tipo_documento, condicion, timbrado=None):
         """Finaliza la venta y registra los movimientos"""
         if self.estado != 'BORRADOR':
             raise ValidationError('Solo se pueden finalizar ventas en estado Borrador')
@@ -116,9 +264,14 @@ class Venta(models.Model):
                 raise ValidationError(f'Stock insuficiente para {detalle.producto.nombre}')
         
         # Actualizar estado y datos de la venta
-        self.estado = 'FINALIZADA'
-        self.tipo_pago = tipo_pago
         self.caja = caja
+        self.tipo_pago = tipo_pago
+        self.tipo_documento = tipo_documento
+        self.condicion = condicion
+        self.timbrado = timbrado if tipo_documento in ['F', 'BV'] else None
+        self.estado = 'FINALIZADA'
+        # Generar número de documento
+        self.generar_numero_documento()
         self.save()
         
         # Registrar movimiento de caja
@@ -224,3 +377,6 @@ class DetalleVenta(models.Model):
 
     def __str__(self):
         return f"{self.producto} x {self.cantidad}"
+
+
+

@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load filtros_paraguay %}
+
+{% block content %}
+<div class="flex justify-center py-6 px-4">
+  <div class="w-full max-w-6xl bg-white p-6 rounded-xl shadow-lg">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-2xl font-bold text-gray-800">{{ titulo }}</h1>
+      <div class="flex gap-4">
+        <a href="{% url 'almacen:lista_conversiones' %}" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+          </svg>
+          Ver Configuraciones
+        </a>
+      </div>
+    </div>
+
+    <div class="mb-6">
+      <form method="get" class="flex flex-col md:flex-row gap-4">
+        <div class="flex-1">
+          <label for="fecha_inicio" class="block text-sm font-medium text-gray-700 mb-1">Fecha Inicio</label>
+          <input type="date" id="fecha_inicio" name="fecha_inicio" value="{{ request.GET.fecha_inicio }}" 
+                 class="w-full p-2 border border-gray-300 rounded-lg">
+        </div>
+        <div class="flex-1">
+          <label for="fecha_fin" class="block text-sm font-medium text-gray-700 mb-1">Fecha Fin</label>
+          <input type="date" id="fecha_fin" name="fecha_fin" value="{{ request.GET.fecha_fin }}" 
+                 class="w-full p-2 border border-gray-300 rounded-lg">
+        </div>
+        <div class="flex items-end">
+          <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg h-[42px]">
+            Filtrar
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Conversión</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Almacén</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Productos Origen</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Productos Destino</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuario</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          {% for registro in registros %}
+          <tr>
+            <td class="px-6 py-4 whitespace-nowrap">{{ registro.fecha|date:"d/m/Y H:i" }}</td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              {{ registro.conversion.nombre }}
+              {% if registro.revertido %}
+                <span class="px-2 py-1 text-xs rounded-full bg-purple-100 text-purple-800 ml-2">Revertido</span>
+              {% endif %}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">{{ registro.almacen.nombre }}</td>
+            <td class="px-6 py-4">
+              <ul class="list-disc pl-5 text-sm">
+                {% for componente in registro.conversion.componentes.all %}
+                  {% if componente.tipo == 'ORIGEN' %}
+                    <li>
+                      {{ componente.producto.nombre }} 
+                      ({{ componente.cantidad|multiply:registro.cantidad_ejecuciones }} {{ componente.producto.unidad_medida.abreviatura_sifen }})
+                    </li>
+                  {% endif %}
+                {% endfor %}
+              </ul>
+            </td>
+            <td class="px-6 py-4">
+              <ul class="list-disc pl-5 text-sm">
+                {% for componente in registro.conversion.componentes.all %}
+                  {% if componente.tipo == 'DESTINO' %}
+                    <li>
+                      {{ componente.producto.nombre }} 
+                      ({{ componente.cantidad|multiply:registro.cantidad_ejecuciones }} {{ componente.producto.unidad_medida.abreviatura_sifen }})
+                    </li>
+                  {% endif %}
+                {% endfor %}
+              </ul>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">{{ registro.usuario.usuario.username }}</td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              {% if not registro.revertido and not registro.relacion_reversion %}
+                <a href="{% url 'almacen:revertir_conversion' registro.id %}" 
+                   class="text-purple-600 hover:text-purple-800">
+                  Revertir
+                </a>
+              {% elif registro.relacion_reversion %}
+                <span class="text-gray-400">Revertido</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="7" class="px-6 py-4 text-center text-gray-500">No hay registros de conversión</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

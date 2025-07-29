@@ -18,7 +18,7 @@ class UserEditForm(forms.ModelForm):
 class PerfilUsuarioForm(forms.ModelForm):
     class Meta:
         model = PerfilUsuario
-        fields = ['cedula', 'telefono', 'direccion', 'tipo_usuario', 'fecha_nacimiento', 'foto_perfil']
+        fields = ['empresa', 'sucursales', 'tipo_doc','cedula', 'telefono', 'direccion', 'tipo_usuario', 'fecha_nacimiento', 'foto_perfil']
         widgets = {
             'fecha_nacimiento': forms.DateInput(attrs={'type': 'date'}),
         }

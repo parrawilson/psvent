@@ -7,7 +7,7 @@ from .serializers import ProductoSerializer
 @api_view(['GET'])
 def buscar_producto(request):
     codigo = request.GET.get('codigo', '').strip()
-    print(f"Código recibido: '{codigo}'")  # Para depuración
+    #print(f"Código recibido: '{codigo}'")  # Para depuración
     
     if not codigo:
         return Response({'error': 'Código requerido'}, status=400)
@@ -15,7 +15,7 @@ def buscar_producto(request):
     try:
         # Agrega insensitive lookup si es necesario
         producto = Producto.objects.get(codigo__iexact=codigo)
-        print(f"Producto encontrado: {producto}")  # Para depuración
+        #print(f"Producto encontrado: {producto}")  # Para depuración
         serializer = ProductoSerializer(producto)
         return Response(serializer.data)
     except Producto.DoesNotExist:

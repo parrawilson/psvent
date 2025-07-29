@@ -29,3 +29,18 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 # Middleware de WhiteNoise ya está en base.py,
 # pero asegúrate de que esté justo después de SecurityMiddleware:
 # 'whitenoise.middleware.WhiteNoiseMiddleware' debe estar presente
+
+
+# config/settings/production.py
+from .base import *
+import os
+
+USE_SIFEN_MOCK = False
+
+SIFEN_CONFIG.update({
+    'ENDPOINT': 'https://sifen.set.gov.py/api/v1/',
+    'API_KEY': os.getenv('SIFEN_API_KEY'),
+    'CERTIFICADO': str(BASE_DIR / 'certs' / 'certificado_prod.pfx'),
+    'CERTIFICADO_PASSWORD': os.getenv('SIFEN_CERT_PASSWORD'),
+    'WKHTMLTOPDF_PATH': os.getenv('WKHTMLTOPDF_PATH', '/usr/bin/wkhtmltopdf'),
+})

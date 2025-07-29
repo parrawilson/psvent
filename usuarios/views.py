@@ -30,6 +30,8 @@ def registro_usuario(request):
                     perfil.tipo_usuario = form_perfil.cleaned_data['tipo_usuario']
                     perfil.fecha_nacimiento = form_perfil.cleaned_data['fecha_nacimiento']
                     perfil.foto_perfil = form_perfil.cleaned_data['foto_perfil']
+                    perfil.empresa = form_perfil.cleaned_data['empresa']
+                    perfil.sucursales = form_perfil.cleaned_data['sucursales']
                     
                     perfil.save()
                     

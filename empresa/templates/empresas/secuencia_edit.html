@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load form_filters %}
+
+{% block content %}
+<div class="flex justify-center py-6 px-4">
+  <div class="w-full max-w-2xl bg-white p-6 rounded-xl shadow-lg">
+    
+    <!-- Encabezado -->
+    <div class="border-b border-gray-200 pb-4 mb-6">
+      <h1 class="text-2xl font-bold text-gray-800">
+        Editar Secuencia: {{ object.get_tipo_documento_display }}
+      </h1>
+      <p class="text-gray-600 mt-1">
+        Punto: {{ object.punto_expedicion.get_codigo_completo }}
+      </p>
+    </div>
+
+    <!-- Mensajes -->
+    {% if messages %}
+      {% for message in messages %}
+        <div class="mb-4 p-4 rounded-lg {% if message.tags == 'success' %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    <!-- Errores del formulario -->
+    {% if form.non_field_errors %}
+      <div class="mb-4 p-4 bg-red-100 text-red-800 rounded-lg">
+        {% for error in form.non_field_errors %}
+          <p>{{ error }}</p>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <!-- Formulario -->
+    <form method="post">
+      {% csrf_token %}
+      
+      <div class="space-y-4">
+        <!-- Prefijo (solo lectura) -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Prefijo
+          </label>
+          <div class="block w-full rounded-md bg-gray-100 p-2 text-sm text-gray-700">
+            {{ object.prefijo }}
+          </div>
+          <p class="mt-1 text-xs text-gray-500">Prefijo determinado por la sucursal y punto de expedición</p>
+        </div>
+
+        <!-- Siguiente Número (único campo editable) -->
+        <div>
+          <label for="{{ form.siguiente_numero.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            {{ form.siguiente_numero.label }}
+          </label>
+          {{ form.siguiente_numero|add_class:"block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" }}
+          {% if form.siguiente_numero.errors %}
+            <div class="mt-1 text-sm text-red-600">
+              {{ form.siguiente_numero.errors.as_text }}
+            </div>
+          {% endif %}
+          <p class="mt-1 text-xs text-gray-500">
+            Documentos ya emitidos: {{ documentos_emitidos }}
+          </p>
+        </div>
+
+        <!-- Formato (solo lectura) -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Formato de numeración
+          </label>
+          <div class="block w-full rounded-md bg-gray-100 p-2 text-sm text-gray-700">
+            {{ object.formato }}
+          </div>
+          <div class="mt-2 p-3 bg-gray-50 rounded-lg">
+            <p class="text-sm font-medium text-gray-700 mb-1">Ejemplo actual:</p>
+            <code class="text-sm bg-white p-1 rounded">{{ object.formato }}</code>
+            <p class="text-xs text-gray-500 mt-1">
+              Resultado: {{ object.formato|format_ejemplo:object }}
+            </p>
+          </div>
+        </div>
+
+        <!-- Activo -->
+        <div class="flex items-center pt-2">
+          {{ form.activo|add_class:"h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" }}
+          <label for="{{ form.activo.id_for_label }}" class="ml-2 text-sm text-gray-700">
+            {{ form.activo.label }}
+          </label>
+        </div>
+        {% if form.activo.errors %}
+          <div class="mt-1 text-sm text-red-600">
+            {{ form.activo.errors.as_text }}
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Botones -->
+      <div class="mt-8 flex justify-between">
+        <a href="{% url 'empresa:editar_secuencias' object.punto_expedicion.id %}" 
+           class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-lg inline-flex items-center transition-colors duration-200">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+          </svg>
+          Volver
+        </a>
+        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg inline-flex items-center transition-colors duration-200">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+          </svg>
+          Guardar Cambios
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Variables disponibles -->
+<div class="max-w-2xl mx-auto mt-6 p-4 bg-gray-50 rounded-lg">
+  <h3 class="text-lg font-medium text-gray-800 mb-2">Variables disponibles en el formato:</h3>
+  <ul class="list-disc pl-5 text-sm text-gray-600 space-y-1">
+    <li><code>{prefijo}</code> - Prefijo configurado (ej: {{ object.prefijo }})</li>
+    <li><code>{sucursal}</code> - Código de sucursal (ej: {{ object.punto_expedicion.sucursal.codigo }})</li>
+    <li><code>{punto}</code> - Código del punto (ej: {{ object.punto_expedicion.codigo }})</li>
+    <li><code>{numero}</code> - Número secuencial</li>
+    <li><code>{numero:07d}</code> - Número con 7 dígitos (relleno con ceros)</li>
+  </ul>
+</div>
+{% endblock %}

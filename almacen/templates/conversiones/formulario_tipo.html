@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto py-8 px-4">
+  <!-- Encabezado dinámico según creación/edición -->
+  <div class="mb-8 text-center">
+    <h1 class="text-2xl font-bold text-gray-800">
+      <i class="fas {% if form.instance.pk %}fa-edit{% else %}fa-plus-circle{% endif %} mr-2 text-blue-500"></i>
+      {% if form.instance.pk %}Editar Tipo de Conversión{% else %}Crear Nuevo Tipo{% endif %}
+    </h1>
+    <p class="text-gray-600 mt-2">
+      {% if form.instance.pk %}
+        Modifica las propiedades de este tipo de conversión
+      {% else %}
+        Define un nuevo tipo para clasificar conversiones entre productos
+      {% endif %}
+    </p>
+  </div>
+
+  <!-- Mensajes de error/éxito -->
+  {% if messages %}
+    {% for message in messages %}
+      <div class="mb-6 p-4 rounded-lg {% if message.tags == 'success' %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+        <i class="fas {% if message.tags == 'success' %}fa-check-circle{% else %}fa-exclamation-circle{% endif %} mr-2"></i>
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <!-- Formulario -->
+  <div class="bg-white shadow-lg rounded-xl overflow-hidden p-6">
+    <form method="post" novalidate>
+      {% csrf_token %}
+      
+      <!-- Campo Nombre -->
+      <div class="mb-6">
+        <label for="{{ form.nombre.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+          Nombre del Tipo *
+        </label>
+        {{ form.nombre }}
+        {% if form.nombre.errors %}
+          <div class="mt-2 text-sm text-red-600">
+            <i class="fas fa-exclamation-circle mr-1"></i>
+            {{ form.nombre.errors.as_text }}
+          </div>
+        {% endif %}
+        <p class="mt-1 text-xs text-gray-500">
+          Ej: "Desensamblaje", "Ensamblaje de combos", "Conversión de unidades"
+        </p>
+      </div>
+
+      <!-- Campo Descripción -->
+      <div class="mb-8">
+        <label for="{{ form.descripcion.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+          Descripción
+        </label>
+        {{ form.descripcion }}
+        {% if form.descripcion.errors %}
+          <div class="mt-2 text-sm text-red-600">
+            <i class="fas fa-exclamation-circle mr-1"></i>
+            {{ form.descripcion.errors.as_text }}
+          </div>
+        {% endif %}
+        <p class="mt-1 text-xs text-gray-500">
+          Describe el propósito de este tipo de conversión (opcional)
+        </p>
+      </div>
+
+      <!-- Botones de acción -->
+      <div class="flex flex-col sm:flex-row justify-end gap-4 pt-4 border-t border-gray-200">
+        <a href="{% url 'almacen:lista_tipos_conversion' %}" 
+           class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 text-center">
+          <i class="fas fa-times mr-2"></i> Cancelar
+        </a>
+        <button type="submit" 
+                class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center justify-center">
+          <i class="fas fa-save mr-2"></i>
+          {% if form.instance.pk %}Actualizar{% else %}Crear{% endif %} Tipo
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Estilos para los campos del formulario -->
+<style>
+  /* Estilo base para inputs y textarea */
+  input, textarea {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    background-color: #fff;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  }
+
+  /* Estilo para inputs con error */
+  input:invalid, textarea:invalid {
+    border-color: #f87171;
+  }
+
+  /* Estilo para inputs enfocados */
+  input:focus, textarea:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+
+  /* Estilo específico para textarea */
+  textarea {
+    min-height: 100px;
+    resize: vertical;
+  }
+</style>
+
+<!-- Incluir Font Awesome para iconos -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+{% endblock %}

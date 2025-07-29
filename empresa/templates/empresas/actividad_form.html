@@ -1,0 +1,215 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load form_filters %}
+
+{% block content %}
+<div class="flex justify-center py-6 px-4">
+  <div class="w-full max-w-2xl bg-white p-6 rounded-xl shadow-lg">
+    <h1 class="text-2xl font-bold text-gray-800 mb-6">
+      {% if object %}Editar Actividad{% else %}Crear Nueva Actividad{% endif %}
+    </h1>
+
+    <!-- Mensajes -->
+    {% if messages %}
+      {% for message in messages %}
+        <div class="p-4 mb-6 rounded {% if message.tags == 'success' %}bg-green-100 border border-green-200 text-green-800{% else %}bg-red-100 border border-red-200 text-red-800{% endif %}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    <form method="post" class="space-y-6">
+      {% csrf_token %}
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Código -->
+        <div>
+          <label for="{{ form.codigo.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            Código *
+          </label>
+          <div class="flex items-center gap-2">
+            {{ form.codigo|add_class:"w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition" }}
+            <button type="button" 
+                    id="btn-buscar-actividad"
+                    class="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition"
+                    title="Buscar actividad económica">
+              <i class="fas fa-search"></i>
+            </button>
+          </div>
+          {% if form.codigo.errors %}
+            <div class="mt-1 text-sm text-red-600">
+              {{ form.codigo.errors.0 }}
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Descripción -->
+      <div>
+        <label for="{{ form.descripcion.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+          Descripción *
+        </label>
+        {{ form.descripcion|add_class:"w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition" }}
+        {% if form.descripcion.errors %}
+          <div class="mt-1 text-sm text-red-600">
+            {{ form.descripcion.errors.0 }}
+          </div>
+        {% endif %}
+      </div>
+
+
+      <!-- Checkboxes -->
+      <div class="flex flex-col sm:flex-row gap-4 pt-2">
+        <div class="flex items-center">
+          {{ form.es_principal|add_attrs:"class=h-4 w-4 text-blue-600 border-gray-300 rounded" }}
+          <label for="{{ form.es_principal.id_for_label }}" class="ml-2 text-sm text-gray-700">
+            {{ form.es_principal.label }}
+          </label>
+        </div>
+      </div>
+
+      <!-- Botones -->
+      <div class="flex flex-col md:flex-row gap-4 pt-6">
+        <a href="{% url 'empresa:lista_actividades' %}" 
+           class="flex-1 text-center bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-6 rounded-lg">
+          Cancelar
+        </a>
+        <button type="submit" 
+                class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg">
+          Guardar Actividad
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal para búsqueda de actividades -->
+<div id="modal-actividades" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+  <div class="bg-white rounded-lg w-full max-w-2xl max-h-[80vh] overflow-auto">
+    <div class="p-6">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-xl font-bold text-gray-800">Buscar Actividad Económica</h3>
+        <button id="btn-cerrar-modal" class="text-gray-500 hover:text-gray-700">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <div class="mb-4">
+        <label for="input-busqueda" class="block text-sm font-medium text-gray-700 mb-1">
+          Buscar por código o descripción
+        </label>
+        <input type="text" id="input-busqueda" 
+               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition"
+               placeholder="Ej: 62021 o 'desarrollo'">
+      </div>
+      
+      <div id="resultados-busqueda" class="border-t pt-4">
+        <div class="text-center py-4 text-gray-500">
+          Ingrese un término de búsqueda (mínimo 2 caracteres)
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Script para el modal de búsqueda -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Elementos del DOM
+  const modal = document.getElementById('modal-actividades');
+  const btnAbrir = document.getElementById('btn-buscar-actividad');
+  const btnCerrar = document.getElementById('btn-cerrar-modal');
+  const inputBusqueda = document.getElementById('input-busqueda');
+  const resultados = document.getElementById('resultados-busqueda');
+  const codigoInput = document.getElementById('{{ form.codigo.id_for_label }}');
+  const descripcionInput = document.getElementById('{{ form.descripcion.id_for_label }}');
+  
+  // Datos de actividades desde el JSON
+  const actividades = {{ actividades_json|safe }};
+  
+  // Abrir modal
+  btnAbrir.addEventListener('click', function() {
+    modal.classList.remove('hidden');
+    inputBusqueda.focus();
+  });
+  
+  // Cerrar modal
+  btnCerrar.addEventListener('click', function() {
+    modal.classList.add('hidden');
+  });
+  
+  // Cerrar modal al hacer clic fuera del contenido
+  modal.addEventListener('click', function(e) {
+    if (e.target === modal) {
+      modal.classList.add('hidden');
+    }
+  });
+  
+  // Buscar actividades mientras se escribe
+  inputBusqueda.addEventListener('input', function() {
+    const termino = inputBusqueda.value.trim().toLowerCase();
+    
+    if (termino.length < 2) {
+      resultados.innerHTML = '<div class="text-center py-4 text-gray-500">Ingrese al menos 2 caracteres para buscar</div>';
+      return;
+    }
+    
+    // Filtrar actividades
+    const resultadosFiltrados = Object.entries(actividades)
+      .filter(([codigo, descripcion]) => 
+        codigo.includes(termino) || 
+        descripcion.toLowerCase().includes(termino))
+      .slice(0, 50); // Limitar a 50 resultados
+    
+    if (resultadosFiltrados.length > 0) {
+      let html = '<div class="space-y-2">';
+      
+      resultadosFiltrados.forEach(([codigo, descripcion]) => {
+        html += `
+          <div class="p-3 border border-gray-200 rounded-lg hover:bg-blue-50 cursor-pointer"
+               onclick="seleccionarActividad('${codigo}', '${descripcion}')">
+            <div class="font-medium">${codigo}</div>
+            <div class="text-sm text-gray-600">${descripcion}</div>
+          </div>
+        `;
+      });
+      
+      html += '</div>';
+      resultados.innerHTML = html;
+    } else {
+      resultados.innerHTML = '<div class="text-center py-4 text-gray-500">No se encontraron actividades con ese término</div>';
+    }
+  });
+});
+
+// Función global para seleccionar una actividad
+function seleccionarActividad(codigo, descripcion) {
+  document.getElementById('{{ form.codigo.id_for_label }}').value = codigo;
+  document.getElementById('{{ form.descripcion.id_for_label }}').value = descripcion;
+  document.getElementById('modal-actividades').classList.add('hidden');
+}
+</script>
+
+<style>
+  /* Estilos para el modal */
+  #modal-actividades {
+    transition: opacity 0.3s ease;
+  }
+  
+  /* Estilos para los inputs */
+  input, select, textarea {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    background-color: #fff;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  }
+  
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+</style>
+{% endblock %}

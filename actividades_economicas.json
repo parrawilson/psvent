@@ -1,0 +1,4739 @@
+[
+  {
+    "code": "A",
+    "name": "Agricultura, Ganadería , Caza, Silvicultura Y Pesca",
+    "divisions": [
+      {
+        "code": "01",
+        "name": "Agricultura, Ganaderia, Caza Y Actividades De Apoyo",
+        "groups": [
+          {
+            "code": "011",
+            "name": "Cultivo De Cosechas No Perennes",
+            "activities": [
+              {
+                "code": "01110",
+                "name": "Cultivo De Arroz"
+              },
+              {
+                "code": "0112",
+                "name": "- Cultivo De  Cereales, Plantas Leguminosas Y Semillas Oleaginosas (Excepto Arroz)"
+              },
+              {
+                "code": "01121",
+                "name": "Cultivo De Soja"
+              },
+              {
+                "code": "01122",
+                "name": "Cultivo De Maíz"
+              },
+              {
+                "code": "01123",
+                "name": "Cultivo De Trigo"
+              },
+              {
+                "code": "01124",
+                "name": "Cultivo De Girasol"
+              },
+              {
+                "code": "01125",
+                "name": "Cultivo De Sesamo"
+              },
+              {
+                "code": "01126",
+                "name": "Cultivo De Legumbres"
+              },
+              {
+                "code": "01129",
+                "name": "Cultivo De Otros Cereales Y Otras Semillas Oleaginosas N.C.P."
+              },
+              {
+                "code": "0113",
+                "name": "- Cultivo De Hortalizas Y Melones, Raíces Y Tubérculos"
+              },
+              {
+                "code": "01131",
+                "name": "Cultivo De Mandioca, Papa Y Batata"
+              },
+              {
+                "code": "01132",
+                "name": "Cultivo De Bulbos, Brotes, Raíces Y Hortalizas De Fruto"
+              },
+              {
+                "code": "01133",
+                "name": "Cultivo De Hortalizas De Hoja Y De Otras Hortalizas Frescas"
+              },
+              {
+                "code": "01140",
+                "name": "Cultivo De Caña De Azúcar"
+              },
+              {
+                "code": "01150",
+                "name": "Cultivo De Tabaco"
+              },
+              {
+                "code": "0116",
+                "name": "- Cultivo De Fibras Vegetales"
+              },
+              {
+                "code": "01161",
+                "name": "Cultivo De Algodón"
+              },
+              {
+                "code": "01169",
+                "name": "Cultivo De Otras Fibras Vegetales"
+              },
+              {
+                "code": "0119",
+                "name": "- Cultivo De Otras Cosechas No Perennes N.C.P."
+              },
+              {
+                "code": "01191",
+                "name": "Cultivo De Forrajes"
+              },
+              {
+                "code": "01192",
+                "name": "Cultivo De Flores"
+              },
+              {
+                "code": "01199",
+                "name": "Cultivo De Otras Cosechas No Perennes N.C.P."
+              }
+            ]
+          },
+          {
+            "code": "012",
+            "name": "Cultivo De Cosechas Perennes",
+            "activities": [
+              {
+                "code": "01210",
+                "name": "Cultivo De Uvas"
+              },
+              {
+                "code": "0122",
+                "name": "- Cultivo De Frutas Tropicales Y Subtropicales"
+              },
+              {
+                "code": "01221",
+                "name": "Cultivo De Piña"
+              },
+              {
+                "code": "01222",
+                "name": "Cultivo De Banana"
+              },
+              {
+                "code": "01223",
+                "name": "Cultivo De Mango"
+              },
+              {
+                "code": "01224",
+                "name": "Cultivo De Mburucuya"
+              },
+              {
+                "code": "01229",
+                "name": "Cultivo De Otras Frutas Tropicales Y Subtropicales N.C.P."
+              },
+              {
+                "code": "0123",
+                "name": "- Cultiv o De Cítricos"
+              },
+              {
+                "code": "01231",
+                "name": "Cultivo De Naranja"
+              },
+              {
+                "code": "01232",
+                "name": "Cultivo De Mandarina"
+              },
+              {
+                "code": "01233",
+                "name": "Cultivo De Limón"
+              },
+              {
+                "code": "01234",
+                "name": "Cultivo De Pomelo"
+              },
+              {
+                "code": "01235",
+                "name": "Cultivo De Naranjo Agrio"
+              },
+              {
+                "code": "01239",
+                "name": "Cultivo De Otras Frutas Cítricas N.C.P."
+              },
+              {
+                "code": "01240",
+                "name": "Cultivo De Fr utas Con Pepita Y Con Hueso"
+              },
+              {
+                "code": "01250",
+                "name": "Cultivo De Otras Frutas Y Frutos Secos Arbóreos Y De Arbustos"
+              },
+              {
+                "code": "01260",
+                "name": "Cultivo De Frutos Oleaginosos"
+              },
+              {
+                "code": "0127",
+                "name": "- Cultivo De Plantas Para Preparar Bebidas"
+              },
+              {
+                "code": "01271",
+                "name": "Cultivo De Yerba Mate"
+              },
+              {
+                "code": "01272",
+                "name": "Cultivo De Té"
+              },
+              {
+                "code": "01273",
+                "name": "Cultivo De Café"
+              },
+              {
+                "code": "01279",
+                "name": "Cultivo De Cacao Y De Otras Plantas Para Elaboración De Bebidas N.C.P."
+              },
+              {
+                "code": "01280",
+                "name": "Cultivo De Especias Y Plantas Aromáticas, Medicinales Y Farmacéuticas"
+              },
+              {
+                "code": "0129",
+                "name": "- Cultivo De Otras Cosechas Perennes N.C.P."
+              },
+              {
+                "code": "0129",
+                "name": "1 - Cultivo De Estévia"
+              },
+              {
+                "code": "01299",
+                "name": "Cultivo De Otras Cosechas Perennes N.C.P.    013 - Propagación De Plantas"
+              },
+              {
+                "code": "01300",
+                "name": "Propagación De Plantas"
+              }
+            ]
+          },
+          {
+            "code": "014",
+            "name": "Producción Pecuaria",
+            "activities": [
+              {
+                "code": "0141",
+                "name": "- Cría De Ganado Vacuno"
+              },
+              {
+                "code": "01411",
+                "name": "Cría De Ganado Vacuno Con Destino A La Producción De Carne"
+              },
+              {
+                "code": "01412",
+                "name": "Cría De Ganado Vacuno Lechero"
+              },
+              {
+                "code": "01419",
+                "name": "Otras Producciones De Ganados Vacunos N.C.P"
+              },
+              {
+                "code": "01420",
+                "name": "Cría De Ganado Equino"
+              },
+              {
+                "code": "01430",
+                "name": "Cría De Camellos Y Camélidos"
+              },
+              {
+                "code": "01440",
+                "name": "Cría De Ganado Ovino Y Caprino"
+              },
+              {
+                "code": "01450",
+                "name": "Cría De Ganado Porcino"
+              },
+              {
+                "code": "0146",
+                "name": "- Cría De Aves De Corral"
+              },
+              {
+                "code": "01461",
+                "name": "Cría De Aves De Corral"
+              },
+              {
+                "code": "01462",
+                "name": "Producción De Huevos"
+              },
+              {
+                "code": "0149",
+                "name": "- Cría De Otros Animales N.C.P."
+              },
+              {
+                "code": "01491",
+                "name": "Apicultura"
+              },
+              {
+                "code": "01492",
+                "name": "Cunicultura"
+              },
+              {
+                "code": "01499",
+                "name": "Cría De Otros Animal es N.C.P."
+              }
+            ]
+          },
+          {
+            "code": "015",
+            "name": "Cultivo De Productos Agrícolas En Comb inación Con La Cría De Animales",
+            "activities": [
+              {
+                "code": "01500",
+                "name": "Cultivo De Productos Agrícolas En Combinación Con La Cría De Animales"
+              }
+            ]
+          },
+          {
+            "code": "016",
+            "name": "Actividades De Apoyo A La Agricultura Y Las Actividades Posteriores A La Recolección De Cultivos",
+            "activities": [
+              {
+                "code": "0161",
+                "name": "- Actividades De  Apoyo A La Producción Agrícola"
+              },
+              {
+                "code": "01611",
+                "name": "Servicios De Fumigación Y Riego"
+              },
+              {
+                "code": "01612",
+                "name": "Servicios De Provisión De Maquinaria Agrícola Con Operarios Y Personal"
+              },
+              {
+                "code": "01613",
+                "name": "Actividades Posteriores A La Cosecha"
+              },
+              {
+                "code": "01614",
+                "name": "Procesamiento De Semillas Para La Propagación"
+              },
+              {
+                "code": "01619",
+                "name": "Otros Servicios De Apoyo A La Agricultura N.C.P"
+              },
+              {
+                "code": "0162",
+                "name": "- Actividades De Apoyo A La Producción Pecuaria"
+              },
+              {
+                "code": "01621",
+                "name": "Servicios De Esquila"
+              },
+              {
+                "code": "01622",
+                "name": "Servicios De Inseminación Artifi cial"
+              },
+              {
+                "code": "01629",
+                "name": "Otros Servicios De Apoyo A La Ganadería N.C.P."
+              }
+            ]
+          },
+          {
+            "code": "017",
+            "name": "Caza Ordinaria Y Media nte Trampas Y Servicios Conexos",
+            "activities": [
+              {
+                "code": "01700",
+                "name": "Caza Ordinaria Y Mediante Trampas Y Servicios Conexos"
+              }
+            ]
+          },
+          {
+            "code": "019",
+            "name": "Agric ultura, Ganadería Y Caza N.C.P.",
+            "activities": [
+              {
+                "code": "0190",
+                "name": "- Agric ultura, Ganadería Y Caza N.C.P."
+              },
+              {
+                "code": "01901",
+                "name": "Cooperativa De Produccion Agropecuaria."
+              },
+              {
+                "code": "01909",
+                "name": "Otras Actividades De Agricultura, Ganadería Y Caza N.C.P."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "02",
+        "name": "Silvicultura, Extracción D e Madera Y Actividades De Apoyo",
+        "groups": [
+          {
+            "code": "021",
+            "name": "Silvicultura Y Otras Actividades  Relacionadas A La Silvicultura",
+            "activities": [
+              {
+                "code": "0210",
+                "name": "- Silvicultura Y Otras Actividades Relaciona das A La Silvicultura"
+              },
+              {
+                "code": "02101",
+                "name": "Viveros De Árboles Forestales"
+              },
+              {
+                "code": "02102",
+                "name": "Explotación De Bosques"
+              },
+              {
+                "code": "02103",
+                "name": "Actividades De Forestación Y Reforestación"
+              }
+            ]
+          },
+          {
+            "code": "022",
+            "name": "Extracción De Madera",
+            "activities": [
+              {
+                "code": "0220",
+                "name": "- Extracción De Madera"
+              },
+              {
+                "code": "02201",
+                "name": "Producción De Leña"
+              },
+              {
+                "code": "02209",
+                "name": "Extracción De Madera Para La Producción De Otros Artículos N.C.P."
+              }
+            ]
+          },
+          {
+            "code": "023",
+            "name": "Recolección De Productos Fo restales Diferentes A La Madera",
+            "activities": [
+              {
+                "code": "02300",
+                "name": "Recolección De Productos Forestales Diferentes A La Madera"
+              }
+            ]
+          },
+          {
+            "code": "024",
+            "name": "Servi cios De Apoyo A La Silvicultura",
+            "activities": [
+              {
+                "code": "02400",
+                "name": "Servicios De Apoyo A La Silvicultura"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "03",
+        "name": "Pesca, Acu icultura Y Actividades De Apoyo",
+        "groups": []
+      }
+    ]
+  },
+  {
+    "code": "B",
+    "name": "Explotación De Minas Y Canteras",
+    "divisions": [
+      {
+        "code": "05",
+        "name": "Extracción De Carbón Y Lignito",
+        "groups": [
+          {
+            "code": "051",
+            "name": "Extracción Y Aglomeración De Hulla",
+            "activities": [
+              {
+                "code": "05100",
+                "name": "Extracción Y Aglomeración De Hulla"
+              }
+            ]
+          },
+          {
+            "code": "052",
+            "name": "Extracción Y Aglomeración De Lignito",
+            "activities": [
+              {
+                "code": "05200",
+                "name": "Extracción Y Aglomeración De Lignito"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "06",
+        "name": "Extracción De Petróleo Crudo Y Gas Natural",
+        "groups": [
+          {
+            "code": "061",
+            "name": "Extracción De Petróleo Crudo",
+            "activities": [
+              {
+                "code": "06100",
+                "name": "Extracción De Petróleo Crudo"
+              }
+            ]
+          },
+          {
+            "code": "062",
+            "name": "Extracción De Gas Natural",
+            "activities": [
+              {
+                "code": "06200",
+                "name": "Extracción De Gas Natural"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "07",
+        "name": "Extracción De Minerales Metalíferos",
+        "groups": [
+          {
+            "code": "071",
+            "name": "Extracción  De Minerales De Hierro",
+            "activities": [
+              {
+                "code": "07100",
+                "name": "Extracción De Minerales De Hierro"
+              }
+            ]
+          },
+          {
+            "code": "072",
+            "name": "Extracción De Mi nerales Metalíferos No Ferrosos",
+            "activities": [
+              {
+                "code": "07210",
+                "name": "Extracción De Minerales De Uranio Y Torio"
+              },
+              {
+                "code": "07290",
+                "name": "Extracción De Otros Minerales Metalíferos No Ferrosos N.C.P."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "08",
+        "name": "Explot ación De Otras Minas Y Canteras",
+        "groups": [
+          {
+            "code": "081",
+            "name": "Extrac ción De Piedra, Arena Y Arcilla",
+            "activities": [
+              {
+                "code": "0810",
+                "name": "- Extrac ción De Piedra, Arena Y Arci lla"
+              },
+              {
+                "code": "08101",
+                "name": "Extracción De Arena, Piedra Triturada Y Canto Rodado"
+              },
+              {
+                "code": "08102",
+                "name": "Extracción De Arcilla Y Caolín"
+              },
+              {
+                "code": "08103",
+                "name": "Extracción De Piedra Caliza Y Yeso"
+              },
+              {
+                "code": "08104",
+                "name": "Extracción De Rocas Ornamentales"
+              }
+            ]
+          },
+          {
+            "code": "089",
+            "name": "Explotación De Otras Minas Y Canteras N. C.P.",
+            "activities": [
+              {
+                "code": "08910",
+                "name": "Extracción De Minerales Para La Fabricación De Abonos Y Productos Químicos"
+              },
+              {
+                "code": "08920",
+                "name": "Extracción Y Aglomeración De Turba"
+              },
+              {
+                "code": "08930",
+                "name": "Extracción De Sal"
+              },
+              {
+                "code": "08990",
+                "name": "Explotación De Otras Minas Y Canteras N.C.P."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "09",
+        "name": "Actividades De Apoyo A La Explotación De Minas Y Canteras",
+        "groups": [
+          {
+            "code": "091",
+            "name": "Actividades De Apoyo A La Extra cción De Petróleo Y Gas Natural",
+            "activities": [
+              {
+                "code": "09100",
+                "name": "Actividades De Apoyo A La Extracción De Petróleo Y Gas Natural"
+              }
+            ]
+          },
+          {
+            "code": "099",
+            "name": "Actividades De Apoyo A La Explotación D e Otras Minas Y Canteras N.C.P",
+            "activities": [
+              {
+                "code": "09900",
+                "name": "Actividades De Apoyo A La Explotación De Otras Minas Y Canteras N.C.P"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "code": "C",
+    "name": "Industrias Manufactureras",
+    "divisions": [
+      {
+        "code": "10",
+        "name": "Elabor ación De Productos Alimenticios",
+        "groups": [
+          {
+            "code": "101",
+            "name": "Procesamiento Y Conservación De Carne",
+            "activities": [
+              {
+                "code": "1010",
+                "name": "- Procesamiento  Y Conservación De Carne"
+              },
+              {
+                "code": "10101",
+                "name": "Matanza De Ganado Vacuno Y Procesamiento De Su Carne"
+              },
+              {
+                "code": "10102",
+                "name": "Matanza Y Procesamiento De Carne De Aves"
+              },
+              {
+                "code": "10103",
+                "name": "Elaboración De Fiambres Y Embutidos"
+              },
+              {
+                "code": "10104",
+                "name": "Matanza De Ganado Porcino Y Procesamiento De Su Ca rne"
+              },
+              {
+                "code": "10109",
+                "name": "Matanza De Animales N.C.P. Y Procesamiento De Su Carne; Elaboración De Subproductos"
+              }
+            ]
+          },
+          {
+            "code": "102",
+            "name": "Procesamiento Y Conservación De  Pescado, Crustáceos Y Moluscos",
+            "activities": [
+              {
+                "code": "10200",
+                "name": "Procesamiento Y Conservación De Pescado, Crustáceos Y Mo luscos"
+              }
+            ]
+          },
+          {
+            "code": "103",
+            "name": "Procesamiento Y Conservación De Frutas Y Hortalizas",
+            "activities": [
+              {
+                "code": "1030",
+                "name": "- Procesamiento Y Conservación De Frutas Y Hortalizas      10301 - Procesamiento Y Conservación De Frutas Y Hortalizas"
+              },
+              {
+                "code": "10302",
+                "name": "Elaboración De Jugos"
+              }
+            ]
+          },
+          {
+            "code": "104",
+            "name": "Elaboración De Ace ites Y Gr asas De Origen Vegetal Y Animal",
+            "activities": [
+              {
+                "code": "10400",
+                "name": "Elaboración De Aceites Y Grasas De Origen Vegetal Y Animal"
+              }
+            ]
+          },
+          {
+            "code": "105",
+            "name": "Elaboración De Productos Lácteos",
+            "activities": [
+              {
+                "code": "1050",
+                "name": "- Elaboración De Productos Lácteos"
+              },
+              {
+                "code": "10501",
+                "name": "Elaboración De Leches Y Productos Lácteos"
+              },
+              {
+                "code": "10502",
+                "name": "Elaboración Industrial De Helados"
+              }
+            ]
+          },
+          {
+            "code": "106",
+            "name": "Elaboración De Productos De Molinería, Almidones Y Productos Derivados Del Almidón",
+            "activities": [
+              {
+                "code": "1061",
+                "name": "- Elaboración De Productos De Molinería"
+              },
+              {
+                "code": "10611",
+                "name": "Molienda De Arroz Y Fabricación De Productos De Arroz"
+              },
+              {
+                "code": "10612",
+                "name": "Molienda De Trigo Y Fabricación De Productos De Trigo"
+              },
+              {
+                "code": "10613",
+                "name": "Molienda De Maíz Y Fabricación De Productos De Maíz"
+              },
+              {
+                "code": "10619",
+                "name": "Elaboración De Otros Productos De Molinería N.C.P."
+              },
+              {
+                "code": "10620",
+                "name": "Elaboración De Almidones Y Productos Derivados Del Al midón"
+              }
+            ]
+          },
+          {
+            "code": "107",
+            "name": "Elaboración De Ali mentos Preparados Para Animales",
+            "activities": [
+              {
+                "code": "10700",
+                "name": "Elaboración De Alimentos Preparados Para Animales"
+              }
+            ]
+          },
+          {
+            "code": "109",
+            "name": "Elaboración De Otro s Productos Alimenticios N.C.P.",
+            "activities": [
+              {
+                "code": "1091",
+                "name": "- Elaboración De Productos De Panadería"
+              },
+              {
+                "code": "10911",
+                "name": "Elaboració n De Galletitas Y Bizcochos"
+              },
+              {
+                "code": "10912",
+                "name": "Elaboración De Chipas"
+              },
+              {
+                "code": "10919",
+                "name": "Elaboración De Otros Productos De Panadería N.C.P."
+              },
+              {
+                "code": "10920",
+                "name": "Elaboración De Azúcar"
+              },
+              {
+                "code": "10930",
+                "name": "Elaboración De Cacao, Chocolate Y De Productos Confitados"
+              },
+              {
+                "code": "10940",
+                "name": "Elaboración D e Pastas Alimenticias Y Productos Farináceos Similares"
+              },
+              {
+                "code": "10950",
+                "name": "Tostado Y Molido De Café Y Elaboración De Productos De Café"
+              },
+              {
+                "code": "1096",
+                "name": "- Elaboración De Té Y Yerba Mate"
+              },
+              {
+                "code": "10961",
+                "name": "Elaboración De Té"
+              },
+              {
+                "code": "10962",
+                "name": "Elaboración De Yerba Mate"
+              },
+              {
+                "code": "10970",
+                "name": "Elabor ación De Comidas Y Platos Preparados"
+              },
+              {
+                "code": "1099",
+                "name": "- Elaboración De Otros Productos Alimenticios N.C.P."
+              },
+              {
+                "code": "10991",
+                "name": "Elaboración De Hielo"
+              },
+              {
+                "code": "10999",
+                "name": "Elaboración De Otros Productos Alimenticios N.C.P."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "11",
+        "name": "Elaboración De Bebidas",
+        "groups": [
+          {
+            "code": "111",
+            "name": "Elaboración De Bebidas  Alcohólicas",
+            "activities": [
+              {
+                "code": "11110",
+                "name": "Destilación, Rectificación Y Mezcla De Bebidas Alcohólicas"
+              },
+              {
+                "code": "11120",
+                "name": "Elaboración De Vinos"
+              },
+              {
+                "code": "11130",
+                "name": "Elaboración De Bebidas Malteadas Y De Malta"
+              }
+            ]
+          },
+          {
+            "code": "112",
+            "name": "Elabor ación De Bebidas No Alcohólicas",
+            "activities": [
+              {
+                "code": "11210",
+                "name": "Producción De Aguas Minerales Y Sodas"
+              },
+              {
+                "code": "11290",
+                "name": "Elaboración De Otras Bebidas No Alcohólicas"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "12",
+        "name": "Elaboración De Product os De Tabaco",
+        "groups": [
+          {
+            "code": "120",
+            "name": "Elaboración De Productos De Tabaco",
+            "activities": [
+              {
+                "code": "12000",
+                "name": "Elaboración De Productos De Tabaco"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "13",
+        "name": "Fabricación De P roductos Textiles, Excepto Prendas De Vestir",
+        "groups": [
+          {
+            "code": "131",
+            "name": "Hilandería, Tejeduría Y Acabado De Productos Textiles",
+            "activities": [
+              {
+                "code": "1311",
+                "name": "- Preparación E Hilanderí a De Fibras Textiles"
+              },
+              {
+                "code": "13111",
+                "name": "Preparación E Hilandería De Fibras De Algodón"
+              },
+              {
+                "code": "13119",
+                "name": "Preparación E Hilander ía De Otras Fibras Textiles Naturales"
+              },
+              {
+                "code": "13120",
+                "name": "Tejeduría De Productos Textiles"
+              },
+              {
+                "code": "13130",
+                "name": "Acabado De Productos Textiles"
+              }
+            ]
+          },
+          {
+            "code": "139",
+            "name": "Fabricación De Otros Productos Textiles N. C.P., Excepto Prendas De Vestir",
+            "activities": [
+              {
+                "code": "13910",
+                "name": "Fabricación De Tejidos De Punto Y Ganc hillo     13920 - Fabricación De Artículos Confeccionados Con Materiales Textiles, Excepto Prendas De Vestir"
+              },
+              {
+                "code": "13930",
+                "name": "Fabricación De Tapices Y Alfombras"
+              },
+              {
+                "code": "13940",
+                "name": "Fabricación De Cuerdas, Cordeles, Bramantes Y Redes"
+              },
+              {
+                "code": "13990",
+                "name": "Fabricación De Otros Pro ductos Textiles N.C.P."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "14",
+        "name": "Confección De Prendas De Vestir",
+        "groups": [
+          {
+            "code": "141",
+            "name": "Confección De Prendas De Vestir, Excepto Prendas De Piel",
+            "activities": [
+              {
+                "code": "1410",
+                "name": "- Confección De Prendas De Vestir, Excepto Prendas De Piel"
+              },
+              {
+                "code": "14101",
+                "name": "Confección De Prendas De Vestir Exterior, Excepto Prendas De Cuero Y Piel"
+              },
+              {
+                "code": "14102",
+                "name": "Confección De Prendas De Vestir Interior"
+              },
+              {
+                "code": "14103",
+                "name": "Confección De Prendas De Vestir De Cuero, Excepto Prendas De Piel"
+              }
+            ]
+          },
+          {
+            "code": "142",
+            "name": "Fabricación De Artícu los De Piel",
+            "activities": [
+              {
+                "code": "14200",
+                "name": "Fabricación De Artículos De Piel"
+              }
+            ]
+          },
+          {
+            "code": "143",
+            "name": "Fabricación De Prendas  De Vestir De Punto Y Ganchillo",
+            "activities": [
+              {
+                "code": "14300",
+                "name": "Fabricación De Prendas De Vestir De Punto Y Ganchillo"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "15",
+        "name": "Fabricación De Cuero Y Productos Conexos",
+        "groups": [
+          {
+            "code": "151",
+            "name": "Curtido Y Terminación De C ueros; Fabricación De Maletas, Bolsos De Mano Y Artículos De",
+            "activities": [
+              {
+                "code": "15110",
+                "name": "Curtido Y Terminación De Cueros; Teñido De Pieles"
+              },
+              {
+                "code": "1512",
+                "name": "- Fabricación De Maletas, Bolsos De Mano Y Artículos Similares Y De Artículos  De Talabartería Y"
+              },
+              {
+                "code": "15121",
+                "name": "Fabricación De Maletas, Bolsos De Mano Y Artículos Similares"
+              },
+              {
+                "code": "15129",
+                "name": "Fabricación De Otros Artículos De Cuero N.C.P."
+              }
+            ]
+          },
+          {
+            "code": "152",
+            "name": "Fabr icación De Calzado Y Sus Partes",
+            "activities": [
+              {
+                "code": "1520",
+                "name": "- Fabricación De Calzado"
+              },
+              {
+                "code": "15201",
+                "name": "Fabricación De Calzado De Cuero"
+              },
+              {
+                "code": "15202",
+                "name": "Fabricación De Partes De Cuero Para Calzado"
+              },
+              {
+                "code": "15209",
+                "name": "Fabricación De Calzado De Otros Materiales Y Sus Partes"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "16",
+        "name": "Producción De Madera Y Fabricación De Productos De Madera Y Corcho, Excepto Muebles; Fabri cación",
+        "groups": [
+          {
+            "code": "161",
+            "name": "Aserrado Y Cepillado De Madera",
+            "activities": [
+              {
+                "code": "16100",
+                "name": "Aserrado Y Cepillado De Madera"
+              }
+            ]
+          },
+          {
+            "code": "162",
+            "name": "Fabricación De Productos De Madera, Corcho, Paja Y Materiales Trenzables",
+            "activities": [
+              {
+                "code": "16210",
+                "name": "Fabricación De Hojas De Mad era Para Enchapado; Fabricación De Tableros Contrachapados,"
+              },
+              {
+                "code": "16220",
+                "name": "Fabricación De Partes Y Piezas De Carpintería Para Edificios Y Construcciones"
+              },
+              {
+                "code": "16230",
+                "name": "Fabricación De Recipient es De Madera"
+              },
+              {
+                "code": "16290",
+                "name": "Fabricación De Otros Productos De Madera N.C.P.; Fabricación De Artículos De Corcho, Paja Y"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "17",
+        "name": "Fabricació n De Papel Y Productos De Papel",
+        "groups": [
+          {
+            "code": "170",
+            "name": "Fabricació n De Papel Y Productos De Papel",
+            "activities": [
+              {
+                "code": "17010",
+                "name": "Fabricación De Pasta De Madera, Papel Y Cartón"
+              },
+              {
+                "code": "17020",
+                "name": "Fabricación De Papel Y Cartón Ondulado Y De Envases De Papel Y Cartón"
+              },
+              {
+                "code": "17090",
+                "name": "Fabricación De Otros Artículos De Papel Y Cartón"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "18",
+        "name": "Actividades De Impresión Y Servicios De Apoyo; Reproducción De Grabaciones",
+        "groups": [
+          {
+            "code": "181",
+            "name": "Actividades De Impresión Y Servicios De Apoyo",
+            "activities": [
+              {
+                "code": "1811",
+                "name": "- Actividades De Impresión"
+              },
+              {
+                "code": "18111",
+                "name": "Actividades De Imprenta"
+              },
+              {
+                "code": "18119",
+                "name": "Actividades De Impresión N.C.P."
+              },
+              {
+                "code": "18120",
+                "name": "Servicios Relacionados Con La Impresión"
+              }
+            ]
+          },
+          {
+            "code": "182",
+            "name": "Reproducción De Grabaciones",
+            "activities": [
+              {
+                "code": "18200",
+                "name": "Reproducción De Grabaciones"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "19",
+        "name": "Fabricación De Coque Y De Productos De La Refinación Del Petróleo",
+        "groups": [
+          {
+            "code": "191",
+            "name": "Fabricación De Productos De Hornos De Coque     19100 - Fabricación De Productos De Hornos De Coque",
+            "activities": []
+          },
+          {
+            "code": "192",
+            "name": "Fabricación De Productos De La Refinación Del Petróleo",
+            "activities": [
+              {
+                "code": "1920",
+                "name": "- Fabricación De Productos De La  Refinación Del Petróleo"
+              },
+              {
+                "code": "19201",
+                "name": "Elaboración De Combustibles"
+              },
+              {
+                "code": "19209",
+                "name": "Fabricación De Otros Productos De La Refinación De Petróleo N.Cp."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "20",
+        "name": "Fabri cación De Sustancias Y Productos Químicos",
+        "groups": [
+          {
+            "code": "201",
+            "name": "Fabricación De Sustancias Químicas Básicas, Abonos Y Compuestos De Nitrógeno, Plásticos Y Cauch o",
+            "activities": [
+              {
+                "code": "20110",
+                "name": "Fabricación De Sustancias Químicas Básicas"
+              },
+              {
+                "code": "20120",
+                "name": "Fabricación De Abonos Y Compuestos De Nitrógeno"
+              },
+              {
+                "code": "20130",
+                "name": "Fabricación De Plásticos Y Caucho Sintético En Formas Primarias"
+              }
+            ]
+          },
+          {
+            "code": "202",
+            "name": "Fabricación De Biocombustibles",
+            "activities": [
+              {
+                "code": "2020",
+                "name": "- Fabricación De Biocombustibles"
+              },
+              {
+                "code": "20201",
+                "name": "Fabricación De Alcohol"
+              },
+              {
+                "code": "20202",
+                "name": "Elaboración De Carbón Vegetal Por Destilación De La Madera"
+              },
+              {
+                "code": "20209",
+                "name": "Frabricación De Biocombustibles N.C.P"
+              }
+            ]
+          },
+          {
+            "code": "203",
+            "name": "Fabricación De Fibras Manufact uradas",
+            "activities": [
+              {
+                "code": "20300",
+                "name": "Fabricación De Fibras Manufacturadas"
+              }
+            ]
+          },
+          {
+            "code": "209",
+            "name": "Fabricación De Otros Productos Químicos N.C.P.",
+            "activities": [
+              {
+                "code": "20910",
+                "name": "Fabricación De Plaguicidas Y Productos Químicos De Uso Agropecuario"
+              },
+              {
+                "code": "20920",
+                "name": "Fabricación De Pinturas, Barnices Y Productos De Revestimiento Similares, Tintas De Imprenta Y"
+              },
+              {
+                "code": "2093",
+                "name": "- Fabricación De Jabones Y Detergent es, Preparados Para Limpiar Y Pulir, Perfumes Y Preparados"
+              },
+              {
+                "code": "20931",
+                "name": "Fabricación De Jabones, Detergentes Y Preparados De Limpieza"
+              },
+              {
+                "code": "20932",
+                "name": "Fabricación De Cosméticos, Perfumes Y Artículos De Tocador"
+              },
+              {
+                "code": "20939",
+                "name": "Fabricación De Otros Prepara dos Para Limpiar Y Pulir N.C.P."
+              },
+              {
+                "code": "20990",
+                "name": "Fabricación De Otros Productos Químicos N.C.P."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "21",
+        "name": "Fabricación De Productos Farmacéuticos, Sustancias Químicas Medicinales Y Productos Botán icos",
+        "groups": [
+          {
+            "code": "210",
+            "name": "Fabricación De Productos Farmacéuticos, Sustancias Quími cas M edicinales Y Productos Botánico",
+            "activities": [
+              {
+                "code": "2100",
+                "name": "- Fabricación De Productos Farmacéuticos, Sustancias Químicas Me dicinales Y Productos Botánicos"
+              },
+              {
+                "code": "21001",
+                "name": "Fabricación De Medicamentos De Uso Humano"
+              },
+              {
+                "code": "21002",
+                "name": "Fabricación De Medicamentos De Uso Veterinario"
+              },
+              {
+                "code": "21003",
+                "name": "Fabricación De Productos Farmaceuticos"
+              },
+              {
+                "code": "21004",
+                "name": "Fabricación De Productos Botánicos"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "22",
+        "name": "Fabricación De  Productos De Caucho Y Plástico",
+        "groups": [
+          {
+            "code": "221",
+            "name": "Fabricación De Productos De Caucho",
+            "activities": [
+              {
+                "code": "2211",
+                "name": "- Fabricación De Cubiertas Y Cámaras De Caucho; Recau chutado Y Re novación De Cubiertas De"
+              },
+              {
+                "code": "22111",
+                "name": "Fabricación De Cubiertas Y Cámaras De Caucho"
+              },
+              {
+                "code": "22112",
+                "name": "Recauchutaje Y Renovación De Cubiertas De Caucho"
+              },
+              {
+                "code": "22190",
+                "name": "Fabricación De Otros Productos De Caucho"
+              }
+            ]
+          },
+          {
+            "code": "222",
+            "name": "Fabricación De Productos De Plá stico",
+            "activities": [
+              {
+                "code": "22210",
+                "name": "Fabricación De Envases De Plástico"
+              },
+              {
+                "code": "22290",
+                "name": "Fabricación De Otros Productos De Plástico"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "23",
+        "name": "Fabricación De Prod uctos De Minerales No Metálicos",
+        "groups": [
+          {
+            "code": "231",
+            "name": "Fabricación De Vidrio Y Productos De Vidrio",
+            "activities": [
+              {
+                "code": "2310",
+                "name": "- Fabricación De Vidrio Y Productos De Vidrio"
+              },
+              {
+                "code": "23101",
+                "name": "Fabricación De Vidrio Plano"
+              },
+              {
+                "code": "23102",
+                "name": "Fabricación De Envases De Vidrio"
+              },
+              {
+                "code": "23109",
+                "name": "Fabricación De Otros Productos De Vidrio N.C.P."
+              }
+            ]
+          },
+          {
+            "code": "239",
+            "name": "Fabricación De Otros Productos De Minerales No Metálicos N.C.P.",
+            "activities": [
+              {
+                "code": "23910",
+                "name": "Fabri cación De Productos De Cerámica Refractaria     23920 - Fabricación De Materiales De Arcilla Para La Construcción"
+              },
+              {
+                "code": "23930",
+                "name": "Fabricación De Otros Productos De Cerámica Y Porcelana"
+              },
+              {
+                "code": "23940",
+                "name": "Fabricación De Cemento, Cal Y Yeso"
+              },
+              {
+                "code": "23950",
+                "name": "Fabricación De A rtículos De Hormigón, Cemento Y Yeso"
+              },
+              {
+                "code": "23960",
+                "name": "Corte, Tallado Y Acabado De La Piedra"
+              },
+              {
+                "code": "23990",
+                "name": "Fabricación De Otros Productos De Minerales No Metálicos N.C.P."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "24",
+        "name": "Fabricación De Metales",
+        "groups": [
+          {
+            "code": "241",
+            "name": "Fabri cación Básica De Hierro Y Acero",
+            "activities": [
+              {
+                "code": "24100",
+                "name": "Fabrica ción Básica De Hierro Y Acero"
+              }
+            ]
+          },
+          {
+            "code": "242",
+            "name": "Fabricación De Productos Primarios De Metales Preciosos Y Otros Metales No Ferrosos",
+            "activities": [
+              {
+                "code": "24200",
+                "name": "Fabricación De Productos Primarios De Metales Preciosos Y Otros Metales No Ferrosos"
+              }
+            ]
+          },
+          {
+            "code": "243",
+            "name": "Fundición De Metales",
+            "activities": [
+              {
+                "code": "24310",
+                "name": "Fundición De Hierro Y Acero"
+              },
+              {
+                "code": "24320",
+                "name": "Fundición De Metales No Ferrosos"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "25",
+        "name": "Fabricación De Productos Elaborados De Metal, Excepto Maquinarias Y Equipos",
+        "groups": [
+          {
+            "code": "251",
+            "name": "Fabricación De Productos Metálicos Para Uso Estructural, Tanques, Depósitos Y Gener adores De",
+            "activities": [
+              {
+                "code": "25110",
+                "name": "Fabricación De Productos Metálicos Para Uso Estructural"
+              },
+              {
+                "code": "25120",
+                "name": "Fabricación De Tanques, Depósitos Y Recipientes De Metal"
+              },
+              {
+                "code": "25130",
+                "name": "Fabricación De Generadores De Vapor, Excepto Calderas Para Calefacción Central"
+              }
+            ]
+          },
+          {
+            "code": "252",
+            "name": "Fabricación De Armas Y Municiones",
+            "activities": [
+              {
+                "code": "25200",
+                "name": "Fabricación De Armas Y Municiones"
+              }
+            ]
+          },
+          {
+            "code": "259",
+            "name": "Fabricación De Otros Productos Elaborados De Metal Y Servicios De Trabajo De Metales",
+            "activities": [
+              {
+                "code": "25910",
+                "name": "Forja, Prensado, Estampado Y Laminado De Metales; Pulvimetalurgia"
+              },
+              {
+                "code": "25920",
+                "name": "Mecanizado; Tratamiento Y Revestimiento De Metales"
+              },
+              {
+                "code": "25930",
+                "name": "Fabricación De Artículos De Cuchillería, Herramientas De Mano Y Artículos De Ferretería"
+              },
+              {
+                "code": "2599",
+                "name": "- Fabricación De Otros Productos Elaborados De Metal N.C.P."
+              },
+              {
+                "code": "25991",
+                "name": "Fabricación De Productos De Alambre Y Otros Artículos Para La Construcción"
+              },
+              {
+                "code": "25992",
+                "name": "Fabricación De Artículos De Metal De Uso Doméstico"
+              },
+              {
+                "code": "25993",
+                "name": "Fabricación De Envases Metálicos"
+              },
+              {
+                "code": "25999",
+                "name": "Fabricación De Otros Productos Elaborados De Metal N.C.P."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "26",
+        "name": "Fabricac ión De Equipos Informáticos, Electrónicos Y Ópticos",
+        "groups": [
+          {
+            "code": "261",
+            "name": "Fabricación De Componentes Electrónicos",
+            "activities": [
+              {
+                "code": "26100",
+                "name": "Fabricación De Componentes Electrónicos"
+              }
+            ]
+          },
+          {
+            "code": "262",
+            "name": "Fabricación De Equ ipos Informáticos Y Periféricos",
+            "activities": [
+              {
+                "code": "26200",
+                "name": "Fabricación De Equipos Informáticos  Y Periféricos"
+              }
+            ]
+          },
+          {
+            "code": "263",
+            "name": "Fabricación De Equipos De Comunicaciones",
+            "activities": [
+              {
+                "code": "26300",
+                "name": "Fabricación De Equipos De Comunicaciones"
+              }
+            ]
+          },
+          {
+            "code": "264",
+            "name": "Fabricación De Aparatos Electrónicos De Consumo",
+            "activities": [
+              {
+                "code": "26400",
+                "name": "Fabricación De Aparatos Electrónicos De Consumo"
+              }
+            ]
+          },
+          {
+            "code": "265",
+            "name": "Fabricación De  Equipos Para Medir, Verificar, Ensayar, Navegar Y De Control; Artículos De Relojería",
+            "activities": [
+              {
+                "code": "26510",
+                "name": "Fabricación De Equipos Para Medir, Verificar, Ensayar, Navegar Y De Control"
+              },
+              {
+                "code": "26520",
+                "name": "Fabricación De Artículos De Relojería"
+              }
+            ]
+          },
+          {
+            "code": "266",
+            "name": "Fabricación De Equipos D e Irradiación, Electromédicos Y Electroterapéuticos",
+            "activities": [
+              {
+                "code": "26600",
+                "name": "Fabricación De Equipos De Irradiación, Electromédicos Y Electroterapéuticos"
+              }
+            ]
+          },
+          {
+            "code": "267",
+            "name": "Fabricación De Instrumentos Ópticos Y Equipo Fotográfico",
+            "activities": [
+              {
+                "code": "26700",
+                "name": "Fabricación De Instrumentos Ópticos Y Equipo Fotográfico"
+              }
+            ]
+          },
+          {
+            "code": "268",
+            "name": "Fabricación D e Soportes Magnéticos Y Ópticos",
+            "activities": [
+              {
+                "code": "26800",
+                "name": "Fabricación De Soportes Magnéticos Y Ópticos"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "27",
+        "name": "Fabricación De Maquinaria Y Equipos Eléctricos",
+        "groups": [
+          {
+            "code": "271",
+            "name": "Fabricación De Motores, Generadores Y Transformadores Eléctricos, Aparatos De Distrib ución Y",
+            "activities": []
+          },
+          {
+            "code": "272",
+            "name": "Fabricación De Pilas, Bat erías Y Acumuladores Eléctricos",
+            "activities": [
+              {
+                "code": "27200",
+                "name": "Fabricación De Pilas, Baterías Y Acumuladores Eléctricos"
+              }
+            ]
+          },
+          {
+            "code": "273",
+            "name": "Fabricación D e Cables Y Aparatos De Cableado",
+            "activities": [
+              {
+                "code": "27310",
+                "name": "Fabricación De Cables De Fibra Óptica"
+              },
+              {
+                "code": "27320",
+                "name": "Fabricación De Otros Cables Eléctricos Y Electrónicos"
+              },
+              {
+                "code": "27330",
+                "name": "Fabric ación De Aparatos De Cableado"
+              }
+            ]
+          },
+          {
+            "code": "274",
+            "name": "Fabricación De Eq uipos De Iluminación Eléctricos",
+            "activities": [
+              {
+                "code": "27400",
+                "name": "Fabricación De Equipos De Iluminación Eléctricos"
+              }
+            ]
+          },
+          {
+            "code": "275",
+            "name": "Fabricación De Aparatos De Uso Doméstico, Excepto De Audio Y Video",
+            "activities": [
+              {
+                "code": "27500",
+                "name": "Fabricación De Aparatos De Uso Doméstico, Excepto De Audio Y Video"
+              }
+            ]
+          },
+          {
+            "code": "279",
+            "name": "Fabricación De Otros Equipos Eléctricos N.C.P.",
+            "activities": [
+              {
+                "code": "27900",
+                "name": "Fabricación De Otros Equipos Eléctricos N.C.P."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "28",
+        "name": "Fabricación De Maquinarias Y Equipos N.C.P.",
+        "groups": [
+          {
+            "code": "281",
+            "name": "Fabrica ción De Maquinaria De Uso General",
+            "activities": [
+              {
+                "code": "28110",
+                "name": "Fabricación De Motores Y Turbinas, Excepto Motores Para Aeronaves, Vehículos Automotores Y"
+              },
+              {
+                "code": "28120",
+                "name": "Fabricación De Equipos Hidráulicos"
+              },
+              {
+                "code": "28130",
+                "name": "Fabricación De Otras Bombas, Compresores, Grifo s Y Válvulas"
+              },
+              {
+                "code": "28140",
+                "name": "Fabricación De Cojinetes, Engranajes, Trenes De Engranajes Y Piezas De Transmisión"
+              },
+              {
+                "code": "28150",
+                "name": "Fabricación De Hornos Y Quemadores"
+              },
+              {
+                "code": "28160",
+                "name": "Fabricación De Equipos De Elevación Y Manipulación"
+              },
+              {
+                "code": "28170",
+                "name": "Fabricación De Maquinaria Y Equipo De Oficina"
+              },
+              {
+                "code": "28180",
+                "name": "Fabricación De Herramientas Manuales Con Motor"
+              },
+              {
+                "code": "28190",
+                "name": "Fabricación De Otros Tipos De Maquinaria De Uso General N.C.P."
+              }
+            ]
+          },
+          {
+            "code": "282",
+            "name": "Fabricación De Maquinarias De Uso Especial",
+            "activities": [
+              {
+                "code": "28210",
+                "name": "Fabricación De Maquinaria Agropecuaria Y Forestal"
+              },
+              {
+                "code": "28220",
+                "name": "Fabricación De Máquinas Herramienta"
+              },
+              {
+                "code": "28230",
+                "name": "Fabricación De Maquinaria Metalúrgica"
+              },
+              {
+                "code": "28240",
+                "name": "Fabricación De Maquinaria Para Explotación De Minas Y Canteras Y Para Obras De Construcc ión"
+              },
+              {
+                "code": "28250",
+                "name": "Fabricación De Maquinaria Para La Elaboración De Alimentos, Bebidas Y Tabaco"
+              },
+              {
+                "code": "28260",
+                "name": "Fabricación De Maquinaria Para La Elaboración De Productos Textiles, Prendas De Vestir Y Cueros"
+              },
+              {
+                "code": "28290",
+                "name": "Fabricación De Otros Tipos De Maquinaria De  Uso Especial N.C.P."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "29",
+        "name": "Fabricación De Vehículos Automotores, Remolques Y Semirremolques",
+        "groups": [
+          {
+            "code": "291",
+            "name": "Fabricación De Vehículos Automotores",
+            "activities": [
+              {
+                "code": "2910",
+                "name": "- Fabri cación De Vehículos Automotores"
+              },
+              {
+                "code": "29101",
+                "name": "Fabricación De Vehículos Automotores"
+              },
+              {
+                "code": "29102",
+                "name": "Rectific acion De Motores De Vehiculos Automotores"
+              }
+            ]
+          },
+          {
+            "code": "292",
+            "name": "Fabricación De Carrocerías Para Vehículos Automotores; Fabricació n De Remolques Y",
+            "activities": [
+              {
+                "code": "29200",
+                "name": "Fabricación De Carrocerías Para Vehículos Automotores; Fabricación De Remolques Y"
+              }
+            ]
+          },
+          {
+            "code": "293",
+            "name": "Fabricación De Piezas Y Accesorios Para V ehículos Automotores",
+            "activities": [
+              {
+                "code": "29300",
+                "name": "Fabricación De Piezas Y Accesorios Para Vehículos Automotores"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "30",
+        "name": "Fabricación De Otr os Equipos De Transporte N.C.P.",
+        "groups": [
+          {
+            "code": "301",
+            "name": "Construcción De Buques Y Otras Embarcaciones",
+            "activities": [
+              {
+                "code": "30110",
+                "name": "Construcción De Buques Y Estructuras Flotantes"
+              },
+              {
+                "code": "30120",
+                "name": "Construcción De Embarcaciones De Recreo Y Deporte"
+              }
+            ]
+          },
+          {
+            "code": "302",
+            "name": "Fabricación De Locomotoras Y De Material Rodant e Para Ferrocarriles Y Tranvías",
+            "activities": [
+              {
+                "code": "30200",
+                "name": "Fabricación De Locomotoras Y De Materia l Rodante Para Ferrocarriles Y Tranvías"
+              }
+            ]
+          },
+          {
+            "code": "303",
+            "name": "Fabricación De A eronaves",
+            "activities": [
+              {
+                "code": "30300",
+                "name": "Fabricación De Aeronaves    304 - Fabricación De  Vehículos Militares De Combate"
+              },
+              {
+                "code": "30400",
+                "name": "Fabricación De Vehículos Militares De Combate"
+              }
+            ]
+          },
+          {
+            "code": "309",
+            "name": "Fabricación De Otros Equipos De Transporte N.C.P.",
+            "activities": [
+              {
+                "code": "30910",
+                "name": "Fabricación De Motocicletas"
+              },
+              {
+                "code": "30920",
+                "name": "Fabricación De Bicicletas Y Sillas De Ruedas"
+              },
+              {
+                "code": "30990",
+                "name": "Fabricación De Otros Equipos De Transporte N.C.P."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "31",
+        "name": "Fabricación De Muebles",
+        "groups": [
+          {
+            "code": "310",
+            "name": "Fabricación De Muebles",
+            "activities": [
+              {
+                "code": "3100",
+                "name": "- Fabricación De Muebles"
+              },
+              {
+                "code": "31001",
+                "name": "Fabricación De Muebles De Madera"
+              },
+              {
+                "code": "31002",
+                "name": "Fabricación De Muebles De Metal"
+              },
+              {
+                "code": "31009",
+                "name": "Fabricación De Muebles De Otros Materiales N.C.P., Incluso Colchones"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "32",
+        "name": "Industrias Manufacturera s N.C.P.",
+        "groups": [
+          {
+            "code": "321",
+            "name": "Fabricación De Joyas,  Bijouterie Y Artículos Conexos",
+            "activities": [
+              {
+                "code": "32110",
+                "name": "Fabricación De Joyas Y Artículos Conexos"
+              },
+              {
+                "code": "32120",
+                "name": "Fabricación De Bijouterie Y Artículos Conexos"
+              }
+            ]
+          },
+          {
+            "code": "322",
+            "name": "Fabric ación De Instrumentos Musicales",
+            "activities": [
+              {
+                "code": "32200",
+                "name": "Fabricación De Instrumentos Musicales"
+              }
+            ]
+          },
+          {
+            "code": "323",
+            "name": "Fabr icación De Artículos De Deporte",
+            "activities": [
+              {
+                "code": "32300",
+                "name": "Fabricación De Artículos De Deporte"
+              }
+            ]
+          },
+          {
+            "code": "324",
+            "name": "Fabricación De Juegos Y Juguetes",
+            "activities": [
+              {
+                "code": "32400",
+                "name": "Fabricación De Juegos Y Juguetes"
+              }
+            ]
+          },
+          {
+            "code": "325",
+            "name": "Fabricación De Instrume ntos Y  Suministros Médicos Y Dentales",
+            "activities": [
+              {
+                "code": "32500",
+                "name": "Fabricación De Instrumentos Y Suministros Médicos Y Dentales"
+              }
+            ]
+          },
+          {
+            "code": "329",
+            "name": "Otras I ndustrias Manufactureras N.C.P.",
+            "activities": [
+              {
+                "code": "3290",
+                "name": "- Otras Industri as Manufactureras N.C.P."
+              },
+              {
+                "code": "32901",
+                "name": "Fabricación De Escobas, Cepillos, Plu meros Y Pinceles"
+              },
+              {
+                "code": "32902",
+                "name": "Fabricación De Ataúdes"
+              },
+              {
+                "code": "32908",
+                "name": "Actividades De Impresión N.C.P."
+              },
+              {
+                "code": "32909",
+                "name": "Otras Industrias Manufactureras N.C.P."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "33",
+        "name": "Mantenimiento, Reparación E Instalación  De Maquinas Y Equipos",
+        "groups": [
+          {
+            "code": "331",
+            "name": "Mantenimiento Y Reparación De Productos Elaborados De Metal, Máquinas Y Equipos",
+            "activities": [
+              {
+                "code": "33110",
+                "name": "Mantenimiento Y Reparación De Productos Elaborados De Metal"
+              },
+              {
+                "code": "33120",
+                "name": "Mantenimiento Y Reparación De Máquinas Y Equipos De Uso General Y Especial"
+              },
+              {
+                "code": "33130",
+                "name": "Mantenimiento Y Reparación De Equipos Electrónicos Y Ópticos"
+              },
+              {
+                "code": "33140",
+                "name": "Mantenimiento Y Reparación De Equipos Eléctricos"
+              },
+              {
+                "code": "33150",
+                "name": "Mantenimiento Y Reparación De Equipos De Transporte, Excepto Los Vehículos Automotores"
+              },
+              {
+                "code": "33190",
+                "name": "Mantenimiento Y Repara ción De Otros Equipos N.C.P."
+              }
+            ]
+          },
+          {
+            "code": "332",
+            "name": "Instalación De Máquinas Y Equipos",
+            "activities": [
+              {
+                "code": "33200",
+                "name": "Instalación De Máquinas Y Equipos"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "code": "D",
+    "name": "Suministro De Electricidad, Gas, Vapor Y Aire Acondicionado",
+    "divisions": [
+      {
+        "code": "35",
+        "name": "Electricidad, Gas, Vapor Y Aire Acondicionado",
+        "groups": [
+          {
+            "code": "351",
+            "name": "Generación, Transmisión Y Di stribución De Energía Eléctrica",
+            "activities": [
+              {
+                "code": "3510",
+                "name": "- Generación, Transmisión Y Di stribución De Energía Eléctrica"
+              },
+              {
+                "code": "35101",
+                "name": "Generación De Energía Eléctrica"
+              },
+              {
+                "code": "35102",
+                "name": "Transmisión Y Distribución De Energía Eléctrica"
+              }
+            ]
+          },
+          {
+            "code": "352",
+            "name": "Fabricación De Gas; Dist ribución De Combustibles Gaseosos Por Tuberías",
+            "activities": [
+              {
+                "code": "35200",
+                "name": "Fabricación De Gas; Distribución De Combustibles Gaseosos Por Tuberías"
+              }
+            ]
+          },
+          {
+            "code": "353",
+            "name": "Suministr o De Vapor Y Aire Acondicionado",
+            "activities": [
+              {
+                "code": "35300",
+                "name": "Suministro De Vapor Y Aire Acondicionado"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "code": "E",
+    "name": "Suministro De Agua;  Alcantarillado, Gestión De Desechos Y Actividades De Saneamiento",
+    "divisions": [
+      {
+        "code": "36",
+        "name": "Captación, T ratamiento Y Suministro De Agua",
+        "groups": [
+          {
+            "code": "360",
+            "name": "Captación, T ratamiento Y Suministro De Agua     36000 - Captación, Tratamiento Y Suministro De Agua",
+            "activities": []
+          }
+        ]
+      },
+      {
+        "code": "37",
+        "name": "Alcantarillado",
+        "groups": [
+          {
+            "code": "370",
+            "name": "Alcantarillado",
+            "activities": [
+              {
+                "code": "37000",
+                "name": "Alcantarillado"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "38",
+        "name": "Recoleccion, Tratamiento Y Eliminación De Desechos; Recuperación De Materiales",
+        "groups": [
+          {
+            "code": "381",
+            "name": "Recolección De Desechos",
+            "activities": [
+              {
+                "code": "38110",
+                "name": "Recolección De Desechos Inocuos"
+              },
+              {
+                "code": "38120",
+                "name": "Recolección De Desechos Peligrosos"
+              }
+            ]
+          },
+          {
+            "code": "382",
+            "name": "Tratamiento Y Eliminación De Desechos",
+            "activities": [
+              {
+                "code": "38210",
+                "name": "Tratamiento Y Eliminación De Desechos Inocuos"
+              },
+              {
+                "code": "38220",
+                "name": "Tratamiento Y Eliminación De Desechos Peligrosos"
+              }
+            ]
+          },
+          {
+            "code": "383",
+            "name": "Recuperación De Materiales",
+            "activities": [
+              {
+                "code": "3830",
+                "name": "- Recuperación De Materiales"
+              },
+              {
+                "code": "38301",
+                "name": "Recupera ción De Materiales Metálicos"
+              },
+              {
+                "code": "38302",
+                "name": "Recuperación De Materiales No Metálicos"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "39",
+        "name": "Actividades De Saneamiento Y Otros Servicios De Gestión De Desechos",
+        "groups": [
+          {
+            "code": "390",
+            "name": "Actividades De Saneamiento Y Otros Servicios De Gestión De Desechos",
+            "activities": [
+              {
+                "code": "39000",
+                "name": "Actividade s De Saneamiento Y Otros Servicios De Gestión De Desechos"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "41",
+        "name": "Construcción De Edificios",
+        "groups": [
+          {
+            "code": "410",
+            "name": "Construcción De Edificios",
+            "activities": [
+              {
+                "code": "4100",
+                "name": "- Construcción De Edificios"
+              },
+              {
+                "code": "41001",
+                "name": "Inversores De Emprendimientos Inmobiliarios"
+              },
+              {
+                "code": "41002",
+                "name": "Construcción De Edificios"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "42",
+        "name": "Ingeniería Civil",
+        "groups": [
+          {
+            "code": "421",
+            "name": "Construcción De Carreteras Y Vías Férreas, Puentes Y Túneles",
+            "activities": [
+              {
+                "code": "42100",
+                "name": "Construcción De Carreteras Y Vías Férreas, Puentes Y Túneles"
+              }
+            ]
+          },
+          {
+            "code": "422",
+            "name": "Construcción De Proyectos De Servicios Público s",
+            "activities": [
+              {
+                "code": "42200",
+                "name": "Construcción De Proyectos De Servicios Públicos"
+              }
+            ]
+          },
+          {
+            "code": "429",
+            "name": "Construcción De Otros Proyectos De Ingeniería Civil N.C.P.",
+            "activities": [
+              {
+                "code": "42900",
+                "name": "Construcción De Otros Proyectos De Ingeniería Civil N.C.P."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "43",
+        "name": "Actividades Especializadas De Construcción",
+        "groups": [
+          {
+            "code": "431",
+            "name": "Demolición Y Preparación Del Terreno",
+            "activities": [
+              {
+                "code": "43110",
+                "name": "Demolición"
+              },
+              {
+                "code": "43120",
+                "name": "Preparación Del Terreno"
+              }
+            ]
+          },
+          {
+            "code": "432",
+            "name": "Instalaciones Eléctricas, De Fontanería Y Otras Instalaciones De Construcción",
+            "activities": [
+              {
+                "code": "43210",
+                "name": "Instalaciones Eléctricas, Electromecánicas Y Electrónicas"
+              },
+              {
+                "code": "4322",
+                "name": "- Instalaciones De Gas, Agua, Sanitarios, Calefacción Y Aire Acondicionado"
+              },
+              {
+                "code": "43221",
+                "name": "Fontanería E Instalaciones Sanitarias"
+              },
+              {
+                "code": "43222",
+                "name": "Instalación De Calefacción Y Aire Acondicionado"
+              },
+              {
+                "code": "43229",
+                "name": "Otras Instalaciones De Fontanería, Calefacción Y Aire Acondicionado"
+              },
+              {
+                "code": "43290",
+                "name": "Otras Instalaciones De Construcción"
+              }
+            ]
+          },
+          {
+            "code": "433",
+            "name": "Terminación Y Acabado De Edificios",
+            "activities": [
+              {
+                "code": "4330",
+                "name": "- Terminación Y Acabado De Edificios"
+              },
+              {
+                "code": "43301",
+                "name": "Pintado Y Empapelado De Edifi cios"
+              },
+              {
+                "code": "43302",
+                "name": "Colocación De Revestimientos De Pisos Y Paredes"
+              },
+              {
+                "code": "43309",
+                "name": "Otras Tareas De Terminación De Edificios"
+              }
+            ]
+          },
+          {
+            "code": "439",
+            "name": "Otras Actividades Especializadas De Construcción N.C.P.",
+            "activities": [
+              {
+                "code": "4390",
+                "name": "- Otras Actividades Especializadas De Construcción N.C.P."
+              },
+              {
+                "code": "43901",
+                "name": "Actividades De Impermeabilización De Edificios"
+              },
+              {
+                "code": "43902",
+                "name": "Levantamiento Y Desmantelamiento De Plataformas Y Andamios"
+              },
+              {
+                "code": "43903",
+                "name": "Construcción De Pilotajes Para La Edificación"
+              },
+              {
+                "code": "43909",
+                "name": "Otras Actividades Especializadas De Construcción N.C.P  G - Comercio Al Por Mayor Y Al Por Menor; Reparación De Vehículos Automotores Y"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "45",
+        "name": "Comercio Y Reparación De Vehíc ulos Automotores Y Motocicletas",
+        "groups": [
+          {
+            "code": "451",
+            "name": "Comercio De Vehículos Au tomotores, Excepto Motocicletas",
+            "activities": [
+              {
+                "code": "4510",
+                "name": "- Comercio De Vehículos  Automotores, Excepto Motocicletas"
+              },
+              {
+                "code": "45101",
+                "name": "Comercio Al Por Mayor De Vehículos Automotores Nuevos"
+              },
+              {
+                "code": "45102",
+                "name": "Comercio Al Por Mayor De Vehículos Automotores Usados"
+              },
+              {
+                "code": "45103",
+                "name": "Comercio Al Por Menor De Vehículos Automotores Nuevos"
+              },
+              {
+                "code": "45104",
+                "name": "Comercio Al Por Menor De Vehículos Automotores Usados"
+              },
+              {
+                "code": "45105",
+                "name": "Agentes Comisionistas Por Venta De Vehículos Automotores"
+              }
+            ]
+          },
+          {
+            "code": "452",
+            "name": "Mantenimiento Y Reparación De Vehículos Automotores, Excepto Motocicletas",
+            "activities": [
+              {
+                "code": "4520",
+                "name": "- Mantenimiento Y Reparación De Vehículos Automotores, Excepto Motocicletas"
+              },
+              {
+                "code": "45201",
+                "name": "Mantenimiento Y Reparación Mecánica De Vehículos"
+              },
+              {
+                "code": "45202",
+                "name": "Mantenimiento Y Reparación Eléctrica Y Electrónica De Vehículos"
+              },
+              {
+                "code": "45203",
+                "name": "Talleres De Chapería Y Pintura"
+              },
+              {
+                "code": "45204",
+                "name": "Talleres De Gome ría"
+              },
+              {
+                "code": "45205",
+                "name": "Talleres De Alineación Y Balanceo"
+              },
+              {
+                "code": "45206",
+                "name": "Lavaderos De Autos"
+              },
+              {
+                "code": "45209",
+                "name": "Otros Tipos De Reparaciones De Vehículos Automotores N.C.P."
+              }
+            ]
+          },
+          {
+            "code": "453",
+            "name": "Comercio De Piezas Y Accesorios De Vehículos Automotores, Excepto Motocicletas",
+            "activities": [
+              {
+                "code": "4530",
+                "name": "- Comercio De Piezas Y Accesorios De Vehículos Automotores, Excepto Motocicletas"
+              },
+              {
+                "code": "45301",
+                "name": "Comercio De Partes, Piezas Y Accesorios Nuevos Para Vehículos Automotores"
+              },
+              {
+                "code": "45302",
+                "name": "Comercio De Partes, Piezas Y Accesorios Usados Para Vehículos Automotores"
+              },
+              {
+                "code": "45303",
+                "name": "Comercio De Partes, Piezas Y Accesorios Nuevos Y Usados Para Vehículos Automotores"
+              }
+            ]
+          },
+          {
+            "code": "454",
+            "name": "Comercio, Mantenimiento Y Reparación De Motocicletas Y De Sus Piezas Y Accesorios",
+            "activities": [
+              {
+                "code": "4540",
+                "name": "- Comercio, Mantenimiento Y Reparación De Motocicletas Y De Sus Piezas Y Accesorios"
+              },
+              {
+                "code": "45401",
+                "name": "Comercio De Motocicletas Y De Sus Piezas Y Accesorios"
+              },
+              {
+                "code": "45402",
+                "name": "Mantenimiento Y Reparación Mecánica Y Eléctrica De Motocicletas"
+              },
+              {
+                "code": "45403",
+                "name": "Talleres D e Gomería De Motocicletas"
+              },
+              {
+                "code": "45404",
+                "name": "Lavaderos De Motocicletas"
+              },
+              {
+                "code": "45409",
+                "name": "Otros Tipos De Reparaciones De Motocicletas N.C.P"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "46",
+        "name": "Comercio Al Por Mayor, Excepto De Vehículos Automotores Y Motocicletas",
+        "groups": [
+          {
+            "code": "461",
+            "name": "Comercio Al Por Mayor A Cambio De Una Ret ribución O Por Contrata",
+            "activities": [
+              {
+                "code": "4610",
+                "name": "- Comercio Al Por Mayor A Cambio De Una Retribución O Por Contrata"
+              },
+              {
+                "code": "46101",
+                "name": "Comercio Al Por Mayor De Productos Agrícolas A Cambio De Una Retribución O Por Contrata"
+              },
+              {
+                "code": "46102",
+                "name": "Comercio Al Por Mayor De Productos Pecuarios A Cambio De Una Retribución O Por Contrata"
+              },
+              {
+                "code": "46103",
+                "name": "Comercio Al Por Mayor De Alimentos, Bebidas Y Tabaco A Cambio De Una Retribución O Por"
+              },
+              {
+                "code": "46104",
+                "name": "Comercio Al Por Mayor De Combustibles,  Minerales, Productos Siderúrgicos Y Químicos A"
+              },
+              {
+                "code": "46109",
+                "name": "Comercio Al Por Mayor De Mercancías N.C.P. A Cambio De Una Retribución O Por Contrata"
+              }
+            ]
+          },
+          {
+            "code": "462",
+            "name": "Comercio Al Por Mayor De Materias Primas Agropecuarias Y An imales Vivos",
+            "activities": [
+              {
+                "code": "4620",
+                "name": "- Comercio Al Por Mayor De Materias Primas Agropecuarias Y Animales Vivos"
+              },
+              {
+                "code": "46201",
+                "name": "Comercio Al Por Mayor De Materias Primas Agrícolas"
+              },
+              {
+                "code": "46202",
+                "name": "Comercio Al Por Mayor De Materias Primas Pecuarias Y Animales Vivos"
+              }
+            ]
+          },
+          {
+            "code": "463",
+            "name": "Comerc io Al Por Mayor De Alimentos, Bebidas Y Tabaco",
+            "activities": [
+              {
+                "code": "4630",
+                "name": "- Comercio Al Por Mayor De Alimentos, Bebidas Y Tabaco"
+              },
+              {
+                "code": "46301",
+                "name": "Comercio Al Por Mayor De Carne, Menudencias Y Productos Derivados"
+              },
+              {
+                "code": "46302",
+                "name": "Comercio Al Por Mayor De Comestibles, Excepto Carnes"
+              },
+              {
+                "code": "46303",
+                "name": "Comercio Al Por Mayor De Alimentos Para Mascotas"
+              },
+              {
+                "code": "46304",
+                "name": "Comercio Al Por Mayor De Bebidas"
+              },
+              {
+                "code": "46305",
+                "name": "Comercio Al Por Mayor De Tabaco Y Cigarrillos"
+              }
+            ]
+          },
+          {
+            "code": "464",
+            "name": "Comercio Al Por Mayor De Enseres Domésticos     46410 - Comercio Al Por Mayor De Textiles, Prendas De Vestir, Calzado, Artículos De Marroquinería Y",
+            "activities": [
+              {
+                "code": "46420",
+                "name": "Comercio Al Por Mayor De Productos Farmacéuticos Y Veterinarios"
+              },
+              {
+                "code": "46430",
+                "name": "Comercio Al Por Mayor De Productos Cosméticos Y De Perf umería"
+              },
+              {
+                "code": "46440",
+                "name": "Comercio Al Por Mayor De Libros, Revistas, Periódicos, Papel, Cartón, Materiales De Embalaje Y"
+              },
+              {
+                "code": "46450",
+                "name": "Comercio Al Por Mayor De Artículos De Óptica, Fotografía, Relojería, Joyería Y Fantasías"
+              },
+              {
+                "code": "46460",
+                "name": "Comerci o Al Por Mayor De Muebles Y Artículos De Iluminación"
+              },
+              {
+                "code": "46490",
+                "name": "Comercio Al Por Mayor De Otros Enseres Domésticos N.C.P."
+              }
+            ]
+          },
+          {
+            "code": "465",
+            "name": "Comercio Al Por Mayor De Maquinaria, Equipo Y Suministros",
+            "activities": [
+              {
+                "code": "46510",
+                "name": "Comercio Al Por Mayor De Equipos Informáticos Y Softwar e"
+              },
+              {
+                "code": "46520",
+                "name": "Comercio Al Por Mayor De Componentes Electrónicos Y Equipos De Comunicaciones"
+              },
+              {
+                "code": "46530",
+                "name": "Comercio Al Por Mayor De Maquinaria, Equipo Y Suministros Agrícolas"
+              },
+              {
+                "code": "46540",
+                "name": "Comercio Al Por Mayor De Maquinaria Y Equipo Para Uso Industrial"
+              },
+              {
+                "code": "46550",
+                "name": "Comercio Al Por Mayor De Maquinaria Y Equipo Para Uso Médico Y Hospitalario"
+              },
+              {
+                "code": "46590",
+                "name": "Comercio Al Por Mayor De Otras Maquinarias Y Equipos N.C.P."
+              }
+            ]
+          },
+          {
+            "code": "466",
+            "name": "Comercio Al Por Mayor De  Otros Productos Especializados",
+            "activities": [
+              {
+                "code": "46610",
+                "name": "Comercio Al Por Mayor De  Combustibles Sólidos, Líquidos Y Gaseosos Y De Productos Conexos"
+              },
+              {
+                "code": "46620",
+                "name": "Comercio Al Por Mayor De Metales Y Minerales Metalíferos"
+              },
+              {
+                "code": "4663",
+                "name": "- Comercio Al Por Mayor De Materiales De Construcción, Artículos De Ferretería Y Equipos Y"
+              },
+              {
+                "code": "46631",
+                "name": "Comercio Al Por Mayor De Madera"
+              },
+              {
+                "code": "46632",
+                "name": "Comercio Al Por Mayor De Materiales De Construcción"
+              },
+              {
+                "code": "46633",
+                "name": "Comercio Al Por Mayor De Pinturas, Barnices, Papel De Empapelar Y Revestimiento De Pisos"
+              },
+              {
+                "code": "46634",
+                "name": "Comercio Al P or Mayor De Vidrio"
+              },
+              {
+                "code": "46635",
+                "name": "Comercio Al Por Mayor De Artículos Sanitarios"
+              },
+              {
+                "code": "46636",
+                "name": "Comercio Al Por Mayor De Artículos De Ferretería Y Calefacción"
+              },
+              {
+                "code": "4669",
+                "name": "- Comercio Al Por Mayor De Desperdicios, Desechos Y Otros Productos N.C.P."
+              },
+              {
+                "code": "46691",
+                "name": "Comer cio Al Por Mayor De Productos Químicos Industriales"
+              },
+              {
+                "code": "46692",
+                "name": "Comercio Al Por Mayor De Fertilizantes Y Agroquímicos"
+              },
+              {
+                "code": "46693",
+                "name": "Comercio Al Por Mayor De Desechos Y Materiales Para Reciclar"
+              },
+              {
+                "code": "46699",
+                "name": "Comercio Al Por Mayor De Otros Productos N.C.P."
+              }
+            ]
+          },
+          {
+            "code": "469",
+            "name": "Comercio Al Por Mayor No Especializada",
+            "activities": [
+              {
+                "code": "46900",
+                "name": "Comercio Al Por Mayor No Especializada"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "47",
+        "name": "Comercio Al Por Menor, Excepto De Vehículos Automotores Y Motocicletas",
+        "groups": [
+          {
+            "code": "471",
+            "name": "Comercio Al Por Menor En Comercios No Especializados",
+            "activities": [
+              {
+                "code": "4711",
+                "name": "- Comercio Al Por Menor En Comercios No Especializados Con Predominio De Alimentos, Bebidas Y"
+              },
+              {
+                "code": "47111",
+                "name": "Comercio Al Por Menor En Hipermercados Y Supermercados"
+              },
+              {
+                "code": "47112",
+                "name": "Comercio Al Por Menor En Mini Mercados Y Despensas"
+              },
+              {
+                "code": "47113",
+                "name": "Comercio Al Por Menor  Realizado Por Los Free Shops"
+              },
+              {
+                "code": "47114",
+                "name": "Comercio Al Por Menor Realizado Por Las Cooperativas De Consumo"
+              },
+              {
+                "code": "47190",
+                "name": "Comercio Al Por Menor De Otros Productos En Comercios No Especializados"
+              }
+            ]
+          },
+          {
+            "code": "472",
+            "name": "Comercio Al Por Menor De Alimentos, Bebidas Y Tabaco En Comercios Especializados",
+            "activities": [
+              {
+                "code": "4721",
+                "name": "- Comercio Al Por Menor De Alimentos"
+              },
+              {
+                "code": "47211",
+                "name": "Comercio Al Por Menor De Frutas Y Verduras"
+              },
+              {
+                "code": "47212",
+                "name": "Comercio Al Por Menor De Carnes Y Pescados"
+              },
+              {
+                "code": "47213",
+                "name": "Comercio Al Por Menor De Productos De Panadería, Confitería Y Pastelería"
+              },
+              {
+                "code": "47219",
+                "name": "Comercio Al Por Menor De Otros Alimentos N.C.P."
+              },
+              {
+                "code": "47220",
+                "name": "Comercio Al Por Menor De Bebidas"
+              },
+              {
+                "code": "47230",
+                "name": "Comercio Al Por Menor De Tabaco"
+              }
+            ]
+          },
+          {
+            "code": "473",
+            "name": "Comercio Al Por Menor De Combustible Para Vehículos Automotores En Comercios Especializados",
+            "activities": [
+              {
+                "code": "47300",
+                "name": "Comercio Al Por Menor De Combustible Para Vehículos Automotores En Comercios Especializados    474 - Comercio Al Por Menor De Equipos De Información Y Comunicaciones En Comer cios Especializados"
+              },
+              {
+                "code": "4741",
+                "name": "- Comercio Al Por Menor De Equipos De Información Y Comunicaciones En Comercios"
+              },
+              {
+                "code": "47411",
+                "name": "Comercio Al Por Menor De Equipos Informáticos Y Software"
+              },
+              {
+                "code": "47412",
+                "name": "Comercio Al Por Menor De Equipos De Telecomunicac iones"
+              },
+              {
+                "code": "47420",
+                "name": "Comercio Al Por Menor De Equipos De Audio Y Vídeo"
+              }
+            ]
+          },
+          {
+            "code": "475",
+            "name": "Comercio Al Por Menor De Otros Artículos Y Equipos De Uso Doméstico En Comercios Especializados",
+            "activities": [
+              {
+                "code": "4751",
+                "name": "- Comercio Al Por Menor De Productos Textiles Excepto Prendas De Vestir"
+              },
+              {
+                "code": "47511",
+                "name": "Comercio Al Por Menor De Tela En Almacenes Especializados"
+              },
+              {
+                "code": "47512",
+                "name": "Comercio Al Por Menor De Hilos Y Artículos De Mercería En Almacenes Especializados"
+              },
+              {
+                "code": "4752",
+                "name": "- Comercio Al Por Menor De Artículos De Ferretería, Pinturas, Productos De Vidrio Y Otros"
+              },
+              {
+                "code": "47521",
+                "name": "Comercio Al Por Menor De Artículos De Ferretería"
+              },
+              {
+                "code": "47522",
+                "name": "Comercio Al Por Menor De Pinturas Y Revestimientos Sim ilares"
+              },
+              {
+                "code": "47523",
+                "name": "Comercio Al Por Menor De Otros Materiales De Construcción Tales Como Ladrillos, Madera,"
+              },
+              {
+                "code": "47524",
+                "name": "Comercio Al Por Menor De Vidrio"
+              },
+              {
+                "code": "47529",
+                "name": "Comercio Al Por Menor De Otros Artículos N.C.P."
+              },
+              {
+                "code": "47530",
+                "name": "Comercio Al P or Menor De Alfombras, Cubiertas De Pared Y Piso En Almacenes Especializados"
+              },
+              {
+                "code": "4759",
+                "name": "- Comercio Al Por Menor De Electrodomésticos, Muebles, Equipo De Iluminación Y Artículos Para"
+              },
+              {
+                "code": "47591",
+                "name": "Comercio Al Por Menor De Electrodomésticos Y Accesorios"
+              },
+              {
+                "code": "47592",
+                "name": "Comercio Al Por Menor De Muebles Y Accesorios Para El Hogar"
+              },
+              {
+                "code": "47593",
+                "name": "Comercio Al Por Menor De Cristalería Y Menage"
+              },
+              {
+                "code": "47594",
+                "name": "Comercio Al Por Menor De Instrumentos Musicales  Y Partituras"
+              },
+              {
+                "code": "47595",
+                "name": "Comercio Al Por Menor De Sistemas De Seguridad"
+              },
+              {
+                "code": "47599",
+                "name": "Comercio Al Por Menor De Otros Artículos Y Equipos De Uso Doméstico N.C.P."
+              }
+            ]
+          },
+          {
+            "code": "476",
+            "name": "Comercio Al Por Menor De Bienes Culturales Y Recreativos En Comercios Especializados",
+            "activities": [
+              {
+                "code": "47610",
+                "name": "Comercio Al Por Menor De Libros, Periódicos Y Artículos De Papelería"
+              },
+              {
+                "code": "47620",
+                "name": "Comercio Al Por Menor De Grabaciones De Audio Y Video; Cintas Y Discos Vírgenes, En Comercios"
+              },
+              {
+                "code": "4763",
+                "name": "- Comercio Al Por Menor De Artículos Dep ortiv os"
+              },
+              {
+                "code": "47631",
+                "name": "Comercio Al Por Menor De Bicicletas"
+              },
+              {
+                "code": "47639",
+                "name": "Comercio Al Por Menor De Otros Artículos Deportivos N.C.P."
+              },
+              {
+                "code": "47640",
+                "name": "Comercio Al Por Menor De Juegos Y Juguetes"
+              }
+            ]
+          },
+          {
+            "code": "477",
+            "name": "Comercio Al Por Menor De Otros Artículos En Comercios Especializados",
+            "activities": [
+              {
+                "code": "4771",
+                "name": "- Comercio Al Por Menor De Prendas De Vestir, Calzado Y Artículos De Cuero"
+              },
+              {
+                "code": "47711",
+                "name": "Comercio Al Por Menor De Prendas De Vestir"
+              },
+              {
+                "code": "47712",
+                "name": "Comercio Al Por Menor De Calzado"
+              },
+              {
+                "code": "47713",
+                "name": "Comercio Al Por Menor De Accesorios De Cuero, Pieles Y Ma teriales Similares"
+              },
+              {
+                "code": "4772",
+                "name": "- Comercio Al Por Menor De Productos Farmacéuticos Y Medicinales, Cosméticos Y Artículos De"
+              },
+              {
+                "code": "47721",
+                "name": "Comercio Al Por Menor De Productos Farmacéuticos De Uso Humano"
+              },
+              {
+                "code": "47722",
+                "name": "Comercio Al  Por Menor De Productos Farmacéuticos De Uso Veterinario"
+              },
+              {
+                "code": "47723",
+                "name": "Comercio Al Por Menor De Cosméticos Y Artículos De Tocador"
+              },
+              {
+                "code": "47724",
+                "name": "Comercio Al Por Menor De Productos Médicos Y Ortopédicos"
+              },
+              {
+                "code": "4773",
+                "name": "- Comercio Al Por Menor De Otros Artículos Nuevo s N.C.P. En Comercios Especializados"
+              },
+              {
+                "code": "47731",
+                "name": "Comercio Al Por Menor De Equipo Fotográfico, Óptico Y De Precisión"
+              },
+              {
+                "code": "47732",
+                "name": "Comercio Al Por Menor De Relojes Y Joyas"
+              },
+              {
+                "code": "47733",
+                "name": "Comercio Al Por Menor De Flores, Plantas, Semillas, Fertilizantes Y Artículos Para Jardín"
+              },
+              {
+                "code": "47734",
+                "name": "Comercio Al Por Menor De Artesanías, Fantasías Y Souvenirs"
+              },
+              {
+                "code": "47735",
+                "name": "Comercio Al Por Menor De Combustibles De Uso Doméstico, Gas Envasado, Leñ a Y Carbón"
+              },
+              {
+                "code": "47736",
+                "name": "Comercio Al Por Menor De Objetos De Galerías De Arte Comerciales      47739 - Otros Comercios Al Por Menor De Productos Nuevos N.C.P. En Almacenes Especializados"
+              },
+              {
+                "code": "4774",
+                "name": "- Comercio Al Por Menor De Artículos De Segunda Mano"
+              },
+              {
+                "code": "4774",
+                "name": "1 - Comercio Al Por Menor De Prendas De Vestir Usada"
+              },
+              {
+                "code": "47742",
+                "name": "Comercio Al Por Menor De Antiguedades"
+              },
+              {
+                "code": "47749",
+                "name": "Comercio Al Por Menor De Otras Mercancías De Segunda Mano N.C.P"
+              }
+            ]
+          },
+          {
+            "code": "478",
+            "name": "Comercio Al Por Menor En Puestos Y Mercados",
+            "activities": [
+              {
+                "code": "47810",
+                "name": "Comercio Al  Por Menor De Alimentos, Bebidas Y Tabaco En Puestos De Venta Y Mercados"
+              },
+              {
+                "code": "47820",
+                "name": "Comercio Al Por Menor De Productos Textiles, Prendas De Vestir Y Calzado En Puestos De Venta Y"
+              },
+              {
+                "code": "47890",
+                "name": "Comercio Al Por Menor De Otros Artículos En Puestos De Venta Y Mercados"
+              }
+            ]
+          },
+          {
+            "code": "479",
+            "name": "Comercio Al Por Menor No Realizado En Comercios, Puestos De Venta Y Mercados",
+            "activities": [
+              {
+                "code": "47910",
+                "name": "Comercio Al Por Menor A Través De Empresas De Comercio Por Correo O Internet"
+              },
+              {
+                "code": "47990",
+                "name": "Otros Tipos De Comercio Al Por Menor No Realizada En  Almacenes, Puestos Y Mercados"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "code": "H",
+    "name": "Transporte Y Almacenamiento",
+    "divisions": [
+      {
+        "code": "49",
+        "name": "Tran sporte Terrestre Y Por Tuberías",
+        "groups": [
+          {
+            "code": "491",
+            "name": "Transporte Por Vía Férrea",
+            "activities": [
+              {
+                "code": "49110",
+                "name": "Transporte De Pasajeros Por Vía Férrea, Incluso Subterráneos"
+              },
+              {
+                "code": "49120",
+                "name": "Transporte De Carga Por Vía Fé rrea"
+              }
+            ]
+          },
+          {
+            "code": "492",
+            "name": "Otros Tipos De Transporte Por Vía Terrestre",
+            "activities": [
+              {
+                "code": "49210",
+                "name": "Transporte Urbano O Suburbano De Pasajeros Por Vía Terrestre"
+              },
+              {
+                "code": "4922",
+                "name": "- Otros Tipos De Transporte De Pasajeros Por Vía Terrestre"
+              },
+              {
+                "code": "49221",
+                "name": "Transporte En Taxímetros Y Remises"
+              },
+              {
+                "code": "49222",
+                "name": "Transporte En Buses Escolares"
+              },
+              {
+                "code": "49223",
+                "name": "Transporte Buses De Media Y Larga Distancia Regulares"
+              },
+              {
+                "code": "49229",
+                "name": "Otros Tipos De Transporte De Pasajeros Por Vía Terrestre N.C.P."
+              },
+              {
+                "code": "4923",
+                "name": "- Transporte De Carga Por Carretera"
+              },
+              {
+                "code": "49231",
+                "name": "Transporte Terre stre Local De Carga"
+              },
+              {
+                "code": "49232",
+                "name": "Transporte Terrestre De Carga Interdepartamental E Internacional"
+              },
+              {
+                "code": "49239",
+                "name": "Otros Tipos De Transporte Terrestre Por Carreteras N.C.P."
+              }
+            ]
+          },
+          {
+            "code": "493",
+            "name": "Transporte Por Tuberías",
+            "activities": [
+              {
+                "code": "49300",
+                "name": "Transporte Por Tuberías"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "50",
+        "name": "Transporte Por Vía Acuática",
+        "groups": [
+          {
+            "code": "501",
+            "name": "Transporte Marítimo Y De Cabotaje",
+            "activities": [
+              {
+                "code": "50110",
+                "name": "Transporte De Pasajeros Marítimo Y De Cabotaje"
+              },
+              {
+                "code": "50120",
+                "name": "Transporte De Carga Marítimo Y De Cabotaje"
+              }
+            ]
+          },
+          {
+            "code": "502",
+            "name": "Transporte Por Vías Fluviales De Navegación",
+            "activities": [
+              {
+                "code": "50210",
+                "name": "Transporte De Pas ajeros Por Vías Fluviales"
+              },
+              {
+                "code": "50220",
+                "name": "Transporte De Carga Por Vías Fluviales"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "51",
+        "name": "Transporte Aéreo",
+        "groups": [
+          {
+            "code": "511",
+            "name": "Transporte Aéreo De Pasajeros",
+            "activities": [
+              {
+                "code": "51100",
+                "name": "Transporte Aéreo De Pasajeros"
+              }
+            ]
+          },
+          {
+            "code": "512",
+            "name": "Transporte Aéreo De Carga",
+            "activities": [
+              {
+                "code": "51200",
+                "name": "Transporte Aéreo De Carga"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "52",
+        "name": "Almacenamiento Y Actividades Auxiliares Al Transporte",
+        "groups": [
+          {
+            "code": "521",
+            "name": "Depósito Y Almacenamiento",
+            "activities": [
+              {
+                "code": "52100",
+                "name": "Depósito Y Almacenamiento"
+              }
+            ]
+          },
+          {
+            "code": "522",
+            "name": "Actividades Auxiliares Al Transporte",
+            "activities": [
+              {
+                "code": "52210",
+                "name": "Actividades Auxiliares Al Transporte Terrestre"
+              },
+              {
+                "code": "52220",
+                "name": "Actividades Auxiliares Al Transporte Acuático"
+              },
+              {
+                "code": "52230",
+                "name": "Actividades Auxiliares Al Transporte Aéreo"
+              },
+              {
+                "code": "52240",
+                "name": "Manipulación De La Carga"
+              },
+              {
+                "code": "5229",
+                "name": "- Otras Actividades Auxiliares Al Transporte N.C.P."
+              },
+              {
+                "code": "52291",
+                "name": "Actividades De Los Agentes De Transp orte Aéreo      52292 - Actividades De Los Agentes De Transporte Terrestre"
+              },
+              {
+                "code": "52293",
+                "name": "Actividades De Los Despachantes De Aduana"
+              },
+              {
+                "code": "52294",
+                "name": "Otras Actividades De Los Agentes De Transporte Marítimo Y Fluvial"
+              },
+              {
+                "code": "52299",
+                "name": "Operación De Manipulación De Produ ctos Y Otras Actividades Complementarias Al Transporte"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "53",
+        "name": "Correo Y Servicios De Mensajería",
+        "groups": [
+          {
+            "code": "531",
+            "name": "Correo",
+            "activities": [
+              {
+                "code": "53100",
+                "name": "Correo"
+              }
+            ]
+          },
+          {
+            "code": "532",
+            "name": "Servicios De Mensajería",
+            "activities": [
+              {
+                "code": "53200",
+                "name": "Servicios De Mensajería"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "code": "I",
+    "name": "Alojamiento Y Servicios De Comidas",
+    "divisions": [
+      {
+        "code": "55",
+        "name": "Alojamiento",
+        "groups": [
+          {
+            "code": "551",
+            "name": "Alojamiento En Hoteles, Pensiones Y Otras Residencias De Alojamiento Temporal",
+            "activities": [
+              {
+                "code": "5510",
+                "name": "- Alojamiento En Hoteles, Pensiones Y Otras Residencias De Alojamiento Temporal"
+              },
+              {
+                "code": "55101",
+                "name": "Actividades De Alojamiento En Hoteles"
+              },
+              {
+                "code": "55102",
+                "name": "Actividades De Alojamiento En Casas De Huéspedes Y Moteles"
+              },
+              {
+                "code": "55109",
+                "name": "Otros Alojamientos De Corto Plazo N.C.P."
+              }
+            ]
+          },
+          {
+            "code": "552",
+            "name": "Parques De Caravanas, Parques De Remolques, Campamentos De Recreo Y Camping",
+            "activities": [
+              {
+                "code": "55200",
+                "name": "Parques De Caravanas, Parques De Remol ques, Campamentos De Recreo Y Camping"
+              }
+            ]
+          },
+          {
+            "code": "559",
+            "name": "Otros Tipos De Alojamiento",
+            "activities": [
+              {
+                "code": "5590",
+                "name": "- Otros Tipos De Alojamiento"
+              },
+              {
+                "code": "55901",
+                "name": "Actividades De Alojamiento En Pensiones Familiares Sin Servicios"
+              },
+              {
+                "code": "55909",
+                "name": "Otras Actividades De Alojamientos N.C.P."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "56",
+        "name": "Servicios De Comidas Y Bebidas",
+        "groups": [
+          {
+            "code": "561",
+            "name": "Restaurantes, Bares Y Similares",
+            "activities": [
+              {
+                "code": "5610",
+                "name": "- Restaurantes, Bares Y Similares"
+              },
+              {
+                "code": "56101",
+                "name": "Restaurantes Y Parrilladas"
+              },
+              {
+                "code": "56102",
+                "name": "Rotiserías"
+              },
+              {
+                "code": "56103",
+                "name": "Heladerías Que No Elaboran El Producto"
+              },
+              {
+                "code": "56109",
+                "name": "Otros Se rvicios De Suministro De Alimento Para Consumo Inmediato N.C.P."
+              }
+            ]
+          },
+          {
+            "code": "562",
+            "name": "Abastecimiento De Eventos Y Otros Servicios De Comida",
+            "activities": [
+              {
+                "code": "56210",
+                "name": "Abastecimiento De Eventos"
+              },
+              {
+                "code": "56290",
+                "name": "Otros Servicios De Comida N.C.P."
+              }
+            ]
+          },
+          {
+            "code": "563",
+            "name": "Actividades Vinculadas Al Servicio De  Bebidas",
+            "activities": [
+              {
+                "code": "56300",
+                "name": "Actividades Vinculadas Al Servicio De Bebidas"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "code": "J",
+    "name": "Información Y Comunicación",
+    "divisions": [
+      {
+        "code": "58",
+        "name": "Edición",
+        "groups": [
+          {
+            "code": "581",
+            "name": "Edición De Libros, Periódicos Y Otras Publicaciones, Incluso Integrada A La Impresión",
+            "activities": [
+              {
+                "code": "58110",
+                "name": "Edición De Libros, Incluso Integrada A La Impresión"
+              },
+              {
+                "code": "58120",
+                "name": "Publicación De Directorios Y Listas De Direcciones, Incluso Integrada A La Impresión"
+              },
+              {
+                "code": "58130",
+                "name": "Edición De Periódicos, Diarios Y Revistas, Incluso Integrada A La Impresión"
+              },
+              {
+                "code": "58190",
+                "name": "Otras Actividades De Edición N.C.P., Incluso Integrada A La Impresión"
+              }
+            ]
+          },
+          {
+            "code": "582",
+            "name": "Edición De Software",
+            "activities": [
+              {
+                "code": "58200",
+                "name": "Edición De Software"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "59",
+        "name": "Actividades Cinematográficas; Producción De Vídeos Y Programas De Televisión; Grabación Sonora Y",
+        "groups": [
+          {
+            "code": "591",
+            "name": "Actividades Cinematográficas, De Vídeo Y De Programas De Televisión",
+            "activities": [
+              {
+                "code": "59110",
+                "name": "Actividades De Producción Y Post Producción De Películas, Vídeos Y Programas De Televisión"
+              },
+              {
+                "code": "59120",
+                "name": "Actividades De Distribución De Películas, Vídeos Y Programas De  Televisión"
+              },
+              {
+                "code": "59130",
+                "name": "Actividades De Proyección De Películas"
+              }
+            ]
+          },
+          {
+            "code": "592",
+            "name": "Actividades De Grabación Sonora Y Edición De Música",
+            "activities": [
+              {
+                "code": "59200",
+                "name": "Actividades De Grabación Sonora Y Edición De Música"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "60",
+        "name": "Actividades De Programación Y Difusión De Radio Y Televisión    601 - Actividades Programación Y Difusión De Radio",
+        "groups": [
+          {
+            "code": "602",
+            "name": "Actividades Programación Y Difusión De Televisión",
+            "activities": [
+              {
+                "code": "6020",
+                "name": "- Actividades Programación Y Difusión De Televisión"
+              },
+              {
+                "code": "60201",
+                "name": "Actividades De Televisión Abierta"
+              },
+              {
+                "code": "60202",
+                "name": "Programadoras Y Actividades Relacionadas Con La Televisión Por Suscripción"
+              }
+            ]
+          },
+          {
+            "code": "610",
+            "name": "Telecomunicaciones",
+            "activities": [
+              {
+                "code": "61001",
+                "name": "Telecomunicaciones"
+              },
+              {
+                "code": "61002",
+                "name": "Otros Servicios Relacionados C on Las Telecomunicaciones N.C.P."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "62",
+        "name": "Actividades De Programación Y Consultorías Informáticas Y Otras Actividades Conexas",
+        "groups": [
+          {
+            "code": "620",
+            "name": "Actividades De Programación Y Consultoría Informáticas Y Otras Actividades Conexas",
+            "activities": [
+              {
+                "code": "62010",
+                "name": "Actividades De Programación Informática"
+              },
+              {
+                "code": "62020",
+                "name": "Actividades De Consultoría Y Gestión De Servicios Informáticos"
+              },
+              {
+                "code": "62090",
+                "name": "Otras Actividades De Tecnología De La Información Y Servicios Informáticos"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "63",
+        "name": "Actividades De Servicios De Información",
+        "groups": [
+          {
+            "code": "631",
+            "name": "Procesamiento De Datos, Ho spedaje Y Servicios Conexos; Portales Web",
+            "activities": [
+              {
+                "code": "63110",
+                "name": "Procesamiento De Datos, Hospedaje Y Servicios Conexos"
+              },
+              {
+                "code": "63120",
+                "name": "Portales Web"
+              }
+            ]
+          },
+          {
+            "code": "639",
+            "name": "Otras Actividades De Servicios De Información N.C.P.",
+            "activities": [
+              {
+                "code": "63910",
+                "name": "Actividades De Agencias De Noticias"
+              },
+              {
+                "code": "63990",
+                "name": "Otras Actividades De Servicios De Información N.C.P."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "code": "K",
+    "name": "Actividades Financieras Y De Seguros",
+    "divisions": [
+      {
+        "code": "64",
+        "name": "Intermediación Financiera Y Otros Servicios Financieros, Excepto Los De Seguros Y Administración De",
+        "groups": [
+          {
+            "code": "641",
+            "name": "Intermediación Monetaria",
+            "activities": [
+              {
+                "code": "64110",
+                "name": "Banca Central"
+              },
+              {
+                "code": "64190",
+                "name": "Otros Tipos De Intermediación Monetaria"
+              }
+            ]
+          },
+          {
+            "code": "642",
+            "name": "Actividades De Sociedades De Cartera",
+            "activities": [
+              {
+                "code": "64200",
+                "name": "Actividades De Sociedades De Cartera"
+              }
+            ]
+          },
+          {
+            "code": "643",
+            "name": "Inversión Colectiva, Fondos Y Otros Instrumentos Financieros Similares",
+            "activities": [
+              {
+                "code": "64300",
+                "name": "Inversión Colectiva, Fondos Y Otros Instrumentos Financieros Similares"
+              }
+            ]
+          },
+          {
+            "code": "649",
+            "name": "Otros Servicios Financieros, Excepto La Financiación De Planes De Seguros Y De Pensiones",
+            "activities": [
+              {
+                "code": "6491",
+                "name": "- Otros Tipos De Créditos"
+              },
+              {
+                "code": "64911",
+                "name": "Otorg amiento De Crédito Sin Aval Bancario"
+              },
+              {
+                "code": "64912",
+                "name": "Actividad De Las Casas De Empeño"
+              },
+              {
+                "code": "64913",
+                "name": "Actividad De Los Prestamistas"
+              },
+              {
+                "code": "64914",
+                "name": "Actividad De Los Círculos De Ahorro"
+              },
+              {
+                "code": "64990",
+                "name": "Otras Actividades De Servicios Financieros, Excepto La Financiación D e Planes De Seguros Y De"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "65",
+        "name": "Seguros, Reaseguros Y Fondos De Pensiones, Excepto Los Planes De Seguridad Social De Afiliación",
+        "groups": [
+          {
+            "code": "651",
+            "name": "Planes De Seguros",
+            "activities": [
+              {
+                "code": "65110",
+                "name": "Seguros De Vida"
+              },
+              {
+                "code": "6512",
+                "name": "- Seguros Generales"
+              },
+              {
+                "code": "65126",
+                "name": "Seguros Médicos Y Odontológicos"
+              },
+              {
+                "code": "65127",
+                "name": "Seguros Patrimoniales"
+              },
+              {
+                "code": "65128",
+                "name": "Seguros De Sepelio"
+              },
+              {
+                "code": "65129",
+                "name": "Otros Seguros Generales N.C.P."
+              }
+            ]
+          },
+          {
+            "code": "652",
+            "name": "Planes De Reaseguros",
+            "activities": [
+              {
+                "code": "65200",
+                "name": "Planes De Reaseguros"
+              }
+            ]
+          },
+          {
+            "code": "653",
+            "name": "Fondos De Pensiones",
+            "activities": [
+              {
+                "code": "65300",
+                "name": "Fondos De Pensiones   66 - Actividades Auxiliares A Los Servicios Financieros Y A Los Seguros"
+              }
+            ]
+          },
+          {
+            "code": "661",
+            "name": "Actividades Auxiliares De La Intermediación Financiera, Excepto La Financiación De Planes De",
+            "activities": [
+              {
+                "code": "66100",
+                "name": "Actividades Auxiliares De La Intermediación Financiera, Excepto La Financiación De Planes De"
+              }
+            ]
+          },
+          {
+            "code": "662",
+            "name": "Actividades Auxiliares De Seguros Y De Pensiones",
+            "activities": [
+              {
+                "code": "66210",
+                "name": "Evaluación De Riesgos Y Daños"
+              },
+              {
+                "code": "66220",
+                "name": "Actividades De Los A gentes Y Corredores De Seguro"
+              },
+              {
+                "code": "66290",
+                "name": "Otras Actividades Auxiliares De Seguros Y Fondos De Pensiones N.C.P"
+              }
+            ]
+          },
+          {
+            "code": "663",
+            "name": "Actividades De Administración De Fondos",
+            "activities": [
+              {
+                "code": "66300",
+                "name": "Actividades De Administración De Fondos"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "code": "L",
+    "name": "Actividades Inmobiliarias",
+    "divisions": [
+      {
+        "code": "68",
+        "name": "Activid ades Inmobiliarias",
+        "groups": [
+          {
+            "code": "681",
+            "name": "Actividades Inmobiliarias Realizadas Con Bienes Propios O Arrendados",
+            "activities": [
+              {
+                "code": "68100",
+                "name": "Actividades Inmobiliarias Realizadas Con Bienes Propios O Arrendados"
+              }
+            ]
+          },
+          {
+            "code": "682",
+            "name": "Actividades Inmobiliarias Realizadas A Cambio De Una Retribución O Po r Contrata",
+            "activities": [
+              {
+                "code": "6820",
+                "name": "- Actividades Inmobiliarias Realizadas A Cambio De Una Retribución O Por Contrata"
+              },
+              {
+                "code": "68201",
+                "name": "Intermediación En La Compra, Venta Y Arrendamiento De Inmuebles"
+              },
+              {
+                "code": "68202",
+                "name": "Avalúos De Inmuebles"
+              },
+              {
+                "code": "68203",
+                "name": "Arrendamiento De Inmuebles Rur ales"
+              },
+              {
+                "code": "68209",
+                "name": "Otras Actividades Inmobiliarias Realizadas A Cambio De Una Retribución O Por Contrata N.C.P"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "code": "M",
+    "name": "Actividades Profesionales, Científicas Y Técnicas",
+    "divisions": [
+      {
+        "code": "69",
+        "name": "Actividades Jurídicas Y De Contabilidad",
+        "groups": [
+          {
+            "code": "691",
+            "name": "Actividades Jurídicas Y Notariales",
+            "activities": [
+              {
+                "code": "6910",
+                "name": "- Actividades De Servicios Jurídicos Y Notariales"
+              },
+              {
+                "code": "69107",
+                "name": "Actividades Jurídicas (Abogado)"
+              },
+              {
+                "code": "69108",
+                "name": "Actividades Notariales"
+              },
+              {
+                "code": "69109",
+                "name": "Otras Actividades Jurídicas Y Notariales N.C.P."
+              }
+            ]
+          },
+          {
+            "code": "692",
+            "name": "Actividades De Contabilidad, Teneduría De Libros, Auditoria Y Asesoria Fiscal",
+            "activities": [
+              {
+                "code": "6920",
+                "name": "- Actividades De Contabilidad, Teneduría De Libros, Auditoria Y Asesoria Fiscal"
+              },
+              {
+                "code": "69201",
+                "name": "Actividades De Contabilidad, Teneduría De Libros (Contador)"
+              },
+              {
+                "code": "69202",
+                "name": "Servicios De Auditoria Y Asesoramiento En Materia De Impuestos (Auditor -Asesor Impositivo)"
+              },
+              {
+                "code": "69207",
+                "name": "Servicios De Auditoria Externa Impositiva (Art. 33º Ley 2421/04)"
+              },
+              {
+                "code": "69208",
+                "name": "Otros Servicios Autorizados"
+              },
+              {
+                "code": "69209",
+                "name": "Actividades De Contabilidad, Te neduría De Libros, Auditoria Y Asesoria Fiscal N.C.P."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "70",
+        "name": "Actividades De Las Oficinas Centrales Y Consultoría De Gestión Empresarial",
+        "groups": [
+          {
+            "code": "701",
+            "name": "Actividades De Las Oficinas Centrales",
+            "activities": [
+              {
+                "code": "70100",
+                "name": "Actividades De Las Oficinas Centrales"
+              }
+            ]
+          },
+          {
+            "code": "702",
+            "name": "Actividades De  Servicios De Consultoría En Gestión Empresarial",
+            "activities": [
+              {
+                "code": "7020",
+                "name": "- Actividades De Servicios De Consultoría En Gestión Empresarial"
+              },
+              {
+                "code": "70201",
+                "name": "Servicios De Contabilidad, Administración Y Asesoramiento De Empresas, Excepto Los Prestados"
+              },
+              {
+                "code": "70209",
+                "name": "Otras Actividades De Administración Y Consultoría De Administración De Empresas N.C.P."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "71",
+        "name": "Servicios De Arquitectura E Ingeniería; Ensayos Y Análisis Técnicos",
+        "groups": [
+          {
+            "code": "711",
+            "name": "Actividades De Servicios De Arquitectura E Ingeniería Y Actividade s Conexas De Asesoramiento",
+            "activities": [
+              {
+                "code": "7110",
+                "name": "- Actividades De Servicios De Arquitectura E Ingeniería Y Actividades Conexas De Asesoramiento"
+              },
+              {
+                "code": "71101",
+                "name": "Actividades De Servicios De Arquitectura"
+              },
+              {
+                "code": "71102",
+                "name": "Actividades De Servicios De Diseño De Pais ajes"
+              },
+              {
+                "code": "71103",
+                "name": "Actividades De Servicios De Ingeniería"
+              },
+              {
+                "code": "71109",
+                "name": "Otras Actividades De Servicios De Arquitectura E Ingeniería N.C.P"
+              }
+            ]
+          },
+          {
+            "code": "712",
+            "name": "Ensayos Y Análisis Técnicos     71200 - Ensayos Y Análisis Técnicos",
+            "activities": []
+          }
+        ]
+      },
+      {
+        "code": "72",
+        "name": "Investigación Y Desarrollo",
+        "groups": [
+          {
+            "code": "721",
+            "name": "Investigación Y Desarrollo Experimental En Ciencias Naturales E Ingeniería",
+            "activities": [
+              {
+                "code": "72100",
+                "name": "Investigación Y Desarrollo Experimental En Ciencias Naturales E Ingeniería"
+              }
+            ]
+          },
+          {
+            "code": "722",
+            "name": "Investigación Y Desarrollo Experimental En Ciencias Sociales Y Las Humanidades",
+            "activities": [
+              {
+                "code": "72200",
+                "name": "Investigación Y Desarrollo Experimental En Ciencias Sociales Y Las Humanidades"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "73",
+        "name": "Publicidad E Investigación De Mercados",
+        "groups": [
+          {
+            "code": "731",
+            "name": "Actividades Publicitarias",
+            "activities": [
+              {
+                "code": "73100",
+                "name": "Actividades Publicitarias"
+              }
+            ]
+          },
+          {
+            "code": "732",
+            "name": "Investigación De Mercados Y Encuestas De Opinión Pública",
+            "activities": [
+              {
+                "code": "73200",
+                "name": "Investigación De Mercados Y Encuestas De Opinión Pública"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "74",
+        "name": "Otras Actividades Profes ionales, Científicas Y Técnicas",
+        "groups": [
+          {
+            "code": "741",
+            "name": "Actividades De Diseño Especializado",
+            "activities": [
+              {
+                "code": "74100",
+                "name": "Actividades De Diseño Especializado"
+              }
+            ]
+          },
+          {
+            "code": "742",
+            "name": "Actividades De Fotografía",
+            "activities": [
+              {
+                "code": "74200",
+                "name": "Actividades De Fotografía"
+              }
+            ]
+          },
+          {
+            "code": "749",
+            "name": "Otras Actividades Profesionales, Científicas Y Técnicas N.C.P.",
+            "activities": [
+              {
+                "code": "7490",
+                "name": "- Otras Actividades Profesionales, Científicas Y Técnicas N.C.P."
+              },
+              {
+                "code": "74901",
+                "name": "Actividades De Traducción E Interpret ación"
+              },
+              {
+                "code": "74902",
+                "name": "Actividades De Consultoría En Agronomía"
+              },
+              {
+                "code": "74903",
+                "name": "Actividades De Servicios De Consultoría Ambiental"
+              },
+              {
+                "code": "74904",
+                "name": "Actividades De Meteorología"
+              },
+              {
+                "code": "74909",
+                "name": "Otras Actividades Profesionales, Científicas Y Técnicas N.C.P."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "75",
+        "name": "Actividade s Veterinarias",
+        "groups": [
+          {
+            "code": "750",
+            "name": "Actividades Veterinarias",
+            "activities": [
+              {
+                "code": "75000",
+                "name": "Actividades Veterinarias"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "code": "N",
+    "name": "Actividades Administrativas Y Servicios De Apoyo",
+    "divisions": [
+      {
+        "code": "77",
+        "name": "Actividades De Alquiler Y Arrendamiento, Excepto Inmuebles, Y Gestión De Los Activos Intangibles",
+        "groups": [
+          {
+            "code": "771",
+            "name": "Actividades De Alquiler Y Arrendamiento De Vehículos Automotores Sin Conductor",
+            "activities": [
+              {
+                "code": "77100",
+                "name": "Actividades De Alquiler Y Arrendamiento De Vehículos Automotores Sin Conductor"
+              }
+            ]
+          },
+          {
+            "code": "772",
+            "name": "Alquiler Y Arrendamiento De Efectos Personales Y Enseres Domésticos",
+            "activities": [
+              {
+                "code": "77210",
+                "name": "Alquiler De Cintas De Vídeo Y Discos"
+              },
+              {
+                "code": "77290",
+                "name": "Alquiler Y Arrendamiento De Otros Efectos Personales Y Enseres Domésticos N.C.P."
+              }
+            ]
+          },
+          {
+            "code": "773",
+            "name": "Alquiler Y Arrendamiento De Otros Tipos De Maquinaria, Equipo Y Bienes Materiales N.C.P. Sin",
+            "activities": [
+              {
+                "code": "7730",
+                "name": "- Alquiler Y Arrendamiento De Otros Tipos De Maquinaria, Equipo Y Bienes Materiales N.C.P. Sin"
+              },
+              {
+                "code": "77301",
+                "name": "Alquiler Y Arrendamiento De Maquinaria Agropecuaria Sin Operario"
+              },
+              {
+                "code": "77302",
+                "name": "Alquiler Y Arrendamiento De Maquinaria Para La Construcción Sin Operario"
+              },
+              {
+                "code": "77309",
+                "name": "Alquiler Y Arrendamiento De Otros Tipos De Maquinaria, Equipo Y Bienes Materiales N.C.P. Sin"
+              }
+            ]
+          },
+          {
+            "code": "774",
+            "name": "Arrendamiento De Activos Intangibles No Financieros",
+            "activities": [
+              {
+                "code": "77400",
+                "name": "Arrendamiento De Activos Intangibles No  Financieros"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "78",
+        "name": "Actividades Relacionadas Con El Suministro De Empleo",
+        "groups": [
+          {
+            "code": "780",
+            "name": "Actividades Relacionadas Con El Suministro De Empleo",
+            "activities": [
+              {
+                "code": "78000",
+                "name": "Actividades Relacionadas Con El Suministro De Empleo"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "79",
+        "name": "Agencias De Viajes, Operadores Turísticos Y Activ idades Conexas",
+        "groups": [
+          {
+            "code": "791",
+            "name": "Actividades De Las Agencias De Viajes Y Operadores Turísticos",
+            "activities": [
+              {
+                "code": "79110",
+                "name": "Actividades De Las Agencias De Viajes"
+              },
+              {
+                "code": "79120",
+                "name": "Actividades De Los Operadores Turísticos"
+              }
+            ]
+          },
+          {
+            "code": "799",
+            "name": "Otros Servicios De Turismo N.C.P.",
+            "activities": [
+              {
+                "code": "79900",
+                "name": "Otros Servicios De Turismo N.C.P.   80 - Actividad es De Investigación Y Seguridad"
+              }
+            ]
+          },
+          {
+            "code": "800",
+            "name": "Actividades De Investigación Y Seguridad",
+            "activities": [
+              {
+                "code": "80000",
+                "name": "Actividades De Investigación Y Seguridad"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "81",
+        "name": "Servicios De Apoyo A Edificios Y Actividades De Limpieza En General; Servicios De Paisajismo Y",
+        "groups": [
+          {
+            "code": "811",
+            "name": "Actividades De Servicios De Mantenimiento A Edifícios E Instalaciones",
+            "activities": [
+              {
+                "code": "81100",
+                "name": "Actividades De Servicios De Mantenimiento A Edifícios E Instalaciones"
+              }
+            ]
+          },
+          {
+            "code": "812",
+            "name": "Actividades De Limpieza",
+            "activities": [
+              {
+                "code": "81210",
+                "name": "Limpieza General De Edificios"
+              },
+              {
+                "code": "81290",
+                "name": "Otras Actividades De Limpieza De Edificios E Industrial"
+              }
+            ]
+          },
+          {
+            "code": "813",
+            "name": "Servicios De Paisajismo Y Jardinería",
+            "activities": [
+              {
+                "code": "81300",
+                "name": "Servicios De Paisajismo Y Jardinería"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "82",
+        "name": "Actividades Administrativas De Oficinas Y Otras Actividade s Auxiliares De Las Empresas",
+        "groups": [
+          {
+            "code": "821",
+            "name": "Servicios De Apoyo A La Administración De Oficinas Y Empresas",
+            "activities": [
+              {
+                "code": "82110",
+                "name": "Servicios De Administración De Oficinas"
+              },
+              {
+                "code": "82190",
+                "name": "Fotocopiado, Preparación De Documentos Y Otras Actividades Especializadas De Apoyo"
+              }
+            ]
+          },
+          {
+            "code": "822",
+            "name": "Actividades De Las Centrales De Llamadas",
+            "activities": [
+              {
+                "code": "82200",
+                "name": "Actividades De Las Centrales De Llamadas"
+              }
+            ]
+          },
+          {
+            "code": "823",
+            "name": "Organización De Convenciones Y Ferias De Negocios",
+            "activities": [
+              {
+                "code": "82300",
+                "name": "Organización De Convenciones Y Ferias De Negocios"
+              }
+            ]
+          },
+          {
+            "code": "829",
+            "name": "Actividades De Se rvicios De Apoyo A Empresas N.C.P.",
+            "activities": [
+              {
+                "code": "82910",
+                "name": "Actividades De Agencias De Cobro Y Oficinas De Crédito"
+              },
+              {
+                "code": "82920",
+                "name": "Actividades De Envase Y Empaque"
+              },
+              {
+                "code": "8299",
+                "name": "- Otras Actividades De Servicios De Apoyo A Empresas N.C.P."
+              },
+              {
+                "code": "82997",
+                "name": "Actividades De Usuario Zona Franca"
+              },
+              {
+                "code": "82998",
+                "name": "Actividades De Concesionario Zona Franca"
+              },
+              {
+                "code": "82999",
+                "name": "Otras Actividades De Servicios De Apoyo A Empresas N.C.P."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "code": "O",
+    "name": "Administración Pública Y Defensa; Planes De Seguro Social Obligatorio",
+    "divisions": [
+      {
+        "code": "84",
+        "name": "Administración Pública Y Defensa; Planes De Seguro Social Obligatorio",
+        "groups": [
+          {
+            "code": "841",
+            "name": "Actividades De La Administración Pública En General",
+            "activities": [
+              {
+                "code": "84110",
+                "name": "Actividades De La Administración Pública En General"
+              },
+              {
+                "code": "84120",
+                "name": "Regulación De Las Actividades De Organismos Que Prestan Servicios Sanitarios, Educativos,"
+              },
+              {
+                "code": "84130",
+                "name": "Regulación Y Facilitación De La Actividad Económica"
+              }
+            ]
+          },
+          {
+            "code": "842",
+            "name": "Prestación De Servicios A La Comunidad En General",
+            "activities": [
+              {
+                "code": "84210",
+                "name": "Relaciones Exteriores"
+              },
+              {
+                "code": "84220",
+                "name": "Actividades De Defensa"
+              },
+              {
+                "code": "84230",
+                "name": "Actividades De Mantenimiento Del Orden Público Y De Seguridad"
+              }
+            ]
+          },
+          {
+            "code": "843",
+            "name": "Actividades De Planes De Seguro Social Obligatorio",
+            "activities": [
+              {
+                "code": "84300",
+                "name": "Actividades De Planes De Seguro Social Obligatorio"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "code": "P",
+    "name": "Enseñanza",
+    "divisions": [
+      {
+        "code": "85",
+        "name": "Enseñanza",
+        "groups": [
+          {
+            "code": "851",
+            "name": "Enseñanza Inicial, Primaria",
+            "activities": [
+              {
+                "code": "8510",
+                "name": "- Enseñanza Inicial, Primaria"
+              },
+              {
+                "code": "85101",
+                "name": "Guarderías Y Jardines Maternales"
+              },
+              {
+                "code": "85102",
+                "name": "Enseñanza Prescolar, Primaria"
+              }
+            ]
+          },
+          {
+            "code": "852",
+            "name": "Enseñanza Secundaria",
+            "activities": [
+              {
+                "code": "85210",
+                "name": "Enseñanza Secundar ia De Formación General"
+              },
+              {
+                "code": "85220",
+                "name": "Enseñanza Secundaria De Formación Técnica Y Profesional"
+              }
+            ]
+          },
+          {
+            "code": "853",
+            "name": "Enseñanza Superior",
+            "activities": [
+              {
+                "code": "85300",
+                "name": "Enseñanza Superior"
+              }
+            ]
+          },
+          {
+            "code": "854",
+            "name": "Otros Tipos De Enseñanza     85410 - Educación Deportiva Y Recreativa",
+            "activities": [
+              {
+                "code": "85420",
+                "name": "Educación Cultural"
+              },
+              {
+                "code": "85490",
+                "name": "Otros Tipos De Enseñanza N.C.P."
+              }
+            ]
+          },
+          {
+            "code": "855",
+            "name": "Servicios De Apoyo A La Enseñanza",
+            "activities": [
+              {
+                "code": "85500",
+                "name": "Servicios De Apoyo A La Enseñanza"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "code": "Q",
+    "name": "Salud Humana Y Servicios Sociales",
+    "divisions": [
+      {
+        "code": "86",
+        "name": "Actividades De Atención A La Salud Humana",
+        "groups": [
+          {
+            "code": "861",
+            "name": "Actividades De Hospitales",
+            "activities": [
+              {
+                "code": "86100",
+                "name": "Actividades De Hospitales"
+              }
+            ]
+          },
+          {
+            "code": "862",
+            "name": "Actividades De Médicos Y Odontólogos",
+            "activities": [
+              {
+                "code": "86200",
+                "name": "Actividades De Médicos Y Odontólogos"
+              }
+            ]
+          },
+          {
+            "code": "869",
+            "name": "Otras Actividades Relacionadas Con La Salud Humana",
+            "activities": [
+              {
+                "code": "8690",
+                "name": "- Otras Actividades Relacio nadas Con La Salud Humana"
+              },
+              {
+                "code": "86901",
+                "name": "Actividades De Laboratorios De Análisis Clínicos Y Centros De Diagnósticos"
+              },
+              {
+                "code": "86909",
+                "name": "Otras Actividades Relacionadas Con La Salud Humana"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "87",
+        "name": "Asistencia Social Relacionada Con La Atención A La Salud",
+        "groups": [
+          {
+            "code": "870",
+            "name": "Asiste ncia Social Relacionada Con La Atención A La Salud",
+            "activities": [
+              {
+                "code": "87000",
+                "name": "Asistencia Social Relacionada Con La Atenciõn A La Salud"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "88",
+        "name": "Servicios Sociales Sin Alojamiento",
+        "groups": [
+          {
+            "code": "880",
+            "name": "Servicios Sociales Sin Alojamiento",
+            "activities": [
+              {
+                "code": "88000",
+                "name": "Servicios Sociales Sin Alojamiento"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "code": "R",
+    "name": "Arte, Entretenimiento Y Recreación",
+    "divisions": [
+      {
+        "code": "90",
+        "name": "Actividades Artísticas Y De Espectáculos",
+        "groups": [
+          {
+            "code": "900",
+            "name": "Actividades Artísticas Y De Espectáculos",
+            "activities": [
+              {
+                "code": "90000",
+                "name": "Actividades Artísticas Y De Espectáculos"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "91",
+        "name": "Actividades De Bibliotecas, Archivos, Museos Y Otras Actividades Culturales",
+        "groups": [
+          {
+            "code": "910",
+            "name": "Actividades De Bibliotecas, Archivos, Museos Y Otras Actividades Culturales",
+            "activities": [
+              {
+                "code": "91010",
+                "name": "Actividades De Bibliotecas Y Archivos"
+              },
+              {
+                "code": "91020",
+                "name": "Actividades De Museos Y Pres ervación De Lugares Y Edificios Históricos"
+              },
+              {
+                "code": "91030",
+                "name": "Actividades De Jardines Botánicos Y Zoológicos Y De Reservas Naturales"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "92",
+        "name": "Actividades De Juegos De Azar Y Apuestas",
+        "groups": [
+          {
+            "code": "920",
+            "name": "Actividades De Juegos De Azar Y Apuestas",
+            "activities": [
+              {
+                "code": "92000",
+                "name": "Actividades De Juego s De Azar Y Apuestas"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "93",
+        "name": "Actividades Deportivas Y De Entretenimiento",
+        "groups": [
+          {
+            "code": "931",
+            "name": "Actividades Deportivas Y De Entretenimiento",
+            "activities": [
+              {
+                "code": "93110",
+                "name": "Administración De Instalaciones Deportivas"
+              },
+              {
+                "code": "93120",
+                "name": "Actividades De Clubes Deportivos"
+              },
+              {
+                "code": "93190",
+                "name": "Actividades Deporti vas"
+              }
+            ]
+          },
+          {
+            "code": "932",
+            "name": "Otras Actividades De Diversión Y Entretenimiento",
+            "activities": [
+              {
+                "code": "93210",
+                "name": "Actividades De Parques De Atracciones Y Parques Temáticos"
+              },
+              {
+                "code": "93290",
+                "name": "Otras Actividades De Diversión Y Entretenimiento N.C.P."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "code": "S",
+    "name": "Otras Actividades De Servicios",
+    "divisions": [
+      {
+        "code": "94",
+        "name": "Actividades De Asociaciones",
+        "groups": [
+          {
+            "code": "941",
+            "name": "Actividades De Organizaciones Empresariales, Profesionales Y De Empleadores",
+            "activities": [
+              {
+                "code": "94110",
+                "name": "Actividades De Organizaciones Empresariales Y De Empleadores"
+              },
+              {
+                "code": "94120",
+                "name": "Actividades De Organizaciones Profesionales"
+              }
+            ]
+          },
+          {
+            "code": "942",
+            "name": "Actividades De Sindicatos",
+            "activities": [
+              {
+                "code": "94200",
+                "name": "Actividades De Sindicatos"
+              }
+            ]
+          },
+          {
+            "code": "949",
+            "name": "Actividades De Otras Asociaciones N.C.P.",
+            "activities": [
+              {
+                "code": "94910",
+                "name": "Actividades De Organizaciones Religiosas"
+              },
+              {
+                "code": "94920",
+                "name": "Actividades De Organizaciones Políticas"
+              },
+              {
+                "code": "9499",
+                "name": "- Actividades De Otras  Asociaciones N.C.P.      94991 - Actividades De Las Comisiones De Fomento Escolares"
+              },
+              {
+                "code": "94999",
+                "name": "Actividades De Las Sociedades Literarias, Cívicas Y Sociales Y Otras Organizaciones N.C.P."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "95",
+        "name": "Reparación De Equipos Informáticos Y De Comunicación; Efecto s De Uso Personal Y Doméstico",
+        "groups": [
+          {
+            "code": "951",
+            "name": "Reparación De Equipos Informáticos Y De Comunicaciones",
+            "activities": [
+              {
+                "code": "95110",
+                "name": "Reparación De Equipos Informáticos Y Periféricos"
+              },
+              {
+                "code": "95120",
+                "name": "Reparación De Equipos De Comunicaciones"
+              }
+            ]
+          },
+          {
+            "code": "952",
+            "name": "Reparación De Efectos De Uso Personal Y Doméstico",
+            "activities": [
+              {
+                "code": "95210",
+                "name": "Reparación De Aparatos Eléctricos De Consumo"
+              },
+              {
+                "code": "95220",
+                "name": "Reparación De Aparatos Domésticos Y Equipamiento De Hogar Y Jardín"
+              },
+              {
+                "code": "95230",
+                "name": "Reparación De Calzado Y Artículos De Cuero"
+              },
+              {
+                "code": "95240",
+                "name": "Reparación De Muebles Y Accesorios Para El Hogar"
+              },
+              {
+                "code": "9529",
+                "name": "- Reparación De Efectos De Uso Personal Y Doméstico N.C.P."
+              },
+              {
+                "code": "95291",
+                "name": "Reparación De Bicicletas Y Similares"
+              },
+              {
+                "code": "95292",
+                "name": "Reparación De Relojes, Joyas Y Cronómetros"
+              },
+              {
+                "code": "95293",
+                "name": "Reparación Y  Modificación De Ropa"
+              },
+              {
+                "code": "95299",
+                "name": "Reparación De Otros Bienes Personales Y Domésticos N.C.P."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "code": "96",
+        "name": "Otras Actividades De Servicios Personales",
+        "groups": [
+          {
+            "code": "960",
+            "name": "Otras Actividades De Servicios Personales",
+            "activities": [
+              {
+                "code": "9601",
+                "name": "- Lavado Y Limpieza De Prendas De Tela Y De Piel, Incl uso La Limpieza En Seco"
+              },
+              {
+                "code": "96011",
+                "name": "Servicios De Lavaderías De Ropa"
+              },
+              {
+                "code": "96012",
+                "name": "Servicios De Tintorerías Y Limpieza A Seco"
+              },
+              {
+                "code": "96019",
+                "name": "Otros Servicios De Limpieza De Prendas Y De Otros Artículos N.C.P."
+              },
+              {
+                "code": "96020",
+                "name": "Peluquería Y Otros Tratamientos De Belleza"
+              },
+              {
+                "code": "96030",
+                "name": "Pompas Fúnebres Y Actividades Conexas"
+              },
+              {
+                "code": "9609",
+                "name": "- Otras Actividades De Servicios Personales N.C.P."
+              },
+              {
+                "code": "96091",
+                "name": "Servicios De Baños De Vapor Y De Sol (Solarios)"
+              },
+              {
+                "code": "96092",
+                "name": "Servicios De Agencias  Matrimoniales Y Similares"
+              },
+              {
+                "code": "96093",
+                "name": "Actividades De Quiromancia, Astrología, Espiritismo, Tarot, Etc."
+              },
+              {
+                "code": "96094",
+                "name": "Servicios De Masajes Reductores Y De Adelgazamiento"
+              },
+              {
+                "code": "96095",
+                "name": "Actividades De Prostíbulos Y Similares"
+              },
+              {
+                "code": "96098",
+                "name": "Servicios Personales Para El Sector Público"
+              },
+              {
+                "code": "96099",
+                "name": "Otras Actividades De Servicios Personales N.C.P."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "code": "T",
+    "name": "Actividades De Los Hogares Como Empleadores De Personal Doméstico",
+    "divisions": [
+      {
+        "code": "97",
+        "name": "Actividades De Los Hogares Como Empleadores De Personal Doméstico",
+        "groups": [
+          {
+            "code": "970",
+            "name": "Actividades De Los Hogares Como Empleadores De Personal Domestico",
+            "activities": [
+              {
+                "code": "97000",
+                "name": "Actividades De Los Hogares Como Empleadores De Personal Domestico"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "code": "U",
+    "name": "Actividades De Organizaciones Y Organismos Extraterritoriales",
+    "divisions": [
+      {
+        "code": "99",
+        "name": "Actividades De Organizaciones Y  Organismos Extraterritoriales",
+        "groups": [
+          {
+            "code": "990",
+            "name": "Actividades De Organizaciones Y Organismos Extraterritoriales",
+            "activities": [
+              {
+                "code": "99000",
+                "name": "Actividades De Organizaciones Y Organismos Extraterritoriales"
+              },
+              {
+                "code": "99999",
+                "name": "Sin Código Equivalente"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

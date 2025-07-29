@@ -8,6 +8,17 @@
   <div class="mb-6 border-b pb-4">
     <h2 class="text-2xl font-bold text-gray-800">{{ titulo }}</h2>
     <p class="text-sm text-gray-600">Complete los datos para finalizar la venta</p>
+    
+    {% if messages %}
+      <div class="mt-4 space-y-2">
+        {% for message in messages %}
+          <div class="p-3 rounded {% if message.tags == 'error' %}bg-red-100 text-red-800{% else %}bg-blue-100 text-blue-800{% endif %}">
+            <i class="fas {% if message.tags == 'error' %}fa-exclamation-circle{% else %}fa-info-circle{% endif %} mr-2"></i>
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
   </div>
 
   <!-- Resumen de Venta -->
@@ -16,8 +27,8 @@
       <h4 class="text-lg font-semibold text-gray-700 mb-2">Datos de la Venta</h4>
       <div class="space-y-2">
         <p><strong>Cliente:</strong> {{ venta.cliente|default:"Consumidor Final" }}</p>
-        <p><strong>Documento:</strong> {{ venta.cliente.tipo_documento|default:"-" }} {{ venta.cliente.numero_documento|default:venta.cliente.numero_documento|default:"-" }}</p>
-        <p><strong>Fecha:</strong> {{ venta.fecha_creacion|date:"d/m/Y H:i" }}</p>
+        <p><strong>Documento:</strong> {{ venta.cliente.tipo_documento|default:"-" }} {{ venta.cliente.numero_documento|default:"-" }}</p>
+        <p><strong>Fecha:</strong> {{ venta.fecha|date:"d/m/Y H:i" }}</p>
       </div>
     </div>
     
@@ -33,21 +44,41 @@
   </div>
 
   <!-- Formulario -->
-  <form method="post" class="space-y-6">
+  <form method="post" class="space-y-6" id="finalizarVentaForm">
     {% csrf_token %}
     
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <!-- Caja -->
+      <!-- Tipo de Documento -->
       <div>
-        <label for="{{ form.caja.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
-          {{ form.caja.label }} *
+        <label for="{{ form.tipo_documento.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+          Tipo Documento *
         </label>
-        {{ form.caja|add_attrs:"class=w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500" }}
-        {% if form.caja.errors %}
-          <p class="text-sm text-red-600 mt-1">{{ form.caja.errors.0 }}</p>
+        {{ form.tipo_documento|add_attrs:"class=w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500" }}
+        {% if form.tipo_documento.errors %}
+          <p class="text-sm text-red-600 mt-1">{{ form.tipo_documento.errors.0 }}</p>
         {% endif %}
       </div>
 
+      <!-- Condición -->
+      <div>
+        <label for="{{ form.condicion.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+          Condición *
+        </label>
+        {{ form.condicion|add_attrs:"class=w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500" }}
+        {% if form.condicion.errors %}
+          <p class="text-sm text-red-600 mt-1">{{ form.condicion.errors.0 }}</p>
+        {% endif %}
+      </div>
+      <!-- Timbrado (condicional) -->
+      <div id="timbradoContainer" class="{% if venta.tipo_documento not in 'F,BV' %}hidden{% endif %}">
+        <label for="{{ form.timbrado.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+          Timbrado {% if venta.tipo_documento in 'F,BV' %}*{% endif %}
+        </label>
+        {{ form.timbrado|add_attrs:"class=w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500" }}
+        {% if form.timbrado.errors %}
+          <p class="text-sm text-red-600 mt-1">{{ form.timbrado.errors.0 }}</p>
+        {% endif %}
+      </div>
       <!-- Tipo de Pago -->
       <div>
         <label for="{{ form.tipo_pago.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
@@ -58,7 +89,20 @@
           <p class="text-sm text-red-600 mt-1">{{ form.tipo_pago.errors.0 }}</p>
         {% endif %}
       </div>
+      <!-- Caja -->
+      <div>
+        <label for="{{ form.caja.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+          {{ form.caja.label }} *
+        </label>
+        {{ form.caja|add_attrs:"class=w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500" }}
+        {% if form.caja.errors %}
+          <p class="text-sm text-red-600 mt-1">{{ form.caja.errors.0 }}</p>
+        {% endif %}
+      </div>
+      
     </div>
+
+
 
     <!-- Opción de documento electrónico -->
     {% if puede_generar_documento %}
@@ -101,6 +145,39 @@
       </table>
     </div>
 
+
+
+
+    <div id="documentoPreview" class="bg-blue-50 p-4 rounded-lg mt-4 {% if not venta.tipo_documento %}hidden{% endif %}">
+        <h4 class="text-lg font-semibold text-blue-800 mb-2">Número de Documento</h4>
+        <div class="flex items-center">
+          <span class="font-mono text-gray-700 bg-white p-2 rounded border border-gray-300">
+            <span id="prefijoDocumento">
+              {% if venta.punto_expedicion %}
+                {{ venta.punto_expedicion.get_codigo_completo }}-
+              {% else %}
+                [Seleccione caja]-
+              {% endif %}
+            </span>
+            <span id="numeroSecuencia">
+              {% if venta.numero_documento %}
+                {{ venta.numero_documento|slice:"7:" }}
+              {% else %}
+                [Número secuencial]
+              {% endif %}
+            </span>
+          </span>
+          <span class="ml-2 text-sm text-gray-500">
+            (Formato: PuntoExpedición-NumeroSecuencial)
+          </span>
+        </div>
+        <p class="text-sm text-gray-600 mt-2">
+          Tipo: <span id="tipoDocumentoPreview">{{ venta.get_tipo_documento_display|default:"[Seleccione tipo]" }}</span>
+        </p>
+      </div>
+
+
+
     <!-- Botones -->
     <div class="flex justify-between items-center pt-4 border-t">
       <button type="submit"
@@ -115,4 +192,115 @@
     </div>
   </form>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tipoDocumentoSelect = document.getElementById('id_tipo_documento');
+    const timbradoContainer = document.getElementById('timbradoContainer');
+    const timbradoInput = document.getElementById('id_timbrado');
+    
+    // Función para actualizar visibilidad del timbrado
+    function actualizarTimbrado() {
+        if (['F', 'BV'].includes(tipoDocumentoSelect.value)) {
+            timbradoContainer.classList.remove('hidden');
+            timbradoInput.required = true;
+        } else {
+            timbradoContainer.classList.add('hidden');
+            timbradoInput.required = false;
+        }
+    }
+    
+    // Event listener para cambios en tipo de documento
+    if (tipoDocumentoSelect) {
+        tipoDocumentoSelect.addEventListener('change', actualizarTimbrado);
+    }
+    
+    // Inicializar estado
+    actualizarTimbrado();
+    
+    // Opcional: Actualizar previsualización del número de documento
+    const form = document.getElementById('finalizarVentaForm');
+    if (form) {
+        form.addEventListener('change', function() {
+            // Aquí podrías añadir lógica para previsualizar el número de documento
+            // basado en los datos seleccionados
+        });
+    }
+});
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tipoDocumentoSelect = document.getElementById('id_tipo_documento');
+    const cajaSelect = document.getElementById('id_caja');
+    const documentoPreview = document.getElementById('documentoPreview');
+    const prefijoDocumento = document.getElementById('prefijoDocumento');
+    const numeroSecuencia = document.getElementById('numeroSecuencia');
+    const tipoDocumentoPreview = document.getElementById('tipoDocumentoPreview');
+    
+    // Mapeo entre tipos de documento de venta y tipos de secuencia
+    const tipoSecuenciaMap = {
+        'F': 'FACTURA',
+        'T': 'TICKET'
+    };
+    
+    // Función para actualizar la previsualización
+    async function actualizarPreview() {
+        // Mostrar sección si hay tipo de documento seleccionado
+        if (tipoDocumentoSelect.value) {
+            documentoPreview.classList.remove('hidden');
+            tipoDocumentoPreview.textContent = tipoDocumentoSelect.options[tipoDocumentoSelect.selectedIndex].text;
+        } else {
+            documentoPreview.classList.add('hidden');
+        }
+        
+        // Actualizar prefijo y número si hay caja y tipo de documento seleccionados
+        if (cajaSelect.value && tipoDocumentoSelect.value) {
+            try {
+                const response = await fetch(`/caja/api/caja/${cajaSelect.value}/punto-expedicion/`);
+                if (!response.ok) throw new Error('Error al obtener datos');
+                
+                const data = await response.json();
+                prefijoDocumento.textContent = `${data.codigo}-`;
+                
+                // Buscar la secuencia correspondiente al tipo de documento
+                const tipoSecuencia = tipoSecuenciaMap[tipoDocumentoSelect.value];
+                const secuencia = data.secuencias.find(s => s.tipo_documento === tipoSecuencia);
+                
+                if (secuencia) {
+                    // Formatear el número según el formato de la secuencia
+                    const numeroFormateado = secuencia.formato
+                        .replace('{sucursal}', data.codigo.split('-')[0])
+                        .replace('{punto}', data.codigo.split('-')[1])
+                        .replace('{numero:07d}', secuencia.siguiente_numero.toString().padStart(7, '0'));
+                    
+                    numeroSecuencia.textContent = numeroFormateado.split('-').pop();
+                } else {
+                    numeroSecuencia.textContent = '[Secuencia no configurada]';
+                }
+                
+            } catch (error) {
+                console.error(error);
+                prefijoDocumento.textContent = '[Error al obtener datos]-';
+                numeroSecuencia.textContent = '[Error]';
+            }
+        } else {
+            prefijoDocumento.textContent = cajaSelect.value ? '[Seleccione tipo doc.]-' : '[Seleccione caja]-';
+            numeroSecuencia.textContent = '[Número secuencial]';
+        }
+    }
+    
+    // Event listeners
+    if (tipoDocumentoSelect) {
+        tipoDocumentoSelect.addEventListener('change', actualizarPreview);
+    }
+    
+    if (cajaSelect) {
+        cajaSelect.addEventListener('change', actualizarPreview);
+    }
+    
+    // Inicializar
+    actualizarPreview();
+});
+</script>
 {% endblock %}

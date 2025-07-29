@@ -9,3 +9,11 @@ def pyg_intcomma(value):
         return f"{value:,}".replace(",", ".")
     except (ValueError, TypeError):
         return value
+    
+@register.filter
+def multiply(value, arg):
+    try:
+        return float(value) * float(arg)
+    except (ValueError, TypeError):
+        return 0
+

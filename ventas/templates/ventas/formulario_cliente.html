@@ -1,9 +1,10 @@
 {% extends 'base.html' %}
+{% load static %}
 {% load form_filters %}
 
 {% block content %}
-<div class="flex justify-center py-4 md:py-10 px-4">
-  <div class="w-full max-w-2xl bg-white p-4 md:p-6 rounded-xl md:rounded-2xl shadow-md md:shadow-xl min-h-[500px] md:min-h-[700px]">
+<div class="flex justify-center py-6 px-4">
+  <div class="w-full max-w-5xl bg-white p-6 rounded-xl shadow-lg">
     <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-6">
       {% if modo == 'editar' %}Editar Cliente{% else %}Registrar Cliente{% endif %}
     </h2>
@@ -38,8 +39,62 @@
       {% endif %}
 
       <!-- Sección 1: Información Básica -->
-      <div class="grid grid-cols-1 md:grid-cols-1 gap-4 md:gap-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
+
+        	<!-- Código -->
+        <div>
+          <label for="{{ form.pais_cod.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            Código país *
+          </label>
+          <div class="flex items-center gap-2">
+            {{ form.pais_cod|add_class:"w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition" }}
+            <button type="button" 
+                    id="btn-buscar-actividad"
+                    class="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition"
+                    title="Buscar actividad económica">
+              <i class="fas fa-search"></i>
+            </button>
+          </div>
+          {% if form.pais_cod.errors %}
+            <div class="mt-1 text-sm text-red-600">
+              {{ form.pais_cod.errors.0 }}
+            </div>
+          {% endif %}
+        </div>
+
+
+        <!-- Campo pais descripcion -->
+        <div>
+          <label for="{{ form.pais.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            {{ form.pais.label }}
+          </label>
+          {{ form.pais|add_attrs:"class=w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" }}
+          {% if form.pais.errors %}
+            <p class="text-sm text-red-500 mt-1">{{ form.pais.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+
+        <div>
+          <label for="{{ form.naturaleza.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            {{ form.naturaleza.label }}
+          </label>
+          {{ form.naturaleza|add_attrs:"class=w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" }}
+          {% if form.naturaleza.errors %}
+            <p class="text-sm text-red-500 mt-1">{{ form.naturaleza.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <div>
+          <label for="{{ form.naturaleza.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            {{ form.t_contribuyente.label }}
+          </label>
+          {{ form.t_contribuyente|add_attrs:"class=w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" }}
+          {% if form.t_contribuyente.errors %}
+            <p class="text-sm text-red-500 mt-1">{{ form.t_contribuyente.errors.0 }}</p>
+          {% endif %}
+        </div>
 
 
         <div>
@@ -185,9 +240,114 @@
   </div>
 </div>
 
+
+
+
+
+
+<!-- Modal para búsqueda de paises -->
+<div id="modal-paises" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+  <div class="bg-white rounded-lg w-full max-w-2xl max-h-[80vh] overflow-auto">
+    <div class="p-6">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-xl font-bold text-gray-800">Buscar Codigo País</h3>
+        <button id="btn-cerrar-modal" class="text-gray-500 hover:text-gray-700">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <div class="mb-4">
+        <label for="input-busqueda" class="block text-sm font-medium text-gray-700 mb-1">
+          Buscar por código o país
+        </label>
+        <input type="text" id="input-busqueda" 
+               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition"
+               placeholder="Ej: PRY o 'Paraguay'">
+      </div>
+      
+      <div id="resultados-busqueda" class="border-t pt-4">
+        <div class="text-center py-4 text-gray-500">
+          Ingrese un término de búsqueda (mínimo 2 caracteres)
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
   document.addEventListener('DOMContentLoaded', function() {
+
+    const modal = document.getElementById('modal-paises');
+    const btnAbrir = document.getElementById('btn-buscar-actividad');
+    const btnCerrar = document.getElementById('btn-cerrar-modal');
+    const inputBusqueda = document.getElementById('input-busqueda');
+    const resultados = document.getElementById('resultados-busqueda');
+    const codigoInput = document.getElementById('{{ form.pais_cod.id_for_label }}');
+    const descripcionInput = document.getElementById('{{ form.pais.id_for_label }}');
+    
+    // Datos de paises desde el JSON
+    const paises = {{ paises_json|safe }};
+
+    // Abrir modal
+    btnAbrir.addEventListener('click', function() {
+      modal.classList.remove('hidden');
+      inputBusqueda.focus();
+    });
+    // Cerrar modal
+    btnCerrar.addEventListener('click', function() {
+      modal.classList.add('hidden');
+    });
+    
+    // Cerrar modal al hacer clic fuera del contenido
+    modal.addEventListener('click', function(e) {
+      if (e.target === modal) {
+        modal.classList.add('hidden');
+      }
+    });
+
+    // Buscar paises mientras se escribe
+    inputBusqueda.addEventListener('input', function() {
+    const termino = inputBusqueda.value.trim().toLowerCase();
+    
+    if (termino.length < 2) {
+      resultados.innerHTML = '<div class="text-center py-4 text-gray-500">Ingrese al menos 2 caracteres para buscar</div>';
+      return;
+    }
+    
+    // Filtrar paises
+    const resultadosFiltrados = Object.entries(paises)
+      .filter(([codigo, descripcion]) => 
+        codigo.toLowerCase().includes(termino) || 
+        descripcion.toLowerCase().includes(termino))
+      .slice(0, 50); // Limitar a 50 resultados
+    
+    if (resultadosFiltrados.length > 0) {
+      let html = '<div class="space-y-2">';
+      
+      resultadosFiltrados.forEach(([codigo, descripcion]) => {
+        html += `
+          <div class="p-3 border border-gray-200 rounded-lg hover:bg-blue-50 cursor-pointer"
+               onclick="seleccionarPais('${codigo}', '${descripcion}')">
+            <div class="font-medium">${codigo}</div>
+            <div class="text-sm text-gray-600">${descripcion}</div>
+          </div>
+        `;
+      });
+      
+      html += '</div>';
+      resultados.innerHTML = html;
+    } else {
+      resultados.innerHTML = '<div class="text-center py-4 text-gray-500">No se encontraron paises con ese término</div>';
+    }
+  });
+
+
+
     const form = document.getElementById('cliente');   
     
     // Mostrar mensaje de éxito si hay parámetro en la URL
@@ -215,10 +375,6 @@
       }
     }
   });
-
-
-
-
 
 
   async function consultarRUC() {
@@ -292,13 +448,39 @@
   }
 
 
-
-
-
-
-
+  // Función global para seleccionar una actividad
+function seleccionarPais(codigo, descripcion) {
+  document.getElementById('{{ form.pais_cod.id_for_label }}').value = codigo;
+  document.getElementById('{{ form.pais.id_for_label }}').value = descripcion;
+  document.getElementById('modal-paises').classList.add('hidden');
+};
 
 </script>
+
+<style>
+  /* Estilos para el modal */
+  #modal-paises {
+    transition: opacity 0.3s ease;
+  }
+  
+  /* Estilos para los inputs */
+  input, select, textarea {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    background-color: #fff;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  }
+  
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+</style>
+
+
 {% endblock %}
 
 

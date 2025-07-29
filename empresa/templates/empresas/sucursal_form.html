@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load form_filters %}
+
+{% block content %}
+<div class="flex justify-center py-6 px-4">
+  <div class="w-full max-w-2xl bg-white p-6 rounded-xl shadow-lg">
+    <h1 class="text-2xl font-bold text-gray-800 mb-6">
+      {% if object %}Editar Sucursal{% else %}Crear Nueva Sucursal{% endif %}
+    </h1>
+
+    <!-- Mensajes -->
+    {% if messages %}
+      {% for message in messages %}
+        {% if message.tags == 'success' %}
+          <div class="p-4 mb-6 bg-green-100 border border-green-200 text-green-800 rounded">
+            {{ message }}
+          </div>
+        {% elif message.tags == 'error' %}
+          <div class="p-4 mb-6 bg-red-100 border border-red-200 text-red-800 rounded">
+            {{ message }}
+          </div>
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+
+    <form method="post" class="space-y-6">
+      {% csrf_token %}
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Nombre -->
+        <div>
+          <label for="{{ form.nombre.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            Nombre *
+          </label>
+          {{ form.nombre|add_attrs:"class=w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition" }}
+          {% if form.nombre.errors %}
+            <div class="mt-1 text-sm text-red-600">
+              {{ form.nombre.errors.0 }}
+            </div>
+          {% endif %}
+        </div>
+
+        <!-- Código -->
+        <div>
+          <label for="{{ form.codigo.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            Código *
+          </label>
+          {{ form.codigo|add_attrs:"class=w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition" }}
+          {% if form.codigo.errors %}
+            <div class="mt-1 text-sm text-red-600">
+              {{ form.codigo.errors.0 }}
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Dirección -->
+      <div>
+        <label for="{{ form.direccion.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+          Dirección
+        </label>
+        {{ form.direccion|add_attrs:"class=w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition" }}
+        {% if form.direccion.errors %}
+          <div class="mt-1 text-sm text-red-600">
+            {{ form.direccion.errors.0 }}
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Teléfono -->
+      <div>
+        <label for="{{ form.telefono.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+          Teléfono
+        </label>
+        {{ form.telefono|add_attrs:"class=w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition" }}
+        {% if form.telefono.errors %}
+          <div class="mt-1 text-sm text-red-600">
+            {{ form.telefono.errors.0 }}
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Checkboxes -->
+      <div class="flex flex-col sm:flex-row gap-4 pt-2">
+        <div class="flex items-center">
+          {{ form.es_principal|add_attrs:"class=h-4 w-4 text-blue-600 border-gray-300 rounded" }}
+          <label for="{{ form.es_principal.id_for_label }}" class="ml-2 text-sm text-gray-700">
+            {{ form.es_principal.label }}
+          </label>
+        </div>
+        <div class="flex items-center">
+          {{ form.activa|add_attrs:"class=h-4 w-4 text-blue-600 border-gray-300 rounded" }}
+          <label for="{{ form.activa.id_for_label }}" class="ml-2 text-sm text-gray-700">
+            {{ form.activa.label }}
+          </label>
+        </div>
+      </div>
+
+      {% if form.es_principal.errors or form.activa.errors %}
+        <div class="text-sm text-red-600">
+          {% if form.es_principal.errors %}
+            <p>{{ form.es_principal.errors.0 }}</p>
+          {% endif %}
+          {% if form.activa.errors %}
+            <p>{{ form.activa.errors.0 }}</p>
+          {% endif %}
+        </div>
+      {% endif %}
+
+      <!-- Botones -->
+      <div class="flex flex-col md:flex-row gap-4 pt-6">
+        <a href="{% url 'empresa:lista_sucursales' %}" 
+           class="flex-1 text-center bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-6 rounded-lg">
+          Cancelar
+        </a>
+        <button type="submit" 
+                class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg">
+          Guardar Sucursal
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Estilo de inputs -->
+<style>
+  input, select, textarea {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    background-color: #fff;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  }
+
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+</style>
+{% endblock %}

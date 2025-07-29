@@ -4,6 +4,7 @@
 {% block content %}
 <div x-data="{ open: false }">
   <div class="max-w-6xl mx-auto bg-white shadow-md rounded-xl p-6">
+
     <!-- Encabezado -->
     <div class="flex justify-between items-center mb-6">
       <h2 class="text-2xl font-bold text-gray-800">{{ titulo }}</h2>
@@ -21,6 +22,13 @@
         <h3 class="font-semibold text-gray-700 mb-2">Información de la Venta</h3>
         <p><strong>Número:</strong> {{ venta.numero }}</p>
         <p><strong>Fecha:</strong> {{ venta.fecha|date:"d/m/Y H:i" }}</p>
+
+        <!-- Datos añadidos -->
+        <p><strong>Timbrado:</strong> {{ venta.timbrado }}</p>
+        <p><strong>Número Documento:</strong> {{ venta.numero_documento }}</p>
+        <p><strong>Condición:</strong> {{ venta.get_condicion_display }}</p>
+        <!-- Fin datos añadidos -->
+
         <p><strong>Vendedor:</strong> {{ venta.vendedor.usuario.get_full_name }}</p>
         {% if venta.caja %}
         <p><strong>Caja:</strong> {{ venta.caja.nombre }}</p>
@@ -43,39 +51,52 @@
     <div class="mb-6">
       <h3 class="font-semibold text-gray-700 mb-3">Detalles de Productos</h3>
       <div class="overflow-x-auto">
-        <table class="min-w-full border border-gray-200 text-sm">
+        <table class="min-w-full border border-gray-200 text-sm" id="tabla-detalles">
           <thead class="bg-gray-100 text-gray-700">
             <tr>
               <th class="px-4 py-2 text-left">Producto</th>
               <th class="px-4 py-2 text-left">Almacén</th>
               <th class="px-4 py-2 text-right">Precio Unitario</th>
               <th class="px-4 py-2 text-right">Cantidad</th>
+              <th class="px-4 py-2 text-right">Tasa IVA</th>
               <th class="px-4 py-2 text-right">Subtotal</th>
             </tr>
           </thead>
           <tbody>
             {% for detalle in venta.detalles.all %}
-            <tr class="border-t">
+            <tr class="border-t" 
+                data-precio="{{ detalle.precio_unitario }}" 
+                data-cantidad="{{ detalle.cantidad }}"
+                data-tasa="{{ detalle.tasa_iva }}">
               <td class="px-4 py-2">{{ detalle.producto.nombre }}</td>
               <td class="px-4 py-2">{{ detalle.almacen.nombre }}</td>
               <td class="px-4 py-2 text-right">Gs. {{ detalle.precio_unitario|pyg_intcomma }}</td>
               <td class="px-4 py-2 text-right">{{ detalle.cantidad }}</td>
-              <td class="px-4 py-2 text-right">Gs. {{ detalle.subtotal|pyg_intcomma }}</td>
+              <td class="px-4 py-2 text-right">{{ detalle.tasa_iva }}%</td>
+              <td class="px-4 py-2 text-right subtotal-celda">-</td>
             </tr>
             {% endfor %}
           </tbody>
           <tfoot class="bg-gray-50 font-semibold">
             <tr>
-              <td colspan="4" class="px-4 py-2 text-right">Subtotal:</td>
-              <td class="px-4 py-2 text-right">Gs. {{ venta.subtotal|pyg_intcomma }}</td>
+              <td colspan="5" class="px-4 py-2 text-right">Subtotal:</td>
+              <td class="px-4 py-2 text-right" id="subtotal-general">Gs. -</td>
             </tr>
             <tr>
-              <td colspan="4" class="px-4 py-2 text-right">IVA (10%):</td>
-              <td class="px-4 py-2 text-right">Gs. {{ venta.igv|pyg_intcomma }}</td>
+              <td colspan="5" class="px-4 py-2 text-right">IVA 10%:</td>
+              <td class="px-4 py-2 text-right" id="iva10">Gs. -</td>
             </tr>
             <tr>
-              <td colspan="4" class="px-4 py-2 text-right">Total:</td>
-              <td class="px-4 py-2 text-right">Gs. {{ venta.total|pyg_intcomma }}</td>
+              <td colspan="5" class="px-4 py-2 text-right">IVA 5%:</td>
+              <td class="px-4 py-2 text-right" id="iva5">Gs. -</td>
+            </tr>
+            <tr>
+              <td colspan="5" class="px-4 py-2 text-right">IVA Total:</td>
+              <td class="px-4 py-2 text-right" id="iva-general">Gs. -</td>
+            </tr>
+            <tr>
+              <td colspan="5" class="px-4 py-2 text-right">Total:</td>
+              <td class="px-4 py-2 text-right" id="total-general">Gs. -</td>
             </tr>
           </tfoot>
         </table>
@@ -129,47 +150,92 @@
     </div>
   </div>
 
-
-
-    <!-- Modal con Alpine.js -->
+  <!-- Modal para cancelación -->
   <div x-show="open"
       x-transition
       class="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50"
       style="display: none;">
-      <div class="bg-white rounded-lg p-6 max-w-md w-full shadow-xl">
-          <h3 class="text-lg font-semibold text-gray-800 mb-4">¿Cancelar esta venta?</h3>
-          <p class="text-gray-600 mb-6">Esta acción no se puede deshacer. ¿Estás seguro?</p>
-          
-          <form method="post" action="{% url 'ventas:cancelar_venta' venta.id %}">
-              {% csrf_token %}
-              <div class="mb-4">
-                  <label for="motivo_cancelacion" class="block text-gray-700 text-sm font-bold mb-2">
-                      Motivo de cancelación (opcional):
-                  </label>
-                  <textarea id="motivo_cancelacion" name="motivo" 
-                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                            rows="3"></textarea>
-              </div>
-              
-              <div class="flex justify-end gap-4">
-                  <button @click="open = false" type="button"
-                          class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded text-gray-800">
-                      Cerrar
-                  </button>
-                  <button type="submit"
-                          class="px-4 py-2 bg-red-600 hover:bg-red-700 rounded text-white font-semibold">
-                      Confirmar Cancelación
-                  </button>
-              </div>
-          </form>
-      </div>
+    <div class="bg-white rounded-lg p-6 max-w-md w-full shadow-xl">
+      <h3 class="text-lg font-semibold text-gray-800 mb-4">¿Cancelar esta venta?</h3>
+      <p class="text-gray-600 mb-6">Esta acción no se puede deshacer. ¿Estás seguro?</p>
+
+      <form method="post" action="{% url 'ventas:cancelar_venta' venta.id %}">
+        {% csrf_token %}
+        <div class="mb-4">
+          <label for="motivo_cancelacion" class="block text-gray-700 text-sm font-bold mb-2">
+            Motivo de cancelación (opcional):
+          </label>
+          <textarea id="motivo_cancelacion" name="motivo" 
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    rows="3"></textarea>
+        </div>
+
+        <div class="flex justify-end gap-4">
+          <button @click="open = false" type="button"
+                  class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded text-gray-800">
+            Cerrar
+          </button>
+          <button type="submit"
+                  class="px-4 py-2 bg-red-600 hover:bg-red-700 rounded text-white font-semibold">
+            Confirmar Cancelación
+          </button>
+        </div>
+      </form>
+    </div>
   </div>
-
-
-
-
 </div>
+
+<!-- Cálculo de totales con JS -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const filas = document.querySelectorAll('#tabla-detalles tbody tr');
+  let subtotal = 0;
+  let iva10 = 0;
+  let iva5 = 0;
+
+  filas.forEach(fila => {
+    const precio = parseFloat(fila.dataset.precio) || 0;
+    const cantidad = parseFloat(fila.dataset.cantidad) || 0;
+    const tasa = parseInt(fila.dataset.tasa) || 0;
+
+    const totalItem = precio * cantidad;
+    let ivaItem = 0;
+
+    if (tasa === 10) {
+      const base = totalItem / 1.1;
+      ivaItem = totalItem - base;
+      iva10 += ivaItem;
+    } else if (tasa === 5) {
+      const base = totalItem / 1.05;
+      ivaItem = totalItem - base;
+      iva5 += ivaItem;
+    }
+
+    subtotal += totalItem;
+    fila.querySelector('.subtotal-celda').textContent = `Gs. ${formatNumber(totalItem)}`;
+  });
+
+  const totalIva = iva10 + iva5;
+
+  document.getElementById('subtotal-general').textContent = `Gs. ${formatNumber(subtotal)}`;
+  document.getElementById('iva10').textContent = `Gs. ${formatNumber(iva10)}`;
+  document.getElementById('iva5').textContent = `Gs. ${formatNumber(iva5)}`;
+  document.getElementById('iva-general').textContent = `Gs. ${formatNumber(totalIva)}`;
+  document.getElementById('total-general').textContent = `Gs. ${formatNumber(subtotal)}`;
+
+  function formatNumber(num) {
+    return Math.round(num).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  }
+});
+</script>
 {% endblock %}
+
+
+
+
+
+
+
 
 
 

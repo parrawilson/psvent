@@ -27,6 +27,7 @@ urlpatterns = [
 
 
     # Almacenes
+    path('almacenes/menu/', views.menu_almacenes, name='menu_almacenes'),
     path('almacenes/', views.lista_almacenes, name='lista_almacenes'),
     path('almacenes/registrar/', views.registrar_almacen, name='registrar_almacen'),
     path('almacenes/editar/<int:almacen_id>/', views.editar_almacen, name='editar_almacen'),
@@ -40,8 +41,39 @@ urlpatterns = [
     
     # Stock
     path('stock/', views.lista_stock, name='lista_stock'),
-
-
     path('inventario/', views.lista_inventarios, name='inventario'),
     path('reportes/', views.lista_reportes, name='reportes'),
+
+
+    # Tipos de Conversión
+    path('conversiones/tipos/', views.lista_tipos_conversion, name='lista_tipos_conversion'),
+    path('conversiones/tipos/nuevo/', views.crear_tipo_conversion, name='crear_tipo_conversion'),
+    path('conversiones/tipos/editar/<int:tipo_conversion_id>/', views.editar_tipo_conversion, name='editar_tipo_conversion'),
+    path('conversiones/tipos/eliminar/<int:tipo_conversion_id>/', views.eliminar_tipo_conversion, name='eliminar_tipo_conversion'),
+
+    # Configuración de Conversiones
+    path('conversiones/menu/', views.menu_conversiones, name='menu_conversiones'),
+    path('conversiones/', views.lista_conversiones, name='lista_conversiones'),
+    path('conversiones/nueva/', views.crear_conversion, name='crear_conversion'),
+    path('conversiones/editar/<int:conversion_id>/', views.editar_conversion, name='editar_conversion'),
+    path('conversiones/activar/<int:conversion_id>/', views.activar_conversion, name='activar_conversion'),
+    path('conversiones/desactivar/<int:conversion_id>/', views.desactivar_conversion, name='desactivar_conversion'),
+    
+    # Ejecución de Conversiones
+    path('conversiones/ejecutar/', views.ejecutar_conversion, name='ejecutar_conversion'),
+    path('conversiones/historial/', views.historial_conversiones, name='historial_conversiones'),
+    path('conversiones/revertir/<int:registro_id>/', views.revertir_conversion_view, name='revertir_conversion'),
+    
+    # API Endpoints (para AJAX)
+    path('api/conversion/<int:pk>/', views.api_detalle_conversion, name='api_detalle_conversion'),
+
+
+    # Traslados entre almacenes
+    path('traslados/', views.listar_traslados, name='lista_traslados'),
+    path('traslados/nuevo/', views.crear_traslado, name='crear_traslado'),
+    path('traslados/<int:traslado_id>/', views.detalle_traslado, name='detalle_traslado'),
+    path('traslados/<int:traslado_id>/procesar/', views.procesar_traslado, name='procesar_traslado'),
+    path('traslados/<int:traslado_id>/recibir/', views.recibir_traslado, name='recibir_traslado'),
+
+
 ]

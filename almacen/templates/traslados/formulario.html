@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load form_filters %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-4xl">
+    <div class="bg-white shadow-xl rounded-2xl p-8 space-y-6">
+        <h1 class="text-3xl font-bold text-gray-800">{{ titulo }}</h1>
+
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            
+            <div class="grid grid-cols-1 gap-6">
+                {{ form.non_field_errors }}
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="{{ form.almacen_origen.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-1">
+                            {{ form.almacen_origen.label }}
+                        </label>
+                        {{ form.almacen_origen|add_class:"w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500" }}
+                        <div class="text-sm text-red-600">{{ form.almacen_origen.errors }}</div>
+                    </div>
+
+                    <div>
+                        <label for="{{ form.almacen_destino.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-1">
+                            {{ form.almacen_destino.label }}
+                        </label>
+                        {{ form.almacen_destino|add_attrs:"class=w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500" }}
+                        <div class="text-sm text-red-600">{{ form.almacen_destino.errors }}</div>
+                    </div>
+                </div>
+
+                <div>
+                    <label for="{{ form.motivo.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-1">
+                        {{ form.motivo.label }}
+                    </label>
+                    {{ form.motivo|add_class:"w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500" }}
+                    <div class="text-sm text-red-600">{{ form.motivo.errors }}</div>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">Productos a Trasladar</h3>
+
+                {{ formset.management_form }}
+                <div id="productos-container" class="space-y-4">
+                    {% for form_detalle in formset %}
+                    <div class="detalle-form grid grid-cols-1 md:grid-cols-3 gap-4 p-4 border border-gray-200 rounded-lg shadow-sm bg-gray-50">
+                        {{ form_detalle.id }}
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">{{ form_detalle.producto.label }}</label>
+                            {{ form_detalle.producto|add_class:"w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500" }}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">{{ form_detalle.cantidad_solicitada.label }}</label>
+                            {{ form_detalle.cantidad_solicitada|add_class:"w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500" }}
+                        </div>
+                        <div class="flex items-end">
+                            {% if form_detalle.DELETE %}
+                            <label class="flex items-center text-red-600 cursor-pointer">
+                                {{ form_detalle.DELETE }}
+                                <span class="ml-2">Eliminar</span>
+                            </label>
+                            {% endif %}
+                        </div>
+                        {{ form_detalle.errors }}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <button type="button" id="add-producto" class="flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 font-medium rounded-md hover:bg-blue-200 transition">
+                <i class="fas fa-plus"></i> Agregar Producto
+            </button>
+
+            <div class="flex justify-end pt-6 border-t border-gray-200">
+                <a href="{% url 'almacen:lista_traslados' %}" class="px-4 py-2 border border-gray-300 rounded-md text-gray-600 hover:bg-gray-100 transition mr-4">
+                    Cancelar
+                </a>
+                <button type="submit" class="px-5 py-2 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 transition">
+                    Guardar Traslado
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Font Awesome -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+
+<!-- Script para añadir productos -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.getElementById('add-producto').addEventListener('click', function () {
+        const totalForms = document.getElementById('id_detalles-TOTAL_FORMS');
+        const formIdx = parseInt(totalForms.value);
+        const firstForm = document.querySelector('.detalle-form');
+        const newForm = firstForm.cloneNode(true);
+
+        newForm.querySelectorAll('input, select').forEach(el => {
+            const name = el.name.replace(/-\d+-/, `-${formIdx}-`);
+            const id = el.id.replace(/-\d+-/, `-${formIdx}-`);
+            el.name = name;
+            el.id = id;
+            if (el.type !== 'checkbox') el.value = '';
+            if (el.type === 'checkbox') el.checked = false;
+        });
+
+        newForm.querySelectorAll('.errorlist').forEach(el => el.remove());
+
+        const deleteDiv = newForm.querySelector('div:last-child');
+        deleteDiv.innerHTML = `
+            <label class="flex items-center text-red-600 cursor-pointer">
+                <input type="checkbox" name="detalles-${formIdx}-DELETE" id="id_detalles-${formIdx}-DELETE">
+                <span class="ml-2">Eliminar</span>
+            </label>
+        `;
+
+        document.getElementById('productos-container').appendChild(newForm);
+        totalForms.value = formIdx + 1;
+    });
+
+    // AJAX opcional para actualizar productos según almacén
+    document.getElementById('id_almacen_origen').addEventListener('change', function () {
+        const almacenId = this.value;
+        if (almacenId) {
+            // Aquí podrías usar AJAX para actualizar el listado de productos
+        }
+    });
+});
+</script>
+{% endblock %}

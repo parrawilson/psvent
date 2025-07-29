@@ -5,16 +5,53 @@ from django.db.models.signals import post_delete
 from django.dispatch import receiver
 from django.forms import ValidationError
 from usuarios.models import PerfilUsuario
+from empresa.models import Sucursal
 
 class UnidadMedida(models.Model):
+    ABREVIATURA_SIFEN_CHOICES = [
+    ('77', 'Unidad - UNI'),
+    ('87', 'Metros - m'),
+    ('2366', 'Costo Por Mil - CPM'),
+    ('2329', 'Unidad Internacional - UI'),
+    ('110', 'Metros cúbicos - M3'),
+    ('86', 'Gramos - g'),
+    ('89', 'Litros - LT'),
+    ('90', 'Miligramos - MG'),
+    ('91', 'Centimetros - CM'),
+    ('92', 'Centimetros cuadrados - CM2'),
+    ('93', 'Centimetros cubicos - CM3'),
+    ('94', 'Pulgadas - PUL'),
+    ('96', 'Milímetros cuadrados - MM2'),
+    ('79', 'Kilogramos s/ metro cuadrado - kg/m2'),
+    ('97', 'Año - AA'),
+    ('98', 'Mes - ME'),
+    ('99', 'Tonelada - TN'),
+    ('100', 'Hora - Hs'),
+    ('101', 'Minuto - Mi'),
+    ('104', 'Determinación - DET'),
+    ('103', 'Yardas - Ya'),
+    ('108', 'Metros - MT'),
+    ('109', 'Metros cuadrados - M2'),
+    ('95', 'Milímetros - MM'),
+    ('666', 'Segundo - Se'),
+    ('102', 'Día - Di'),
+    ('83', 'Kilogramos - kg'),
+    ('88', 'Mililitros - ML'),
+    ('625', 'Kilómetros - Km'),
+    ('660', 'Metro lineal - ml'),
+    ('885', 'Unidad Medida Global - GL'),
+    ('891', 'Por Milaje - pm'),
+    ('869', 'Hectáreas - ha'),
+    ('569', 'Ración - ración'),
+    ]
     nombre = models.CharField(max_length=50, unique=True)
-    abreviatura = models.CharField(max_length=10)
+    abreviatura_sifen = models.CharField(choices=ABREVIATURA_SIFEN_CHOICES, default='77')
     descripcion = models.TextField(blank=True)
     creado = models.DateTimeField(auto_now_add=True)
     actualizado = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.nombre} ({self.abreviatura})"
+        return f"{self.nombre} ({self.abreviatura_sifen})"
 
 class Categoria(models.Model):
     nombre = models.CharField(max_length=100, unique=True)
@@ -62,6 +99,7 @@ class Producto(models.Model):
         return self.nombre
 
 class Almacen(models.Model):
+    sucursal = models.ForeignKey(Sucursal, on_delete=models.CASCADE, related_name='almacenes')
     nombre = models.CharField(max_length=100, unique=True)
     ubicacion = models.CharField(max_length=200)
     responsable = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True)
@@ -70,7 +108,7 @@ class Almacen(models.Model):
     activo = models.BooleanField(default=True)
     
     def __str__(self):
-        return self.nombre
+        return f"{self.nombre} ({self.sucursal})"
 
 class Stock(models.Model):
     producto = models.ForeignKey(
@@ -212,3 +250,190 @@ def revert_stock_on_delete(sender, instance, **kwargs):
             effect = instance.get_effect_on_stock()
             stock.cantidad -= (instance.cantidad * effect)
             stock.save()
+
+
+class TipoConversion(models.Model):
+    """Define las formas en que un producto puede convertirse"""
+    nombre = models.CharField(max_length=100)  # Ej: "Descomposición en paquetes pequeños"
+    descripcion = models.TextField(blank=True)
+
+    def __str__(self):
+        return f"{self.nombre} ({self.descripcion})"
+
+
+class ConversionProducto(models.Model):
+    """Relación flexible de conversiones posibles"""
+    nombre = models.CharField(max_length=100, help_text="Nombre descriptivo de la conversión")
+    tipo_conversion = models.ForeignKey(TipoConversion, on_delete=models.PROTECT)
+    activo = models.BooleanField(default=True)
+    costo_adicional = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+        help_text="Costo adicional total por conversión"
+    )
+
+    def __str__(self):
+        return self.nombre
+
+class ComponenteConversion(models.Model):
+    """Componentes de una conversión"""
+    TIPO_COMPONENTE = [
+        ('ORIGEN', 'Producto Origen'),
+        ('DESTINO', 'Producto Destino'),
+    ]
+    
+    conversion = models.ForeignKey(ConversionProducto, on_delete=models.CASCADE, related_name='componentes')
+    producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
+    tipo = models.CharField(max_length=10, choices=TIPO_COMPONENTE)
+    cantidad = models.PositiveIntegerField(
+        help_text="Cantidad de este producto en la conversión"
+    )
+
+    class Meta:
+        unique_together = ('conversion', 'producto', 'tipo')
+
+class RegistroConversion(models.Model):
+    """Auditoría de todas las conversiones realizadas"""
+    conversion = models.ForeignKey(ConversionProducto, on_delete=models.PROTECT)
+    almacen = models.ForeignKey(Almacen, on_delete=models.PROTECT)
+    cantidad_ejecuciones = models.PositiveIntegerField(
+        help_text="Cantidad de veces que se ejecutó esta conversión"
+    )
+    fecha = models.DateTimeField(auto_now_add=True)
+    usuario = models.ForeignKey(PerfilUsuario, on_delete=models.PROTECT)
+    motivo = models.TextField(blank=True)
+    revertido = models.BooleanField(default=False)
+    relacion_reversion = models.ForeignKey(
+        'self',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+
+    def __str__(self):
+        return f"{self.conversion.nombre} (x{self.cantidad_ejecuciones})"
+
+
+
+
+
+class TrasladoProducto(models.Model):
+    ESTADO_CHOICES = [
+        ('PENDIENTE', 'Pendiente'),
+        ('EN_PROCESO', 'En proceso'),
+        ('COMPLETADO', 'Completado'),
+        ('CANCELADO', 'Cancelado'),
+    ]
+    
+    referencia = models.CharField(max_length=50, unique=True)
+    almacen_origen = models.ForeignKey(
+        Almacen, 
+        on_delete=models.PROTECT,
+        related_name='traslados_salida'
+    )
+    almacen_destino = models.ForeignKey(
+        Almacen, 
+        on_delete=models.PROTECT,
+        related_name='traslados_entrada'
+    )
+    fecha_solicitud = models.DateTimeField(auto_now_add=True)
+    fecha_completado = models.DateTimeField(null=True, blank=True)
+    solicitante = models.ForeignKey(
+        PerfilUsuario,
+        on_delete=models.PROTECT,
+        related_name='traslados_solicitados'
+    )
+    responsable = models.ForeignKey(
+        PerfilUsuario,
+        on_delete=models.PROTECT,
+        related_name='traslados_responsable',
+        null=True,
+        blank=True
+    )
+    estado = models.CharField(
+        max_length=20,
+        choices=ESTADO_CHOICES,
+        default='PENDIENTE'
+    )
+    motivo = models.TextField()
+    observaciones = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ['-fecha_solicitud']
+        verbose_name = 'Traslado de Productos'
+        verbose_name_plural = 'Traslados de Productos'
+
+    def __str__(self):
+        return f"Traslado {self.referencia} - {self.almacen_origen} → {self.almacen_destino}"
+
+    def save(self, *args, **kwargs):
+        if not self.referencia:
+            # Generar referencia automática (ejemplo: TR-20230615-001)
+            from django.utils import timezone
+            date_str = timezone.now().strftime('%Y%m%d')
+            last_num = TrasladoProducto.objects.filter(
+                referencia__startswith=f'TR-{date_str}'
+            ).count()
+            self.referencia = f'TR-{date_str}-{last_num + 1:03d}'
+        super().save(*args, **kwargs)
+
+class DetalleTraslado(models.Model):
+    traslado = models.ForeignKey(
+        TrasladoProducto,
+        on_delete=models.CASCADE,
+        related_name='detalles'
+    )
+    producto = models.ForeignKey(Producto, on_delete=models.PROTECT)
+    cantidad_solicitada = models.PositiveIntegerField()
+    cantidad_enviada = models.PositiveIntegerField(default=0)
+    cantidad_recibida = models.PositiveIntegerField(default=0)
+    observaciones = models.TextField(blank=True)
+
+    class Meta:
+        unique_together = ('traslado', 'producto')
+        
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._original_cantidad_enviada = self.cantidad_enviada
+        self._original_cantidad_recibida = self.cantidad_recibida
+    
+    def has_changed(self, field=None):
+        if field == 'cantidad_enviada':
+            return self._original_cantidad_enviada != self.cantidad_enviada
+        elif field == 'cantidad_recibida':
+            return self._original_cantidad_recibida != self.cantidad_recibida
+        else:
+            return (self._original_cantidad_enviada != self.cantidad_enviada or 
+                    self._original_cantidad_recibida != self.cantidad_recibida)
+    
+    def save(self, *args, **kwargs):
+        # Guardar el detalle primero
+        super().save(*args, **kwargs)
+        
+        # Verificar si todos los detalles tienen cantidad enviada igual a solicitada
+        traslado = self.traslado
+        detalles_completos = all(
+            d.cantidad_enviada == d.cantidad_solicitada 
+            for d in traslado.detalles.all()
+        )
+        
+        # Actualizar estado del traslado si es necesario
+        if detalles_completos and traslado.estado == 'PENDIENTE':
+            traslado.estado = 'EN_PROCESO'
+            traslado.save()
+    def clean(self):
+        super().clean()
+        if self.cantidad_enviada > self.cantidad_solicitada:
+            raise ValidationError('La cantidad enviada no puede ser mayor que la cantidad solicitada')
+        
+        if self.cantidad_recibida > self.cantidad_enviada:
+            raise ValidationError('La cantidad recibida no puede ser mayor que la cantidad enviada')
+
+    def __str__(self):
+        return f"{self.producto} - {self.cantidad_solicitada} unidades"
+    
+
+
+
+

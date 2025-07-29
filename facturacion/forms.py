@@ -1,6 +1,7 @@
 # facturacion/forms.py
 from django import forms
 
+
 class DocumentoSearchForm(forms.Form):
     q = forms.CharField(
         label='Buscar',
@@ -10,3 +11,7 @@ class DocumentoSearchForm(forms.Form):
             'class': 'form-control'
         })
     )
+
+
+
+

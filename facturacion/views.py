@@ -6,6 +6,11 @@ from django.shortcuts import render, redirect, get_object_or_404
 from .models import DocumentoElectronico
 from .forms import DocumentoSearchForm
 from ventas.models import Venta
+from django.utils import timezone
+from .services.sifen import SifenService
+from django.views.decorators.http import require_POST
+
+
 
 @login_required
 def lista_documentos(request):
@@ -80,6 +85,48 @@ def enviar_set(request, venta_id):
     
     return redirect('facturacion:detalle_documento', documento_id=documento.id)
 
+
+
+@require_POST
+def enviar_documento_set(request, pk):
+    documento = get_object_or_404(DocumentoElectronico, pk=pk)
+    
+    if documento.estado != 'VALIDADO':
+        messages.error(request, 'Solo se pueden enviar documentos validados')
+        return redirect('facturacion:detalle_documento', documento_id =pk)
+    
+    try:
+        if SifenService.enviar_al_set(documento):
+            messages.success(request, 'Documento enviado exitosamente al SET')
+        else:
+            messages.error(request, f'Error al enviar al SET: {documento.errores}')
+    except Exception as e:
+        messages.error(request, f'Error inesperado: {str(e)}')
+    
+    return redirect('facturacion:detalle_documento', documento_id =pk)
+
+@require_POST
+def reenviar_documento_set(request, pk):
+    documento = get_object_or_404(DocumentoElectronico, pk=pk)
+    
+    if documento.estado not in ['VALIDADO', 'ERROR', 'RECHAZADO']:
+        messages.error(request, 'No se puede reenviar este documento')
+        return redirect('facturacion:detalle_documento', documento_id=pk)
+    
+    try:
+        if SifenService.enviar_al_set(documento):
+            messages.success(request, 'Documento reenviado exitosamente al SET')
+        else:
+            messages.error(request, f'Error al reenviar: {documento.errores}')
+    except Exception as e:
+        messages.error(request, f'Error inesperado: {str(e)}')
+    
+    return redirect('facturacion:detalle_documento', documento_id=pk)
+
+
+
+
+
 @login_required
 def reenviar_set(request, documento_id):
     documento = get_object_or_404(DocumentoElectronico, pk=documento_id)
@@ -107,3 +154,39 @@ def descargar_xml(request, documento_id):
     response = HttpResponse(documento.xml_firmado, content_type='application/xml')
     response['Content-Disposition'] = f'attachment; filename="DE-{documento.venta.numero}.xml"'
     return response
+
+
+
+@login_required
+def generar_kude(request, documento_id):
+    documento = get_object_or_404(DocumentoElectronico, pk=documento_id)
+    
+    """""
+    if not documento.codigo_set:
+        messages.error(request, "El documento debe estar aceptado por el SET antes de generar el KUDE")
+        return redirect('facturacion:detalle_documento', documento_id=documento.id)
+    """""
+
+    if SifenService.generar_kude(documento):
+        messages.success(request, "KUDE generado correctamente")
+    else:
+        messages.error(request, f"Error al generar KUDE: {documento.errores}")
+    
+    return redirect('facturacion:detalle_documento', documento_id=documento.id)
+
+
+
+
+@login_required
+def descargar_kude(request, documento_id):
+    documento = get_object_or_404(DocumentoElectronico, pk=documento_id)
+    
+    if not documento.kude_pdf:
+        messages.error(request, "El KUDE no ha sido generado aún")
+        return redirect('facturacion:detalle_documento', documento_id=documento.id)
+    
+    response = HttpResponse(documento.kude_pdf, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="KUDE-{documento.codigo_set}.pdf"'
+    return response
+
+

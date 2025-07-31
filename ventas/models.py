@@ -2,7 +2,7 @@ from django.db import models
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils import timezone
-from almacen.models import Producto, Almacen, Stock, MovimientoInventario
+from almacen.models import Producto, Servicio, Almacen, Stock, MovimientoInventario
 from usuarios.models import PerfilUsuario
 from caja.models import MovimientoCaja
 from empresa.models import PuntoExpedicion, SecuenciaDocumento
@@ -253,15 +253,18 @@ class Venta(models.Model):
         if caja.estado != 'ABIERTA':
             raise ValidationError('La caja debe estar abierta para registrar ventas')
         
-        # Verificar stock para todos los productos
+        # Verificar stock para todos los productos y servicios
         for detalle in self.detalles.all():
-            stock = Stock.objects.filter(
-                producto=detalle.producto,
-                almacen=detalle.almacen
-            ).first()
+            detalle.clean()  # Esto ejecutará las validaciones de stock
             
-            if not stock or stock.cantidad < detalle.cantidad:
-                raise ValidationError(f'Stock insuficiente para {detalle.producto.nombre}')
+            if detalle.tipo == 'SERVICIO' and detalle.servicio.tipo == 'COMPUESTO':
+                # Validar que tenga almacén asignado
+                if not detalle.almacen_servicio:
+                    almacen_servicio = Almacen.objects.filter(es_principal=True).first()
+                    if not almacen_servicio:
+                        raise ValidationError('No se encontró almacén principal para el servicio')
+                    detalle.almacen_servicio = almacen_servicio
+                    detalle.save()
         
         # Actualizar estado y datos de la venta
         self.caja = caja
@@ -270,7 +273,6 @@ class Venta(models.Model):
         self.condicion = condicion
         self.timbrado = timbrado if tipo_documento in ['F', 'BV'] else None
         self.estado = 'FINALIZADA'
-        # Generar número de documento
         self.generar_numero_documento()
         self.save()
         
@@ -285,17 +287,28 @@ class Venta(models.Model):
             comprobante=f"V-{self.numero}"
         )
         
-        # Solo crear movimientos de inventario (ellos actualizarán el stock automáticamente)
+        # Procesar cada detalle
         for detalle in self.detalles.all():
-            MovimientoInventario.objects.create(
-                producto=detalle.producto,
-                almacen=detalle.almacen,
-                cantidad=detalle.cantidad,
-                tipo='SALIDA',
-                usuario=self.vendedor,
-                motivo=f"Venta {self.numero}"
-            )
-
+            if detalle.tipo == 'PRODUCTO':
+                MovimientoInventario.objects.create(
+                    producto=detalle.producto,
+                    almacen=detalle.almacen,
+                    cantidad=detalle.cantidad,
+                    tipo='SALIDA',
+                    usuario=self.vendedor,
+                    motivo=f"Venta {self.numero}"
+                )
+            elif detalle.tipo == 'SERVICIO' and detalle.servicio.tipo == 'COMPUESTO':
+                for componente in detalle.servicio.componentes.all():
+                    cantidad_necesaria = componente.cantidad * detalle.cantidad
+                    MovimientoInventario.objects.create(
+                        producto=componente.producto,
+                        almacen=detalle.almacen_servicio,
+                        cantidad=cantidad_necesaria,
+                        tipo='SALIDA',
+                        usuario=self.vendedor,
+                        motivo=f"Servicio {detalle.servicio.nombre} en Venta {self.numero}"
+                    )
 
 
     @transaction.atomic
@@ -338,35 +351,63 @@ class Venta(models.Model):
 
 
 class DetalleVenta(models.Model):
+    TIPO_DETALLE_CHOICES = [
+        ('PRODUCTO', 'Producto'),
+        ('SERVICIO', 'Servicio'),
+    ]
     venta = models.ForeignKey(Venta, on_delete=models.CASCADE, related_name='detalles')
-    producto = models.ForeignKey(Producto, on_delete=models.PROTECT)
-    cantidad = models.PositiveIntegerField()
+    tipo = models.CharField(max_length=10, choices=TIPO_DETALLE_CHOICES, default='PRODUCTO')
+
+    # Campos para productos
+    producto = models.ForeignKey(Producto, on_delete=models.PROTECT, null=True, blank=True)
+    almacen = models.ForeignKey(Almacen, on_delete=models.PROTECT, null=True, blank=True)
+    
+    # Campos para servicios
+    servicio = models.ForeignKey(Servicio, on_delete=models.PROTECT, null=True, blank=True)
+    almacen_servicio = models.ForeignKey(
+        Almacen, 
+        on_delete=models.PROTECT, 
+        null=True, 
+        blank=True,
+        related_name='detalles_servicio'
+    )
+
+    # Campos comunes
+    cantidad = models.DecimalField(max_digits=12, decimal_places=3)
     precio_unitario = models.DecimalField(max_digits=12, decimal_places=2)
     tasa_iva = models.PositiveIntegerField(default=10)
     subtotal = models.DecimalField(max_digits=12, decimal_places=2, default=0)
-    almacen = models.ForeignKey(Almacen, on_delete=models.PROTECT)
 
     class Meta:
         verbose_name = 'Detalle de Venta'
         verbose_name_plural = 'Detalles de Venta'
-
+ 
     def save(self, *args, **kwargs):
+        # Validación de integridad
+        if not (self.producto or self.servicio) or (self.producto and self.servicio):
+            raise ValidationError("Debe especificar un producto O un servicio")
+            
+        if self.tipo == 'PRODUCTO' and not self.almacen:
+            raise ValidationError("Debe especificar un almacén para productos")
+            
+        if self.tipo == 'SERVICIO' and self.servicio.tipo == 'COMPUESTO' and not self.almacen_servicio:
+            raise ValidationError("Debe especificar un almacén para servicios que consumen productos")
+            
         self.subtotal = self.cantidad * self.precio_unitario
         super().save(*args, **kwargs)
         
-        # Actualizar totales de la venta
         if self.venta:
             self.venta.calcular_totales()
-
+    
     def clean(self):
-        """Validación adicional para el detalle"""
         if self.cantidad <= 0:
             raise ValidationError("La cantidad debe ser mayor a cero")
+        
         if self.precio_unitario <= 0:
             raise ValidationError("El precio unitario debe ser mayor a cero")
         
-        # Verificar stock si la venta está finalizada
-        if self.venta.estado == 'FINALIZADA':
+        # Validar stock para productos
+        if self.tipo == 'PRODUCTO' and self.venta.estado == 'FINALIZADA':
             stock = Stock.objects.filter(
                 producto=self.producto,
                 almacen=self.almacen
@@ -374,9 +415,31 @@ class DetalleVenta(models.Model):
             
             if stock and stock.cantidad < self.cantidad:
                 raise ValidationError(f'Stock insuficiente. Disponible: {stock.cantidad}')
+        
+        # Validar stock para servicios que consumen productos
+        if (self.tipo == 'SERVICIO' and self.servicio.tipo == 'COMPUESTO' and 
+            self.venta.estado == 'FINALIZADA'):
+            
+            almacen = self.almacen_servicio or Almacen.objects.filter(es_principal=True).first()
+            if not almacen:
+                raise ValidationError('No se encontró almacén para el servicio')
+            
+            for componente in self.servicio.componentes.all():
+                cantidad_necesaria = componente.cantidad * self.cantidad
+                stock = Stock.objects.filter(
+                    producto=componente.producto,
+                    almacen=almacen
+                ).first()
+                
+                if not stock or stock.cantidad < cantidad_necesaria:
+                    raise ValidationError(
+                        f'Stock insuficiente de {componente.producto.nombre} para el servicio {self.servicio.nombre}'
+                    )
 
     def __str__(self):
-        return f"{self.producto} x {self.cantidad}"
+        if self.tipo == 'PRODUCTO':
+            return f"{self.producto} x {self.cantidad}"
+        return f"{self.servicio} x {self.cantidad}"
 
 
 

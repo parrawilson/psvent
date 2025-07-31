@@ -174,25 +174,43 @@ class SifenService:
         items = []
         for detalle in venta.detalles.all():
             if detalle.tasa_iva == 10:
-                ival= round(detalle.precio_unitario /11,0)
+                ival= round(detalle.precio_unitario * detalle.cantidad /11,0)
             elif detalle.tasa_iva == 5:
-                ival=  round(detalle.precio_unitario /21,0)
+                ival=  round(detalle.precio_unitario * detalle.cantidad /21,0)
             
-            print(detalle.producto.unidad_medida.abreviatura_sifen)
+            print(detalle.tipo)
+            
 
-            items.append(ItemFactura(
-                codigo=detalle.producto.codigo,
-                descripcion=detalle.producto.nombre,
-                cantidad=detalle.cantidad,
+
+            if detalle.tipo == 'SERVICIO':
+                items.append(ItemFactura(
+                codigo=detalle.servicio.codigo,
+                descripcion=detalle.servicio.nombre,
+                cantidad= detalle.cantidad,
                 precio_unitario=Decimal(str(detalle.precio_unitario)),
                 tasa_iva=detalle.tasa_iva,
 
                 codigo_producto="1234567890123",  # GTIN/EAN
-                unidad_medida= detalle.producto.unidad_medida.abreviatura_sifen,
+                unidad_medida= "77",
                 numero_serie="SN-2023-01",
                 liq_IVA= ival
 
             ))
+            
+            if detalle.tipo == 'PRODUCTO':
+                items.append(ItemFactura(
+                    codigo=detalle.producto.codigo,
+                    descripcion=detalle.producto.nombre,
+                    cantidad=detalle.cantidad,
+                    precio_unitario=Decimal(str(detalle.precio_unitario)),
+                    tasa_iva=detalle.tasa_iva,
+
+                    codigo_producto="1234567890123",  # GTIN/EAN
+                    unidad_medida= detalle.producto.unidad_medida.abreviatura_sifen,
+                    numero_serie="SN-2023-01",
+                    liq_IVA= ival
+
+                ))
 
         
         return SifenFactura(

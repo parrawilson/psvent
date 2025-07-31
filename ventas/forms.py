@@ -1,6 +1,6 @@
 from django import forms
 from .models import Venta, DetalleVenta, Cliente, Timbrado
-from almacen.models import Producto, Almacen,Stock
+from almacen.models import Producto, Servicio, Almacen,Stock
 from caja.models import Caja
 from django.core.exceptions import ValidationError
 from django.utils import timezone
@@ -46,56 +46,139 @@ class DetalleVentaForm(forms.ModelForm):
     producto = forms.ModelChoiceField(
         queryset=Producto.objects.filter(activo=True),
         widget=forms.Select(attrs={
-            'class': 'form-control select2',
+            'class': 'form-control select2 producto-select',
             'data-placeholder': 'Seleccione un producto'
-        })
+        }),
+        required=False
+    )
+    
+    servicio = forms.ModelChoiceField(
+        queryset=Servicio.objects.filter(activo=True),
+        widget=forms.Select(attrs={
+            'class': 'form-control select2 servicio-select',
+            'data-placeholder': 'Seleccione un servicio'
+        }),
+        required=False
     )
     
     almacen = forms.ModelChoiceField(
         queryset=Almacen.objects.filter(activo=True),
         widget=forms.Select(attrs={
-            'class': 'form-control select2',
+            'class': 'form-control select2 almacen-select',
             'data-placeholder': 'Seleccione un almacén'
-        })
+        }),
+        required=False
+    )
+    
+    almacen_servicio = forms.ModelChoiceField(
+        queryset=Almacen.objects.filter(activo=True),
+        widget=forms.Select(attrs={
+            'class': 'form-control select2 almacen-servicio-select',
+            'data-placeholder': 'Almacén para servicio'
+        }),
+        required=False,
+        label="Almacén Servicio"
     )
     
     class Meta:
         model = DetalleVenta
-        fields = ['producto', 'cantidad', 'precio_unitario', 'tasa_iva', 'almacen']
+        fields = ['tipo', 'producto', 'servicio', 'cantidad', 'precio_unitario', 'tasa_iva', 'almacen', 'almacen_servicio']
         widgets = {
+            'tipo': forms.Select(attrs={
+                'class': 'form-control tipo-select',
+                'onchange': 'actualizarCampos(this)'
+            }),
             'cantidad': forms.NumberInput(attrs={
-                'class': 'form-control',
+                'class': 'form-control cantidad-input',
                 'min': 1,
                 'data-stock-check': 'true'
             }),
             'precio_unitario': forms.NumberInput(attrs={
-                'class': 'form-control',
+                'class': 'form-control precio-input',
                 'min': 0,
                 'step': '0.01'
             }),
             'tasa_iva': forms.NumberInput(attrs={
-                'class': 'form-control',
+                'class': 'form-control tasa-input',
             }),
         }
     
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Configurar campos requeridos basados en el tipo
+        if self.instance and self.instance.pk:
+            if self.instance.tipo == 'PRODUCTO':
+                self.fields['producto'].required = True
+                self.fields['almacen'].required = True
+            elif self.instance.tipo == 'SERVICIO':
+                self.fields['servicio'].required = True
+                if self.instance.servicio and self.instance.servicio.tipo == 'COMPUESTO':
+                    self.fields['almacen_servicio'].required = True
+    
     def clean(self):
         cleaned_data = super().clean()
+        tipo = cleaned_data.get('tipo')
         producto = cleaned_data.get('producto')
+        servicio = cleaned_data.get('servicio')
         almacen = cleaned_data.get('almacen')
+        almacen_servicio = cleaned_data.get('almacen_servicio')
         cantidad = cleaned_data.get('cantidad')
         
-        if producto and almacen and cantidad:
-            stock = Stock.objects.filter(
-                producto=producto,
-                almacen=almacen
-            ).first()
+        # Validación básica de tipo
+        if tipo == 'PRODUCTO':
+            if not producto:
+                self.add_error('producto', 'Debe seleccionar un producto')
+            if not almacen:
+                self.add_error('almacen', 'Debe seleccionar un almacén')
+                
+            # Validar stock
+            if producto and almacen and cantidad:
+                stock = Stock.objects.filter(
+                    producto=producto,
+                    almacen=almacen
+                ).first()
+                
+                if stock and stock.cantidad < cantidad:
+                    self.add_error('cantidad', f'Stock insuficiente. Disponible: {stock.cantidad}')
+        
+        elif tipo == 'SERVICIO':
+            if not servicio:
+                self.add_error('servicio', 'Debe seleccionar un servicio')
             
-            if stock and stock.cantidad < cantidad:
-                raise forms.ValidationError(
-                    f'Stock insuficiente. Disponible: {stock.cantidad}'
-                )
+            # Validar componentes para servicios compuestos
+            if servicio and servicio.tipo == 'COMPUESTO' and not almacen_servicio:
+                self.add_error('almacen_servicio', 'Debe seleccionar un almacén para el servicio')
+                
+            # Validar stock de componentes para servicios compuestos
+            if (servicio and servicio.tipo == 'COMPUESTO' and 
+                almacen_servicio and cantidad):
+                
+                for componente in servicio.componentes.all():
+                    cantidad_necesaria = componente.cantidad * cantidad
+                    stock = Stock.objects.filter(
+                        producto=componente.producto,
+                        almacen=almacen_servicio
+                    ).first()
+                    
+                    if not stock or stock.cantidad < cantidad_necesaria:
+                        self.add_error(None, 
+                            f'Stock insuficiente de {componente.producto.nombre} para el servicio {servicio.nombre}. '
+                            f'Necesario: {cantidad_necesaria}, Disponible: {stock.cantidad if stock else 0}'
+                        )
+        
+        # Validar que se haya seleccionado producto o servicio según el tipo
+        if tipo == 'PRODUCTO' and not producto:
+            self.add_error('producto', 'Debe seleccionar un producto para este tipo')
+        elif tipo == 'SERVICIO' and not servicio:
+            self.add_error('servicio', 'Debe seleccionar un servicio para este tipo')
+        
+        # Validar que no se mezclen producto y servicio
+        if producto and servicio:
+            self.add_error(None, 'No puede seleccionar tanto un producto como un servicio')
         
         return cleaned_data
+
+
 
 
 class FinalizarVentaForm(forms.Form):
@@ -119,6 +202,7 @@ class FinalizarVentaForm(forms.Form):
         }),
         label='Tipo de Documento *'
     )
+    
     condicion = forms.ChoiceField(
         choices=Venta.TIPO_CONDICION,
         widget=forms.Select(attrs={'class': 'form-control'}),
@@ -132,10 +216,19 @@ class FinalizarVentaForm(forms.Form):
         label='Timbrado'
     )
 
+    # Campo para almacén de servicios (solo visible si hay servicios que consumen productos)
+    almacen_servicios = forms.ModelChoiceField(
+        required=False,
+        queryset=Almacen.objects.filter(activo=True),
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        label='Almacén para servicios',
+        help_text='Seleccione el almacén del que se descontarán los productos usados en servicios'
+    )
+
     # Nuevo campo booleano para generar documento
     generar_documento = forms.BooleanField(
-        required=False,  # No es obligatorio
-        initial=True,    # Por defecto marcado
+        required=False,
+        initial=True,
         widget=forms.CheckboxInput(attrs={
             'class': 'form-check-input',
             'id': 'generarDocumentoCheckbox'
@@ -153,6 +246,18 @@ class FinalizarVentaForm(forms.Form):
             self.fields['tipo_documento'].initial = self.venta.tipo_documento
             self.fields['condicion'].initial = self.venta.condicion
             self.fields['timbrado'].initial = self.venta.timbrado
+            
+            # Establecer almacén principal como predeterminado para servicios
+            almacen_principal = Almacen.objects.filter(es_principal=True).first()
+            if almacen_principal:
+                self.fields['almacen_servicios'].initial = almacen_principal
+        
+        # Mostrar campo de almacén de servicios solo si hay servicios que consumen productos
+        if self.venta and self.venta.tiene_servicios_con_inventario():
+            self.fields['almacen_servicios'].required = True
+            self.fields['almacen_servicios'].widget.attrs['required'] = 'required'
+        else:
+            self.fields['almacen_servicios'].widget = forms.HiddenInput()
 
     def clean(self):
         cleaned_data = super().clean()
@@ -162,7 +267,47 @@ class FinalizarVentaForm(forms.Form):
         if tipo_documento in ['F', 'BV'] and not cleaned_data.get('timbrado'):
             self.add_error('timbrado', 'Este tipo de documento requiere timbrado')
         
+        # Validar almacén para servicios si es necesario
+        if (self.venta and self.venta.tiene_servicios_con_inventario() and 
+            not cleaned_data.get('almacen_servicios')):
+            self.add_error('almacen_servicios', 'Debe seleccionar un almacén para los servicios')
+        
         return cleaned_data
+
+    def save(self):
+        """Procesa los datos del formulario y finaliza la venta"""
+        if not self.venta:
+            raise ValidationError("No hay una venta asociada a este formulario")
+        
+        # Obtener datos del formulario
+        caja = self.cleaned_data['caja']
+        tipo_pago = self.cleaned_data['tipo_pago']
+        tipo_documento = self.cleaned_data['tipo_documento']
+        condicion = self.cleaned_data['condicion']
+        timbrado = self.cleaned_data.get('timbrado')
+        almacen_servicios = self.cleaned_data.get('almacen_servicios')
+        generar_documento = self.cleaned_data.get('generar_documento', False)
+        
+        # Asignar almacén de servicios a los detalles que lo necesiten
+        if almacen_servicios:
+            for detalle in self.venta.detalles.filter(tipo='SERVICIO', servicio__tipo='COMPUESTO'):
+                if not detalle.almacen_servicio:
+                    detalle.almacen_servicio = almacen_servicios
+                    detalle.save()
+        
+        # Finalizar la venta
+        self.venta.finalizar(
+            caja=caja,
+            tipo_pago=tipo_pago,
+            tipo_documento=tipo_documento,
+            condicion=condicion,
+            timbrado=timbrado
+        )
+        
+        return {
+            'venta': self.venta,
+            'generar_documento': generar_documento
+        }
 
 
 

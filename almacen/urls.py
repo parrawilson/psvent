@@ -13,6 +13,16 @@ urlpatterns = [
     path('api/productos/buscar/', api_views.buscar_producto, name='buscar_producto'),
     path('api/productos/<int:pk>/', api_views.obtener_producto_por_id, name='detalle_producto'),
 
+    path('servicios/lista/', views.lista_servicios, name='lista_servicios'),
+    path('servicios/registrar/', views.registrar_servicio, name='registrar_servicio'),
+    path('servicios/editar/<int:servicio_id>/', views.editar_servicio, name='editar_servicio'),
+    path('servicios/eliminar/<int:servicio_id>/', views.eliminar_servicio, name='eliminar_servicio'),
+    path('api/servicios/buscar/', api_views.buscar_servicio, name='buscar_servicio'),
+    path('api/servicios/<int:pk>/', api_views.obtener_servicio_por_id, name='detalle_servicio'),
+
+    path('api/buscar/', api_views.buscar_producto_servicio, name='buscar_producto_servicio'),
+    path('api/almacenes/principal/', api_views.obtener_almacen_principal, name='obtener_almacen_principal'),
+
 
     path('categorias/lista/', views.lista_categorias, name='lista_categorias'),
     path('categorias/nueva/', views.registrar_categoria, name='registrar_categoria'),

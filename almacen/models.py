@@ -436,4 +436,59 @@ class DetalleTraslado(models.Model):
 
 
 
+from django.db import models
+from django.core.exceptions import ValidationError
+from django.db import transaction
+from django.utils import timezone
+from usuarios.models import PerfilUsuario
+from empresa.models import Sucursal
 
+# ... (otros modelos existentes)
+
+class Servicio(models.Model):
+    TIPO_SERVICIO_CHOICES = [
+        ('SIMPLE', 'Servicio Simple'),
+        ('COMPUESTO', 'Servicio Compuesto (usa productos)'),
+    ]
+    
+    codigo = models.CharField(max_length=50, unique=True)
+    nombre = models.CharField(max_length=200)
+    descripcion = models.TextField(blank=True)
+    tipo = models.CharField(max_length=20, choices=TIPO_SERVICIO_CHOICES, default='SIMPLE')
+    precio = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    tasa_iva = models.PositiveIntegerField(default=10)
+    activo = models.BooleanField(default=True)
+    duracion_estimada = models.DurationField(null=True, blank=True)
+    creado = models.DateTimeField(auto_now_add=True)
+    actualizado = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return self.nombre
+    
+    def clean(self):
+        if self.precio < 0:
+            raise ValidationError("El precio no puede ser negativo")
+    
+    @property
+    def necesita_inventario(self):
+        return self.tipo == 'COMPUESTO' and self.componentes.exists()
+
+class ComponenteServicio(models.Model):
+    servicio = models.ForeignKey(Servicio, on_delete=models.CASCADE, related_name='componentes')
+    producto = models.ForeignKey('Producto', on_delete=models.PROTECT)
+    cantidad = models.DecimalField(max_digits=10, decimal_places=3)
+    observaciones = models.TextField(blank=True)
+    
+    class Meta:
+        unique_together = ('servicio', 'producto')
+        verbose_name = 'Componente de Servicio'
+        verbose_name_plural = 'Componentes de Servicio'
+    
+    def __str__(self):
+        return f"{self.servicio} - {self.producto} x {self.cantidad}"
+    
+    def clean(self):
+        if self.cantidad <= 0:
+            raise ValidationError("La cantidad debe ser mayor a cero")
+
+# ... (resto de tus modelos existentes)

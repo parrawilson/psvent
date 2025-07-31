@@ -230,6 +230,10 @@
           <i class="fas fa-boxes"></i>
           <span>Productos</span>
         </a>
+        <a href="{% url 'almacen:lista_servicios' %}" class="submenu-item block {% if request.resolver_match.url_name == 'lista_servicios' %}menu-item-active{% endif %}">
+          <i class="fa-solid fa-bell-concierge"></i>
+          <span>Servicios</span>
+        </a>
         <a href="{% url 'almacen:lista_categorias' %}" class="submenu-item block {% if request.resolver_match.url_name == 'categorias' %}menu-item-active{% endif %}">
           <i class="fas fa-tags"></i>
           <span>Categorías</span>

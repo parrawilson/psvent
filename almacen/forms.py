@@ -497,3 +497,66 @@ DetalleTrasladoFormSet = forms.inlineformset_factory(
     can_delete=True,
     min_num=1
 )
+
+
+
+
+
+from django import forms
+from .models import Servicio, ComponenteServicio
+from django.forms import inlineformset_factory
+
+
+class ComponenteServicioForm(forms.ModelForm):
+    class Meta:
+        model = ComponenteServicio
+        fields = ['producto', 'cantidad', 'observaciones']
+        
+    def clean_cantidad(self):
+        cantidad = self.cleaned_data.get('cantidad')
+        if cantidad <= 0:
+            raise forms.ValidationError("La cantidad debe ser mayor a cero")
+        return cantidad
+
+
+class ServicioForm(forms.ModelForm):
+    class Meta:
+        model = Servicio
+        fields = [
+            'codigo', 'nombre', 'descripcion', 'tipo', 
+            'precio', 'tasa_iva', 'duracion_estimada', 'activo'
+        ]
+        widgets = {
+            'descripcion': forms.Textarea(attrs={'rows': 3}),
+            'duracion_estimada': forms.TextInput(attrs={
+                'placeholder': 'HH:MM:SS',
+                'help_text': 'Formato: Horas:Minutos:Segundos'
+            }),
+        }
+        labels = {
+            'duracion_estimada': 'Duración Estimada (HH:MM:SS)'
+        }
+
+    def clean_precio(self):
+        precio = self.cleaned_data.get('precio')
+        if precio < 0:
+            raise forms.ValidationError("El precio no puede ser negativo")
+        return precio
+
+    def clean(self):
+        cleaned_data = super().clean()
+        tipo = cleaned_data.get('tipo')
+        
+        # Validaciones adicionales pueden ir aquí
+        return cleaned_data
+
+# Formset para los componentes del servicio
+ComponenteServicioFormSet = inlineformset_factory(
+    Servicio,
+    ComponenteServicio,
+    form=ComponenteServicioForm,
+    extra=1,
+    can_delete=True,
+    fields=('producto', 'cantidad', 'observaciones')
+)
+

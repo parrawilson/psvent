@@ -7,7 +7,7 @@ from django.forms import ValidationError, inlineformset_factory,BooleanField,Che
 from .models import Venta, DetalleVenta, Cliente, Timbrado
 from .forms import VentaForm, DetalleVentaForm, ClienteForm, FinalizarVentaForm, TimbradoForm
 from usuarios.models import PerfilUsuario
-from almacen.models import Stock
+from almacen.models import Stock, Almacen
 import logging
 from django.views.decorators.http import require_POST
 from facturacion.services.sifen import SifenService
@@ -140,6 +140,12 @@ def crear_venta(request):
                 # Guardar los detalles
                 detalles = formset.save(commit=False)
                 for detalle in detalles:
+                    # Establecer tipo basado en lo que se seleccionó
+                    if detalle.producto:
+                        detalle.tipo = 'PRODUCTO'
+                    elif detalle.servicio:
+                        detalle.tipo = 'SERVICIO'
+                    
                     detalle.venta = venta
                     detalle.save()
                 
@@ -155,7 +161,8 @@ def crear_venta(request):
     return render(request, 'ventas/formulario_venta.html', {
         'form': form,
         'formset': formset,
-        'titulo': 'Nueva Venta'
+        'titulo': 'Nueva Venta',
+        'modo': 'crear'
     })
 
 @login_required
@@ -171,7 +178,7 @@ def editar_venta(request, venta_id):
         Venta, 
         DetalleVenta, 
         form=DetalleVentaForm,
-        extra=1,
+        extra=0,
         can_delete=True
     )
     
@@ -182,7 +189,20 @@ def editar_venta(request, venta_id):
         if form.is_valid() and formset.is_valid():
             with transaction.atomic():
                 form.save()
-                formset.save()
+                
+                # Guardar los detalles y establecer tipo
+                detalles = formset.save(commit=False)
+                for detalle in detalles:
+                    if detalle.producto:
+                        detalle.tipo = 'PRODUCTO'
+                    elif detalle.servicio:
+                        detalle.tipo = 'SERVICIO'
+                    detalle.save()
+                
+                # Eliminar detalles marcados para borrar
+                for obj in formset.deleted_objects:
+                    obj.delete()
+                
                 venta.calcular_totales()
                 
                 messages.success(request, 'Venta actualizada correctamente')
@@ -195,7 +215,8 @@ def editar_venta(request, venta_id):
         'form': form,
         'formset': formset,
         'venta': venta,
-        'titulo': f'Editar Venta: {venta.numero}'
+        'titulo': f'Editar Venta: {venta.numero}',
+        'modo': 'editar'
     })
 
 
@@ -214,17 +235,41 @@ def finalizar_venta(request, venta_id):
     
     # Verificar stock antes de mostrar el formulario
     try:
-        for detalle in venta.detalles.all():
-            stock = Stock.objects.filter(
-                producto=detalle.producto,
-                almacen=detalle.almacen
-            ).first()
+        for detalle in venta.detalles.select_related('producto', 'servicio', 'almacen'):
+            if detalle.tipo == 'PRODUCTO':
+                stock = Stock.objects.filter(
+                    producto=detalle.producto,
+                    almacen=detalle.almacen
+                ).first()
+                
+                if not stock or stock.cantidad < detalle.cantidad:
+                    messages.error(request, 
+                        f'Stock insuficiente para {detalle.producto.nombre}. Disponible: {stock.cantidad if stock else 0}'
+                    )
+                    return redirect('ventas:editar_venta', venta_id=venta.id)
             
-            if not stock or stock.cantidad < detalle.cantidad:
-                messages.error(request, f'Stock insuficiente para {detalle.producto.nombre}. Disponible: {stock.cantidad if stock else 0}')
-                return redirect('ventas:editar_venta', venta_id=venta.id)
+            elif detalle.tipo == 'SERVICIO' and detalle.servicio.tipo == 'COMPUESTO':
+                almacen_servicio = detalle.almacen_servicio or Almacen.objects.filter(es_principal=True).first()
+                if not almacen_servicio:
+                    messages.error(request, 'No se encontró almacén para los componentes del servicio')
+                    return redirect('ventas:editar_venta', venta_id=venta.id)
+                
+                for componente in detalle.servicio.componentes.select_related('producto'):
+                    cantidad_necesaria = componente.cantidad * detalle.cantidad
+                    stock = Stock.objects.filter(
+                        producto=componente.producto,
+                        almacen=almacen_servicio
+                    ).first()
+                    
+                    if not stock or stock.cantidad < cantidad_necesaria:
+                        messages.error(request,
+                            f'Stock insuficiente de {componente.producto.nombre} para el servicio {detalle.servicio.nombre}. '
+                            f'Necesario: {cantidad_necesaria}, Disponible: {stock.cantidad if stock else 0}'
+                        )
+                        return redirect('ventas:editar_venta', venta_id=venta.id)
     except Exception as e:
         messages.error(request, f'Error al verificar stock: {str(e)}')
+        logger.error(f'Error al verificar stock para venta {venta.id}: {str(e)}', exc_info=True)
         return redirect('ventas:editar_venta', venta_id=venta.id)
     
     # Procesar formulario de finalización
@@ -233,7 +278,7 @@ def finalizar_venta(request, venta_id):
         if form.is_valid():
             try:
                 with transaction.atomic():
-                    # 1. Finalizar la venta (esto incluye los movimientos de caja e inventario)
+                    # Finalizar la venta (incluye movimientos de caja e inventario)
                     venta.finalizar(
                         caja=form.cleaned_data['caja'],
                         tipo_pago=form.cleaned_data['tipo_pago'],
@@ -241,14 +286,13 @@ def finalizar_venta(request, venta_id):
                         condicion=form.cleaned_data['condicion'],
                         timbrado=form.cleaned_data.get('timbrado')
                     )
+                    
+                    # Generar documento electrónico si aplica
                     generar_doc = form.cleaned_data.get('generar_documento', False)
                     
                     if generar_doc:
-                        
                         documento = SifenService.generar_documento(venta)
                         
-                        # 3. Generar KUDE automáticamente si el documento se generó correctamente
-
                         if documento and documento.estado == 'VALIDADO':
                             try:
                                 if SifenService.generar_kude(documento):
@@ -265,6 +309,8 @@ def finalizar_venta(request, venta_id):
                     messages.success(request, 'Venta finalizada correctamente')
                     return redirect('ventas:detalle_venta', venta_id=venta.id)
                     
+            except ValidationError as e:
+                messages.error(request, str(e))
             except Exception as e:
                 messages.error(request, f'Error al finalizar venta: {str(e)}')
                 logger.error(f'Error al finalizar venta {venta.id}: {str(e)}', exc_info=True)
@@ -274,7 +320,7 @@ def finalizar_venta(request, venta_id):
         form = FinalizarVentaForm()
     
     # Mostrar opción de documento electrónico solo si aplica
-    if venta.cliente and venta.cliente.tipo_documento in ['RUC', 'Cédula']:
+    if venta.cliente and venta.cliente.tipo_documento in ['1', '3']:  # Cédula paraguaya o extranjera
         form.fields['generar_documento'] = BooleanField(
             initial=True,
             required=False,
@@ -287,12 +333,14 @@ def finalizar_venta(request, venta_id):
         'venta': venta,
         'form': form,
         'titulo': f'Finalizar Venta: {venta.numero}',
-        'detalles': venta.detalles.select_related('producto', 'almacen'),
+        'detalles': venta.detalles.select_related('producto', 'servicio', 'almacen'),
         'total': venta.total,
-        'puede_generar_documento': venta.cliente
+        'puede_generar_documento': venta.cliente and venta.cliente.tipo_documento in ['1', '3']
     }
     
     return render(request, 'ventas/finalizar_venta.html', context)
+
+
 
 
 

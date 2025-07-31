@@ -3,11 +3,13 @@ from django.forms import ValidationError
 from django.http import HttpResponseNotAllowed, JsonResponse
 from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse
-from .models import Producto, Categoria, UnidadMedida,MovimientoInventario, Almacen, Stock
+from .models import Producto, Servicio, Categoria, UnidadMedida,MovimientoInventario, Almacen, Stock, ComponenteServicio
 from .forms import ProductoForm, CategoriaForm, UnidadMedidaForm, MovimientoInventarioForm, AlmacenForm,ConversionComplejaForm,ComponenteConversionFormSet
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.utils import timezone
+
+from .forms import ServicioForm, ComponenteServicioForm, ComponenteServicioFormSet
 
 @login_required
 def lista_productos(request):
@@ -50,6 +52,79 @@ def editar_producto(request, producto_id):
                       'producto': producto,
                   }
                   )
+
+
+
+@login_required
+def lista_servicios(request):
+    servicios = Servicio.objects.all().prefetch_related('componentes')
+    return render(request, 'servicios/lista.html', {'servicios': servicios})
+
+@login_required
+def registrar_servicio(request):
+    if request.method == 'POST':
+        form = ServicioForm(request.POST)
+        formset = ComponenteServicioFormSet(request.POST, prefix='componentes')
+        
+        if form.is_valid() and formset.is_valid():
+            servicio = form.save()
+            
+            # Guardar componentes del servicio
+            componentes = formset.save(commit=False)
+            for componente in componentes:
+                componente.servicio = servicio
+                componente.save()
+            
+            messages.success(request, 'Servicio registrado exitosamente')
+            return redirect('almacen:lista_servicios')
+    else:
+        form = ServicioForm()
+        formset = ComponenteServicioFormSet(queryset=ComponenteServicio.objects.none(), prefix='componentes')
+    
+    return render(request, 'servicios/formulario.html', {
+        'form': form,
+        'formset': formset,
+        'modo': 'registrar',
+        'titulo': 'Registrar Servicio',
+    })
+
+@login_required
+def editar_servicio(request, servicio_id):
+    servicio = get_object_or_404(Servicio, pk=servicio_id)
+    
+    if request.method == 'POST':
+        form = ServicioForm(request.POST, instance=servicio)
+        formset = ComponenteServicioFormSet(request.POST, prefix='componentes', instance=servicio)
+        
+        if form.is_valid() and formset.is_valid():
+            form.save()
+            formset.save()
+            messages.success(request, 'Servicio actualizado exitosamente')
+            return redirect('almacen:lista_servicios')
+    else:
+        form = ServicioForm(instance=servicio)
+        formset = ComponenteServicioFormSet(prefix='componentes', instance=servicio)
+    
+    return render(request, 'servicios/formulario.html', {
+        'form': form,
+        'formset': formset,
+        'modo': 'editar',
+        'titulo': 'Editar Servicio',
+        'servicio': servicio,
+    })
+
+@login_required
+def eliminar_servicio(request, servicio_id):
+    servicio = get_object_or_404(Servicio, pk=servicio_id)
+    
+    if request.method == 'POST':
+        try:
+            servicio.delete()
+            return JsonResponse({'success': True})
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)})
+    
+    return JsonResponse({'success': False, 'message': 'Método no permitido'}, status=405)
 
 
 

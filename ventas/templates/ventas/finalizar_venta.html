@@ -100,9 +100,18 @@
         {% endif %}
       </div>
       
+      <!-- Almacén para servicios (condicional) -->
+      <div id="almacenServiciosContainer" class="{% if not venta.tiene_servicios_con_inventario %}hidden{% endif %}">
+        <label for="{{ form.almacen_servicios.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+          {{ form.almacen_servicios.label }}
+        </label>
+        {{ form.almacen_servicios|add_attrs:"class=w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500" }}
+        {% if form.almacen_servicios.errors %}
+          <p class="text-sm text-red-600 mt-1">{{ form.almacen_servicios.errors.0 }}</p>
+        {% endif %}
+        <p class="text-xs text-gray-500 mt-1">{{ form.almacen_servicios.help_text }}</p>
+      </div>
     </div>
-
-
 
     <!-- Opción de documento electrónico -->
     {% if puede_generar_documento %}
@@ -126,16 +135,43 @@
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
           <tr>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Producto</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipo</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Descripción</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ubicación</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cantidad</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Precio Unit.</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Subtotal</th>
           </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
-          {% for detalle in detalles %}
-          <tr>
-            <td class="px-6 py-4 whitespace-nowrap">{{ detalle.producto.nombre }}</td>
+          {% for detalle in venta.detalles.all %}
+          <tr class="hover:bg-gray-50">
+            <td class="px-6 py-4 whitespace-nowrap">
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                {% if detalle.tipo == 'PRODUCTO' %}bg-blue-100 text-blue-800
+                {% else %}bg-purple-100 text-purple-800{% endif %}">
+                {{ detalle.get_tipo_display }}
+              </span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              {% if detalle.tipo == 'PRODUCTO' %}
+                {{ detalle.producto.nombre }}
+              {% else %}
+                {{ detalle.servicio.nombre }}
+                {% if detalle.servicio.tipo == 'COMPUESTO' %}
+                  <span class="block text-xs text-gray-500">(Servicio compuesto)</span>
+                {% endif %}
+              {% endif %}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              {% if detalle.tipo == 'PRODUCTO' %}
+                {{ detalle.almacen.nombre }}
+              {% elif detalle.tipo == 'SERVICIO' and detalle.servicio.tipo == 'COMPUESTO' %}
+                {{ detalle.almacen_servicio.nombre|default:"-" }}
+              {% else %}
+                -
+              {% endif %}
+            </td>
             <td class="px-6 py-4 whitespace-nowrap">{{ detalle.cantidad }}</td>
             <td class="px-6 py-4 whitespace-nowrap">Gs. {{ detalle.precio_unitario|pyg_intcomma }}</td>
             <td class="px-6 py-4 whitespace-nowrap">Gs. {{ detalle.subtotal|pyg_intcomma }}</td>
@@ -144,9 +180,6 @@
         </tbody>
       </table>
     </div>
-
-
-
 
     <div id="documentoPreview" class="bg-blue-50 p-4 rounded-lg mt-4 {% if not venta.tipo_documento %}hidden{% endif %}">
         <h4 class="text-lg font-semibold text-blue-800 mb-2">Número de Documento</h4>
@@ -175,8 +208,6 @@
           Tipo: <span id="tipoDocumentoPreview">{{ venta.get_tipo_documento_display|default:"[Seleccione tipo]" }}</span>
         </p>
       </div>
-
-
 
     <!-- Botones -->
     <div class="flex justify-between items-center pt-4 border-t">

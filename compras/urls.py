@@ -19,6 +19,13 @@ urlpatterns = [
     path('ordenes/<int:orden_id>/editar/', views.editar_orden_compra, name='editar_orden'),
     path('ordenes/<int:orden_id>/aprobar/', views.aprobar_orden_compra, name='aprobar_orden'),
     path('ordenes/<int:orden_id>/recibir/', views.recibir_orden_compra, name='recibir_orden'),
+
+
+    # Cuentas por Pagar
+    path('cuentas-por-pagar/', views.lista_cuentas_por_pagar, name='lista_cuentas_por_pagar'),
+    path('cuentas-por-pagar/<int:pk>/', views.detalle_cuenta_por_pagar, name='detalle_cuenta_por_pagar'),
+    path('cuentas-por-pagar/<int:pk>/pagar/', views.registrar_pago_proveedor, name='registrar_pago_proveedor'),
+    path('pagos-proveedor/<int:pk>/eliminar/', views.eliminar_pago_proveedor, name='eliminar_pago_proveedor'),
     
 
 ]

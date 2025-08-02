@@ -106,6 +106,22 @@ class Almacen(models.Model):
     creado = models.DateTimeField(auto_now_add=True)
     actualizado = models.DateTimeField(auto_now=True)
     activo = models.BooleanField(default=True)
+    es_principal = models.BooleanField(
+        default=False,
+        verbose_name='Almacén Principal',
+        help_text='Indica si este es el almacén principal de la sucursal'
+    )
+    
+    class Meta:
+        verbose_name = 'Almacén'
+        verbose_name_plural = 'Almacenes'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['sucursal', 'es_principal'],
+                condition=models.Q(es_principal=True),
+                name='unico_almacen_principal_por_sucursal'
+            )
+        ]
     
     def __str__(self):
         return f"{self.nombre} ({self.sucursal})"
@@ -121,7 +137,7 @@ class Stock(models.Model):
         on_delete=models.CASCADE,
         related_name='inventarios'  # Relación inversa para almacén
     )
-    cantidad = models.PositiveIntegerField(default=0)
+    cantidad = models.PositiveIntegerField(default=0) 
     ultima_actualizacion = models.DateTimeField(auto_now=True)
     
     class Meta:

@@ -442,4 +442,3 @@ class DetalleVenta(models.Model):
         return f"{self.servicio} x {self.cantidad}"
 
 
-

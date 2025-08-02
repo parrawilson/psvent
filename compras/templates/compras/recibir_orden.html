@@ -20,6 +20,7 @@
       {% endfor %}
     {% endif %}
 
+    <!-- Info de la Orden -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
       <div class="bg-gray-50 p-4 rounded-lg">
         <h3 class="text-lg font-semibold text-gray-700 mb-3">Información de la Orden</h3>
@@ -47,6 +48,7 @@
       </div>
     </div>
 
+    <!-- Tabla de Productos -->
     <div class="mb-6">
       <h3 class="text-xl font-semibold text-gray-800 mb-4">Detalles de Productos</h3>
       <div class="overflow-x-auto">
@@ -85,12 +87,81 @@
       </div>
     </div>
 
+    <!-- Formulario -->
     <form method="post" class="space-y-6">
       {% csrf_token %}
       
       <div class="bg-gray-50 p-4 rounded-lg">
         <h3 class="text-lg font-semibold text-gray-700 mb-3">Datos de Recepción</h3>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          
+          <!-- Tipo de Documento -->
+          <div>
+            <label for="{{ form.tipo_documento.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+              {{ form.tipo_documento.label }}
+            </label>
+            {{ form.tipo_documento|add_attrs:"class=w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" }}
+            {% if form.tipo_documento.errors %}
+              <p class="text-sm text-red-500 mt-1">{{ form.tipo_documento.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <!-- Número de Documento -->
+          <div>
+            <label for="{{ form.numero_documento.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+              {{ form.numero_documento.label }}
+            </label>
+            {{ form.numero_documento|add_attrs:"class=w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" }}
+            {% if form.numero_documento.errors %}
+              <p class="text-sm text-red-500 mt-1">{{ form.numero_documento.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <!-- Timbrado de Documento -->
+          <div>
+            <label for="{{ form.timbrado.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+              {{ form.timbrado.label }}
+            </label>
+            {{ form.timbrado|add_attrs:"class=w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" }}
+            {% if form.timbrado.errors %}
+              <p class="text-sm text-red-500 mt-1">{{ form.timbrado.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <!-- Condición -->
+          <div>
+            <label for="{{ form.condicion.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+              {{ form.condicion.label }}
+            </label>
+            {{ form.condicion|add_attrs:"class=w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" }}
+            {% if form.condicion.errors %}
+              <p class="text-sm text-red-500 mt-1">{{ form.condicion.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <!-- Plazo días (solo visible si es crédito) -->
+          <div id="plazo-dias-container" class="hidden">
+            <label for="{{ form.plazo_dias.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+              {{ form.plazo_dias.label }}
+            </label>
+            {{ form.plazo_dias|add_attrs:"class=w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" }}
+            {% if form.plazo_dias.errors %}
+              <p class="text-sm text-red-500 mt-1">{{ form.plazo_dias.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <!-- Tipo de Pago -->
+          <div>
+            <label for="{{ form.tipo_pago.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+              {{ form.tipo_pago.label }}
+            </label>
+            {{ form.tipo_pago|add_attrs:"class=w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" }}
+            {% if form.tipo_pago.errors %}
+              <p class="text-sm text-red-500 mt-1">{{ form.tipo_pago.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <!-- Almacén -->
           <div>
             <label for="{{ form.almacen.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
               {{ form.almacen.label }}
@@ -101,7 +172,8 @@
             {% endif %}
           </div>
           
-          <div>
+          <!-- Caja (solo visible si es contado y efectivo) -->
+          <div id="caja-container" class="hidden">
             <label for="{{ form.caja.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
               {{ form.caja.label }}
               <span class="text-xs text-gray-500">(Opcional)</span>
@@ -115,6 +187,7 @@
         </div>
       </div>
 
+      <!-- Botones -->
       <div class="flex flex-col md:flex-row gap-4 pt-4">
         <a href="{% url 'compras:lista_ordenes' %}" 
            class="flex-1 text-center bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-6 rounded-lg">
@@ -128,4 +201,40 @@
     </form>
   </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Mostrar/ocultar campos según condición de pago
+  const condicionSelect = document.getElementById('{{ form.condicion.id_for_label }}');
+  const plazoDiasContainer = document.getElementById('plazo-dias-container');
+  const cajaContainer = document.getElementById('caja-container');
+  const tipoPagoSelect = document.getElementById('{{ form.tipo_pago.id_for_label }}');
+
+  function updateFieldsVisibility() {
+    const isCredito = condicionSelect.value === '2';
+    const isContadoEfectivo = condicionSelect.value === '1' && tipoPagoSelect.value === 'EFECTIVO';
+
+    // Mostrar/ocultar plazo días
+    if (isCredito) {
+      plazoDiasContainer.classList.remove('hidden');
+    } else {
+      plazoDiasContainer.classList.add('hidden');
+    }
+
+    // Mostrar/ocultar caja
+    if (isContadoEfectivo) {
+      cajaContainer.classList.remove('hidden');
+    } else {
+      cajaContainer.classList.add('hidden');
+    }
+  }
+
+  // Escuchar cambios en condición y tipo de pago
+  condicionSelect.addEventListener('change', updateFieldsVisibility);
+  tipoPagoSelect.addEventListener('change', updateFieldsVisibility);
+
+  // Ejecutar al cargar la página
+  updateFieldsVisibility();
+});
+</script>
 {% endblock %}

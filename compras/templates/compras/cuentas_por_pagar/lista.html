@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% load form_filters %}
+{% load filtros_paraguay %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-2xl font-bold mb-6">Cuentas por Pagar</h1>
+    
+    <!-- Filtros y Búsqueda -->
+    <div class="bg-white p-4 rounded-lg shadow-md mb-6">
+        <form method="get" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+                <select name="estado" class="w-full px-3 py-2 border rounded-lg">
+                    <option value="todas" {% if estado_actual == 'todas' %}selected{% endif %}>Todas</option>
+                    {% for value, label in estados %}
+                        <option value="{{ value }}" {% if estado_actual == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Buscar</label>
+                <input type="text" name="q" value="{{ query }}" placeholder="Orden o proveedor..." 
+                       class="w-full px-3 py-2 border rounded-lg">
+            </div>
+            <div class="flex items-end">
+                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                    Filtrar
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Lista de Cuentas -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Orden</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Proveedor</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Saldo</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vencimiento</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for cuenta in cuentas %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <a href="{% url 'compras:detalle_cuenta_por_pagar' cuenta.pk %}" 
+                           class="text-blue-600 hover:underline">
+                            {{ cuenta.orden_compra.numero }}
+                        </a>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        {{ cuenta.orden_compra.proveedor.razon_social }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap font-medium">
+                        Gs. {{ cuenta.saldo_pendiente|pyg_intcomma }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        {{ cuenta.fecha_vencimiento|date:"d/m/Y" }}
+                        <span class="block text-xs text-gray-500">
+                            {% if cuenta.dias_vencimiento > 0 %}
+                                ({{ cuenta.dias_vencimiento }} días restantes)
+                            {% elif cuenta.dias_vencimiento == 0 %}
+                                (Vence hoy)
+                            {% else %}
+                                (Vencido hace {{ cuenta.dias_vencimiento }} días)
+                            {% endif %}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 py-1 text-xs rounded-full 
+                            {% if cuenta.estado == 'PENDIENTE' %}bg-yellow-100 text-yellow-800
+                            {% elif cuenta.estado == 'PAGADA' %}bg-green-100 text-green-800
+                            {% elif cuenta.estado == 'VENCIDA' %}bg-red-100 text-red-800
+                            {% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {{ cuenta.get_estado_display }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        {% if cuenta.estado == 'PENDIENTE' %}
+                        <a href="{% url 'compras:registrar_pago_proveedor' cuenta.pk %}" 
+                           class="text-green-600 hover:text-green-800 mr-3">
+                            Pagar
+                        </a>
+                        {% endif %}
+                        <a href="{% url 'compras:detalle_cuenta_por_pagar' cuenta.pk %}" 
+                           class="text-blue-600 hover:text-blue-800">
+                            Detalle
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="px-6 py-4 text-center text-gray-500">
+                        No se encontraron cuentas por pagar
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

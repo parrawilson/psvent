@@ -93,6 +93,13 @@
             {{ form.activo.label }}
           </label>
         </div>
+        <!-- Campo es principal -->
+        <div class="flex items-center">
+          {{ form.es_principal|add_attrs:"class=h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" }}
+          <label for="{{ form.es_principal.id_for_label }}" class="ml-2 block text-sm text-gray-700">
+            {{ form.es_principal.label }}
+          </label>
+        </div>
       </div>
 
       <!-- Botones -->

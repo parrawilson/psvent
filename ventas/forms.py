@@ -267,11 +267,6 @@ class FinalizarVentaForm(forms.Form):
         if tipo_documento in ['F', 'BV'] and not cleaned_data.get('timbrado'):
             self.add_error('timbrado', 'Este tipo de documento requiere timbrado')
         
-        # Validar almacén para servicios si es necesario
-        if (self.venta and self.venta.tiene_servicios_con_inventario() and 
-            not cleaned_data.get('almacen_servicios')):
-            self.add_error('almacen_servicios', 'Debe seleccionar un almacén para los servicios')
-        
         return cleaned_data
 
     def save(self):

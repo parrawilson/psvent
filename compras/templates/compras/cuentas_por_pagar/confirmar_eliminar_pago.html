@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% load form_filters %}
+{% load filtros_paraguay %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-md">
+    <div class="bg-white p-6 rounded-lg shadow-md">
+        <h1 class="text-xl font-bold mb-4">Confirmar Eliminación</h1>
+        
+        <p class="mb-4">¿Estás seguro de que deseas eliminar este pago?</p>
+        
+        <div class="bg-gray-50 p-4 rounded-lg mb-4">
+            <p><span class="font-medium">Fecha:</span> {{ pago.fecha_pago|date:"d/m/Y" }}</p>
+            <p><span class="font-medium">Monto:</span> Gs. {{ pago.monto|pyg_intcomma }}</p>
+            <p><span class="font-medium">Forma de Pago:</span> {{ pago.get_forma_pago_display }}</p>
+        </div>
+        
+        <form method="post">
+            {% csrf_token %}
+            <div class="flex justify-end gap-3">
+                <a href="{% url 'compras:detalle_cuenta_por_pagar' pago.cuenta.pk %}" 
+                   class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300">
+                    Cancelar
+                </a>
+                <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">
+                    Confirmar Eliminación
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

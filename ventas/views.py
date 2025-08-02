@@ -473,3 +473,4 @@ def eliminar_timbrado(request, timbrado_id):
     
     return HttpResponseNotAllowed(['POST'])
 
+

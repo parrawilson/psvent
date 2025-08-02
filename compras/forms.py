@@ -1,5 +1,5 @@
 from django import forms
-from .models import OrdenCompra, DetalleOrdenCompra, Proveedor
+from .models import OrdenCompra, DetalleOrdenCompra, Proveedor,RecepcionCompra
 from almacen.models import Producto,Almacen
 from caja.models import Caja
 
@@ -82,6 +82,50 @@ class DetalleOrdenCompraForm(forms.ModelForm):
         }
 
 class RecibirOrdenForm(forms.Form):
+    tipo_pago = forms.ChoiceField(
+        choices=RecepcionCompra.TIPO_PAGO_CHOICES,
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        label='Tipo de Pago *'
+    )
+    
+    tipo_documento = forms.ChoiceField(
+        choices=OrdenCompra.TIPO_DOCUMENTO,
+        widget=forms.Select(attrs={
+            'class': 'form-control',
+            'onchange': 'actualizarCamposDocumento()'  # JavaScript para cambios dinámicos
+        }),
+        label='Tipo de Documento *'
+    )
+
+    numero_documento = forms.CharField(
+    widget=forms.TextInput(attrs={
+        'class': 'form-control'
+    }),
+    label='No. de Documento *'
+    )
+
+    plazo_dias = forms.IntegerField(
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'min': '0'
+        }),
+        label='Plazo días',
+        required=False,
+        initial=0
+    )
+
+    timbrado = forms.CharField(
+    widget=forms.TextInput(attrs={
+        'class': 'form-control'
+    }),
+    label='Timbrado de Documento *'
+    )
+ 
+    condicion = forms.ChoiceField(
+        choices=OrdenCompra.TIPO_CONDICION,
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        label='Condición de Venta *'
+    )
     almacen = forms.ModelChoiceField(
         queryset=Almacen.objects.filter(activo=True),
         label="Almacén de destino"
@@ -110,3 +154,59 @@ class RecibirOrdenForm(forms.Form):
             raise forms.ValidationError('La caja seleccionada no está abierta')
         
         return cleaned_data
+    
+    def clean_plazo_dias(self):
+        plazo_dias = self.cleaned_data.get('plazo_dias', 0)
+        condicion = self.cleaned_data.get('condicion')
+        
+        if condicion == '2' and plazo_dias <= 0:  # Crédito
+            raise forms.ValidationError("Debe especificar un plazo mayor a 0 días para crédito")
+        return plazo_dias
+
+
+
+
+from django import forms
+from .models import PagoProveedor
+from caja.models import Caja
+from django.utils import timezone
+
+class PagoProveedorForm(forms.ModelForm):
+    def __init__(self, user, *args, **kwargs):
+        self.cuenta = kwargs.pop('cuenta', None)  # Añade esta línea
+        super().__init__(*args, **kwargs)
+        if user:
+            self.fields['caja'].queryset = Caja.objects.filter(
+                estado='ABIERTA',
+                responsable=user.perfil
+            )
+        # Configuración explícita del campo fecha_pago
+        self.fields['fecha_pago'] = forms.DateField(
+            widget=forms.DateInput(attrs={'type': 'date'}),
+            initial=timezone.now().date()
+        )
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        monto = cleaned_data.get('monto')
+        
+        if monto and monto <= 0:
+            self.add_error('monto', "El monto debe ser mayor a cero")
+        
+        # Validar contra el saldo pendiente
+        if monto and self.cuenta and monto > self.cuenta.saldo_pendiente:
+            self.add_error('monto', "El monto no puede ser mayor al saldo pendiente")
+        
+        return cleaned_data
+    
+    class Meta:
+        model = PagoProveedor
+        fields = ['monto', 'forma_pago', 'fecha_pago', 'comprobante', 'caja', 'notas']
+        widgets = {
+            'monto': forms.NumberInput(attrs={'step': '0.01', 'min': '0.01'}),
+            'notas': forms.Textarea(attrs={'rows': 3}),
+        }
+
+
+
+

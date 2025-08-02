@@ -289,6 +289,10 @@
           <i class="fa-solid fa-list-check"></i>
           <span>Ordenes de compra</span>
         </a>
+        <a href="{% url 'compras:lista_cuentas_por_pagar' %}" class="submenu-item {% if request.resolver_match.url_name == 'lista_cuentas_por_pagar' %}menu-item-active{% endif %}">
+          <i class="fa-solid fa-credit-card"></i>
+          <span>Cta. por pagar</span>
+        </a>
         
       </div>
     </div>

@@ -172,7 +172,7 @@ class UnidadMedidaForm(forms.ModelForm):
 class AlmacenForm(forms.ModelForm):
     class Meta:
         model = Almacen
-        fields = ['nombre', 'ubicacion', 'responsable', 'sucursal', 'activo']
+        fields = ['nombre', 'ubicacion', 'responsable', 'sucursal', 'activo', 'es_principal']
         widgets = {
             'nombre': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -189,6 +189,9 @@ class AlmacenForm(forms.ModelForm):
                 'class': 'form-select'
             }),
             'activo': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            }),
+            'es_principal': forms.CheckboxInput(attrs={
                 'class': 'form-check-input'
             })
         }

@@ -100,3 +100,89 @@ class DetalleTrasladoAdmin(admin.ModelAdmin):
     search_fields = ('producto__nombre', 'traslado__referencia')
     list_filter = ('traslado__estado',)
 
+from almacen.models import Servicio, ComponenteServicio
+from django.core.exceptions import ValidationError
+
+class ComponenteServicioInline(admin.TabularInline):
+    model = ComponenteServicio
+    extra = 1
+    fields = ('producto', 'cantidad', 'observaciones')
+    autocomplete_fields = ('producto',)
+    verbose_name = 'Componente'
+    verbose_name_plural = 'Componentes del Servicio'
+    
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "producto":
+            kwargs["queryset"] = db_field.related_model.objects.filter(activo=True)
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+@admin.register(Servicio)
+class ServicioAdmin(admin.ModelAdmin):
+    list_display = ('codigo', 'nombre', 'tipo', 'precio', 'tasa_iva', 'activo', 'necesita_inventario', 'duracion_estimada_formatted')
+    list_filter = ('tipo', 'activo', 'tasa_iva')
+    search_fields = ('codigo', 'nombre', 'descripcion')
+    list_editable = ('activo', 'precio', 'tasa_iva')
+    readonly_fields = ('necesita_inventario', 'creado', 'actualizado')
+    inlines = [ComponenteServicioInline]
+    fieldsets = (
+        ('Información Básica', {
+            'fields': ('codigo', 'nombre', 'descripcion', 'activo')
+        }),
+        ('Datos Comerciales', {
+            'fields': ('tipo', 'precio', 'tasa_iva', 'duracion_estimada')
+        }),
+        ('Metadata', {
+            'fields': ('necesita_inventario', 'creado', 'actualizado'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def duracion_estimada_formatted(self, obj):
+        if obj.duracion_estimada:
+            total_seconds = int(obj.duracion_estimada.total_seconds())
+            hours = total_seconds // 3600
+            minutes = (total_seconds % 3600) // 60
+            return f"{hours}h {minutes}m"
+        return "-"
+    duracion_estimada_formatted.short_description = 'Duración'
+    
+    def necesita_inventario(self, obj):
+        return obj.necesita_inventario
+    necesita_inventario.boolean = True
+    necesita_inventario.short_description = 'Usa Inventario'
+    
+    def save_formset(self, request, form, formset, change):
+        instances = formset.save(commit=False)
+        for instance in instances:
+            try:
+                instance.clean()
+                instance.save()
+            except ValidationError as e:
+                formset._non_form_errors = e.messages
+                return
+        formset.save_m2m()
+
+
+@admin.register(ComponenteServicio)
+class ComponenteServicioAdmin(admin.ModelAdmin):
+    list_display = ('servicio', 'producto', 'cantidad', 'producto_unidad_medida')
+    list_filter = ('servicio__tipo', 'servicio__activo')
+    search_fields = ('servicio__nombre', 'producto__nombre')
+    autocomplete_fields = ('servicio', 'producto')
+    list_select_related = ('servicio', 'producto')
+    
+    def producto_unidad_medida(self, obj):
+        return obj.producto.unidad_medida if obj.producto.unidad_medida else "-"
+    producto_unidad_medida.short_description = 'Unidad'
+    
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related(
+            'servicio', 'producto'
+        ).filter(servicio__activo=True, producto__activo=True)
+    
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "servicio":
+            kwargs["queryset"] = db_field.related_model.objects.filter(activo=True)
+        elif db_field.name == "producto":
+            kwargs["queryset"] = db_field.related_model.objects.filter(activo=True)
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)

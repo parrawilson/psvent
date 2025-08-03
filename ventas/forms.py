@@ -180,7 +180,6 @@ class DetalleVentaForm(forms.ModelForm):
 
 
 
-
 class FinalizarVentaForm(forms.Form):
     caja = forms.ModelChoiceField(
         queryset=Caja.objects.filter(estado='ABIERTA'),
@@ -198,15 +197,81 @@ class FinalizarVentaForm(forms.Form):
         choices=Venta.TIPO_DOCUMENTO,
         widget=forms.Select(attrs={
             'class': 'form-control',
-            'onchange': 'actualizarCamposDocumento()'  # JavaScript para cambios dinámicos
+            'onchange': 'actualizarCamposDocumento()'
         }),
         label='Tipo de Documento *'
     )
     
     condicion = forms.ChoiceField(
         choices=Venta.TIPO_CONDICION,
-        widget=forms.Select(attrs={'class': 'form-control'}),
+        widget=forms.Select(attrs={
+            'class': 'form-control',
+            'onchange': 'actualizarCamposCredito(this)'
+        }),
         label='Condición de Venta *'
+    )
+    
+    # Campos para crédito (condicionales)
+    entrega_inicial = forms.DecimalField(
+        required=False,
+        initial=0,
+        min_value=0,
+        max_digits=12,
+        decimal_places=2,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'disabled': 'disabled'
+        }),
+        label='Entrega Inicial (Gs.)'
+    )
+    
+    dia_vencimiento = forms.IntegerField(
+        required=False,
+        initial=5,
+        min_value=1,
+        max_value=28,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'disabled': 'disabled'
+        }),
+        label='Día de Vencimiento (1-28)'
+    )
+    
+    fecha_primer_vencimiento = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={
+            'class': 'form-control',
+            'type': 'date',
+            'disabled': 'disabled'
+        }),
+        label='Fecha Primer Vencimiento'
+    )
+    
+    numero_cuotas = forms.IntegerField(
+        required=False,
+        initial=1,
+        min_value=1,
+        max_value=36,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'disabled': 'disabled',
+            'id': 'id_numero_cuotas'
+        }),
+        label='Número de Cuotas'
+    )
+    
+    monto_cuota = forms.DecimalField(
+        required=False,
+        initial=0,
+        min_value=0,
+        max_digits=12,
+        decimal_places=2,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'disabled': 'disabled',
+            'id': 'id_monto_cuota'
+        }),
+        label='Monto por Cuota (Gs.)'
     )
     
     timbrado = forms.ModelChoiceField(
@@ -216,7 +281,6 @@ class FinalizarVentaForm(forms.Form):
         label='Timbrado'
     )
 
-    # Campo para almacén de servicios (solo visible si hay servicios que consumen productos)
     almacen_servicios = forms.ModelChoiceField(
         required=False,
         queryset=Almacen.objects.filter(activo=True),
@@ -225,7 +289,6 @@ class FinalizarVentaForm(forms.Form):
         help_text='Seleccione el almacén del que se descontarán los productos usados en servicios'
     )
 
-    # Nuevo campo booleano para generar documento
     generar_documento = forms.BooleanField(
         required=False,
         initial=True,
@@ -241,18 +304,25 @@ class FinalizarVentaForm(forms.Form):
         self.venta = kwargs.pop('venta', None)
         super().__init__(*args, **kwargs)
         
-        # Si ya existe una venta, establecer valores iniciales
+        # Establecer valores iniciales
         if self.venta:
             self.fields['tipo_documento'].initial = self.venta.tipo_documento
             self.fields['condicion'].initial = self.venta.condicion
             self.fields['timbrado'].initial = self.venta.timbrado
             
-            # Establecer almacén principal como predeterminado para servicios
-            almacen_principal = Almacen.objects.filter(es_principal=True).first()
-            if almacen_principal:
-                self.fields['almacen_servicios'].initial = almacen_principal
+            # Configurar campos de crédito si ya existen datos
+            if self.venta.condicion == '2':
+                self.fields['entrega_inicial'].initial = self.venta.entrega_inicial
+                self.fields['dia_vencimiento'].initial = self.venta.dia_vencimiento_cuotas
+                self.fields['fecha_primer_vencimiento'].initial = self.venta.fecha_primer_vencimiento
+                self.fields['numero_cuotas'].initial = self.venta.numero_cuotas or 1
+                self.fields['monto_cuota'].initial = self.venta.monto_cuota or 0
         
-        # Mostrar campo de almacén de servicios solo si hay servicios que consumen productos
+        # Configurar almacén de servicios
+        almacen_principal = Almacen.objects.filter(es_principal=True).first()
+        if almacen_principal:
+            self.fields['almacen_servicios'].initial = almacen_principal
+        
         if self.venta and self.venta.tiene_servicios_con_inventario():
             self.fields['almacen_servicios'].required = True
             self.fields['almacen_servicios'].widget.attrs['required'] = 'required'
@@ -262,10 +332,49 @@ class FinalizarVentaForm(forms.Form):
     def clean(self):
         cleaned_data = super().clean()
         tipo_documento = cleaned_data.get('tipo_documento')
+        condicion = cleaned_data.get('condicion')
         
         # Validar timbrado para documentos fiscales
         if tipo_documento in ['F', 'BV'] and not cleaned_data.get('timbrado'):
             self.add_error('timbrado', 'Este tipo de documento requiere timbrado')
+        
+        # Validaciones para ventas a crédito
+        if condicion == '2':
+            entrega_inicial = cleaned_data.get('entrega_inicial', 0)
+            dia_vencimiento = cleaned_data.get('dia_vencimiento')
+            fecha_primer_vencimiento = cleaned_data.get('fecha_primer_vencimiento')
+            numero_cuotas = cleaned_data.get('numero_cuotas', 1)
+            monto_cuota = cleaned_data.get('monto_cuota', 0)
+            
+            if entrega_inicial is None:
+                self.add_error('entrega_inicial', 'Este campo es requerido para crédito')
+            
+            if not dia_vencimiento:
+                self.add_error('dia_vencimiento', 'Debe especificar el día de vencimiento')
+            elif dia_vencimiento < 1 or dia_vencimiento > 28:
+                self.add_error('dia_vencimiento', 'El día debe estar entre 1 y 28')
+            
+            if not fecha_primer_vencimiento:
+                self.add_error('fecha_primer_vencimiento', 'Debe especificar la fecha del primer vencimiento')
+            elif fecha_primer_vencimiento < timezone.now().date():
+                self.add_error('fecha_primer_vencimiento', 'La fecha no puede ser anterior a hoy')
+            
+            # Validar que la entrega inicial no supere el total
+            if entrega_inicial and self.venta and entrega_inicial >= self.venta.total:
+                self.add_error('entrega_inicial', 'La entrega inicial debe ser menor al total de la venta')
+            
+            # Validar número de cuotas y monto
+            total_financiar = self.venta.total - entrega_inicial
+            
+            if numero_cuotas <= 0:
+                self.add_error('numero_cuotas', 'El número de cuotas debe ser al menos 1')
+            
+            if monto_cuota <= 0:
+                self.add_error('monto_cuota', 'El monto por cuota debe ser mayor a cero')
+            
+            # Validar coherencia entre monto y cuotas
+            if monto_cuota * numero_cuotas < total_financiar:
+                self.add_error('monto_cuota', 'El monto total de las cuotas no cubre el importe financiado')
         
         return cleaned_data
 
@@ -282,6 +391,14 @@ class FinalizarVentaForm(forms.Form):
         timbrado = self.cleaned_data.get('timbrado')
         almacen_servicios = self.cleaned_data.get('almacen_servicios')
         generar_documento = self.cleaned_data.get('generar_documento', False)
+        
+        # Asignar datos específicos para crédito
+        if condicion == '2':
+            self.venta.entrega_inicial = self.cleaned_data.get('entrega_inicial', 0)
+            self.venta.dia_vencimiento_cuotas = self.cleaned_data.get('dia_vencimiento', 5)
+            self.venta.fecha_primer_vencimiento = self.cleaned_data.get('fecha_primer_vencimiento')
+            self.venta.numero_cuotas = self.cleaned_data.get('numero_cuotas', 1)
+            self.venta.monto_cuota = self.cleaned_data.get('monto_cuota', 0)
         
         # Asignar almacén de servicios a los detalles que lo necesiten
         if almacen_servicios:
@@ -303,8 +420,6 @@ class FinalizarVentaForm(forms.Form):
             'venta': self.venta,
             'generar_documento': generar_documento
         }
-
-
 
 
 class TimbradoForm(forms.ModelForm):
@@ -356,3 +471,28 @@ class TimbradoForm(forms.ModelForm):
                 self.add_error('fecha_fin', "La fecha de fin debe ser posterior a la fecha de inicio")
         
         return cleaned_data
+    
+
+from .models import PagoCuota
+
+class PagoCuotaForm(forms.ModelForm):
+    class Meta:
+        model = PagoCuota
+        fields = ['monto', 'fecha_pago', 'tipo_pago', 'notas']
+        widgets = {
+            'fecha_pago': forms.DateInput(
+                attrs={'type': 'date', 'class': 'form-control'},
+                format='%Y-%m-%d'
+            ),
+            'monto': forms.NumberInput(attrs={'class': 'form-control'}),
+            'tipo_pago': forms.Select(attrs={'class': 'form-control'}),
+            'notas': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Observaciones sobre este pago'
+            }),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['fecha_pago'].initial = timezone.now().date()

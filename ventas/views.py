@@ -274,10 +274,18 @@ def finalizar_venta(request, venta_id):
     
     # Procesar formulario de finalización
     if request.method == 'POST':
-        form = FinalizarVentaForm(request.POST)
+        form = FinalizarVentaForm(request.POST, venta=venta)
         if form.is_valid():
             try:
                 with transaction.atomic():
+                    # Asignar datos específicos para crédito
+                    if form.cleaned_data['condicion'] == '2':  # CRÉDITO
+                        venta.entrega_inicial = form.cleaned_data.get('entrega_inicial', 0)
+                        venta.dia_vencimiento_cuotas = form.cleaned_data.get('dia_vencimiento', 5)
+                        venta.fecha_primer_vencimiento = form.cleaned_data.get('fecha_primer_vencimiento')
+                        venta.numero_cuotas = form.cleaned_data.get('numero_cuotas', 1)
+                        venta.monto_cuota = form.cleaned_data.get('monto_cuota', 0)
+                    
                     # Finalizar la venta (incluye movimientos de caja e inventario)
                     venta.finalizar(
                         caja=form.cleaned_data['caja'],
@@ -317,7 +325,7 @@ def finalizar_venta(request, venta_id):
         else:
             messages.error(request, 'Por favor corrija los errores en el formulario')
     else:
-        form = FinalizarVentaForm()
+        form = FinalizarVentaForm(venta=venta)
     
     # Mostrar opción de documento electrónico solo si aplica
     if venta.cliente and venta.cliente.tipo_documento in ['1', '3']:  # Cédula paraguaya o extranjera
@@ -339,7 +347,6 @@ def finalizar_venta(request, venta_id):
     }
     
     return render(request, 'ventas/finalizar_venta.html', context)
-
 
 
 
@@ -474,3 +481,156 @@ def eliminar_timbrado(request, timbrado_id):
     return HttpResponseNotAllowed(['POST'])
 
 
+
+
+
+
+
+from django.db.models import Sum
+from .models import CuentaPorCobrar, PagoCuota, Venta
+from caja.models import MovimientoCaja
+from .forms import PagoCuotaForm
+from django.utils import timezone
+
+
+@login_required
+def lista_cuentas_por_cobrar(request):
+    # Filtramos por cuotas pendientes o vencidas por defecto
+    cuentas = CuentaPorCobrar.objects.filter(
+        venta__estado='FINALIZADA'
+    ).select_related(
+        'venta', 'venta__cliente'
+    ).order_by('fecha_vencimiento')
+
+    # Filtros adicionales
+    estado = request.GET.get('estado')
+    if estado:
+        cuentas = cuentas.filter(estado=estado)
+    
+    cliente = request.GET.get('cliente')
+    if cliente:
+        cuentas = cuentas.filter(venta__cliente__nombre_completo__icontains=cliente)
+    
+    vencidas = cuentas.filter(estado='VENCIDA')
+    pendientes = cuentas.filter(estado='PENDIENTE')
+    parciales = cuentas.filter(estado='PARCIAL')
+
+    context = {
+        'cuentas': cuentas,
+        'vencidas': vencidas,
+        'pendientes': pendientes,
+        'parciales': parciales,
+        'titulo': 'Gestión de Cuentas por Cobrar'
+    }
+    return render(request, 'ventas/lista_cuentas_por_cobrar.html', context)
+
+@login_required
+def detalle_cuenta(request, cuenta_id):
+    cuenta = get_object_or_404(
+        CuentaPorCobrar.objects.select_related(
+            'venta', 'venta__cliente', 'venta__vendedor'
+        ), 
+        pk=cuenta_id
+    )
+    pagos = cuenta.pagos.all().order_by('-fecha_pago')
+    
+    context = {
+        'cuenta': cuenta,
+        'pagos': pagos,
+        'titulo': f'Detalle de Cuenta - Venta {cuenta.venta.numero}'
+    }
+    return render(request, 'ventas/detalle_cuenta.html', context)
+
+@login_required
+@transaction.atomic
+def registrar_pago(request, cuenta_id):
+    cuenta = get_object_or_404(
+        CuentaPorCobrar.objects.select_related('venta'), 
+        pk=cuenta_id
+    )
+    
+    if request.method == 'POST':
+        form = PagoCuotaForm(request.POST)
+        if form.is_valid():
+            try:
+                monto = form.cleaned_data['monto']
+                
+                # Validar que el monto no exceda el saldo
+                if monto > cuenta.saldo:
+                    messages.error(request, f'El monto excede el saldo pendiente. Saldo actual: Gs. {cuenta.saldo:,.2f}')
+                else:
+                    # Registrar el pago
+                    pago = PagoCuota.objects.create(
+                        cuenta=cuenta,
+                        monto=monto,
+                        fecha_pago=form.cleaned_data['fecha_pago'],
+                        tipo_pago=form.cleaned_data['tipo_pago'],
+                        notas=form.cleaned_data['notas'],
+                        registrado_por=request.user.perfil
+                    )
+                    
+                    # Actualizar saldo y estado de la cuenta
+                    cuenta.saldo -= monto
+                    cuenta.actualizar_estado()
+                    
+                    # Si se completó el pago, registrar fecha
+                    if cuenta.estado == 'PAGADA' and not cuenta.fecha_pago:
+                        cuenta.fecha_pago = form.cleaned_data['fecha_pago']
+                    
+                    cuenta.save()
+                    
+                    # Registrar movimiento de caja si es en efectivo
+                    if form.cleaned_data['tipo_pago'] == 'EFECTIVO':
+                        MovimientoCaja.objects.create(
+                            caja=cuenta.venta.caja,
+                            tipo='INGRESO',
+                            monto=monto,
+                            responsable=request.user.perfil,
+                            descripcion=f"Pago cuota {cuenta.numero_cuota} - Venta {cuenta.venta.numero}",
+                            venta=cuenta.venta,
+                            comprobante=f"P-{pago.id}"
+                        )
+                    
+                    messages.success(request, f'Pago registrado correctamente. Nuevo saldo: Gs. {cuenta.saldo:,.2f}')
+                    return redirect('ventas:detalle_cuenta', cuenta_id=cuenta.id)
+            
+            except Exception as e:
+                messages.error(request, f'Error al registrar pago: {str(e)}')
+                logger.error(f'Error al registrar pago: {str(e)}', exc_info=True)
+    else:
+        form = PagoCuotaForm(initial={
+            'fecha_pago': timezone.now().date(),
+            'monto': cuenta.saldo
+        })
+    
+    context = {
+        'cuenta': cuenta,
+        'form': form,
+        'titulo': f'Registrar Pago - Cuenta {cuenta.numero_cuota}'
+    }
+    return render(request, 'ventas/registrar_pago.html', context)
+
+@login_required
+def lista_pagos(request):
+    pagos = PagoCuota.objects.select_related(
+        'cuenta', 'cuenta__venta', 'cuenta__venta__cliente', 'registrado_por'
+    ).order_by('-fecha_pago')
+    
+    # Filtros
+    fecha_desde = request.GET.get('fecha_desde')
+    fecha_hasta = request.GET.get('fecha_hasta')
+    tipo_pago = request.GET.get('tipo_pago')
+    
+    if fecha_desde:
+        pagos = pagos.filter(fecha_pago__gte=fecha_desde)
+    if fecha_hasta:
+        pagos = pagos.filter(fecha_pago__lte=fecha_hasta)
+    if tipo_pago:
+        pagos = pagos.filter(tipo_pago=tipo_pago)
+    
+    context = {
+        'pagos': pagos,
+        'titulo': 'Histórico de Pagos',
+        'total_pagos': pagos.aggregate(Sum('monto'))['monto__sum'] or 0
+    }
+    return render(request, 'ventas/lista_pagos.html', context)

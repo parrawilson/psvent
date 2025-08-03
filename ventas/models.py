@@ -7,7 +7,9 @@ from usuarios.models import PerfilUsuario
 from caja.models import MovimientoCaja
 from empresa.models import PuntoExpedicion, SecuenciaDocumento
 from django.core.validators import RegexValidator
-
+from django.core.validators import MinValueValidator, MaxValueValidator
+from datetime import date, timedelta
+from decimal import Decimal
 
 class Cliente(models.Model):
     TIPO_CONTRIBUYENTE = (
@@ -171,10 +173,170 @@ class Venta(models.Model):
     vendedor = models.ForeignKey(PerfilUsuario, on_delete=models.PROTECT)
     notas = models.TextField(blank=True)
 
+
+
+    # Agregar estos nuevos campos
+    numero_cuotas = models.PositiveIntegerField(
+        default=1,
+        validators=[MinValueValidator(1), MaxValueValidator(36)],
+        verbose_name="Número de Cuotas"
+    )
+    monto_cuota = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0,
+        verbose_name="Monto por Cuota"
+    )
+    entrega_inicial = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0,
+        verbose_name="Entrega Inicial"
+    )
+    dia_vencimiento_cuotas = models.PositiveIntegerField(
+        default=5,
+        validators=[MinValueValidator(1), MaxValueValidator(28)],
+        verbose_name="Día de Vencimiento de Cuotas"
+    )
+    fecha_primer_vencimiento = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name="Fecha Primer Vencimiento"
+    )
+
     class Meta:
         verbose_name = 'Venta'
         verbose_name_plural = 'Ventas'
         ordering = ['-fecha']
+
+    def tiene_servicios_con_inventario(self):
+        """
+        Verifica si la venta contiene servicios que consumen productos del inventario.
+        Retorna True si hay al menos un servicio compuesto en los detalles de la venta.
+        """
+        return self.detalles.filter(
+            tipo='SERVICIO',
+            servicio__tipo='COMPUESTO'
+        ).exists()
+
+
+    def clean(self):
+        # Validaciones existentes...
+        
+        # Validaciones para crédito
+        if self.condicion == '2':
+            if not self.dia_vencimiento_cuotas or self.dia_vencimiento_cuotas > 28:
+                raise ValidationError("El día de vencimiento debe ser entre 1 y 28")
+            
+            if self.entrega_inicial and self.entrega_inicial >= self.total:
+                raise ValidationError("La entrega inicial debe ser menor al total")
+            
+            if self.entrega_inicial < 0:
+                raise ValidationError("La entrega inicial no puede ser negativa")
+            
+            if self.fecha_primer_vencimiento and self.fecha_primer_vencimiento < self.fecha.date():
+                raise ValidationError("La fecha del primer vencimiento no puede ser anterior a la fecha de venta")
+
+
+    def crear_cuotas(self):
+        """
+        Crea las cuotas para esta venta a crédito, considerando:
+        - Entrega inicial (si existe)
+        - Día fijo de vencimiento
+        - Fecha primer vencimiento
+        """
+        if self.condicion != '2' or self.numero_cuotas <= 0:
+            return []
+            
+        # Eliminar cuotas existentes si las hay
+        self.cuentas_por_cobrar.all().delete()
+        
+        cuotas = []
+        monto_total = self.total - self.entrega_inicial
+        monto_cuota = monto_total / self.numero_cuotas
+        
+        # Si hay entrega inicial, crear registro especial
+        if self.entrega_inicial > 0:
+            cuota_inicial = CuentaPorCobrar.objects.create(
+                venta=self,
+                numero_cuota=0,
+                monto=self.entrega_inicial,
+                dia_vencimiento=self.dia_vencimiento_cuotas,
+                fecha_vencimiento=self.fecha.date(),
+                entrega_inicial=True,
+                estado='PAGADA'  # Se asume que la entrega inicial se paga al momento
+            )
+            cuotas.append(cuota_inicial)
+        
+        # Crear cuotas normales
+        for i in range(1, self.numero_cuotas + 1):
+            # Calcular fecha de vencimiento
+            if i == 1 and self.fecha_primer_vencimiento:
+                fecha_vencimiento = self.fecha_primer_vencimiento
+            else:
+                meses_a_sumar = i - (1 if self.fecha_primer_vencimiento else 0)
+                fecha_vencimiento = self.calcular_fecha_vencimiento(meses_a_sumar)
+            
+            cuota = CuentaPorCobrar.objects.create(
+                venta=self,
+                numero_cuota=i,
+                monto=monto_cuota,
+                dia_vencimiento=self.dia_vencimiento_cuotas,
+                fecha_vencimiento=fecha_vencimiento
+            )
+            cuotas.append(cuota)
+        
+        return cuotas
+    
+    def calcular_fecha_vencimiento(self, meses_a_sumar):
+        """
+        Calcula la fecha de vencimiento sumando meses pero manteniendo el día fijo
+        Ej: Si día vencimiento es 5, siempre será día 5 de cada mes
+        """
+        fecha_base = self.fecha_primer_vencimiento if self.fecha_primer_vencimiento else self.fecha.date()
+        
+        # Sumar los meses
+        year = fecha_base.year
+        month = fecha_base.month + meses_a_sumar
+        
+        # Ajustar año si pasamos de diciembre
+        while month > 12:
+            month -= 12
+            year += 1
+        
+        # Asegurarnos que el día no exceda los días del mes
+        dia = min(self.dia_vencimiento_cuotas, 28)
+        try:
+            return date(year, month, dia)
+        except ValueError:
+            # Si el día no existe en ese mes (ej. 31 en abril), usar último día del mes
+            ultimo_dia = (date(year, month + 1, 1) - timedelta(days=1)).day
+            return date(year, month, min(dia, ultimo_dia))
+    
+    @property
+    def total_pagado(self):
+        """Total pagado en todas las cuotas (incluye entrega inicial)"""
+        return sum(cuota.monto_pagado for cuota in self.cuentas_por_cobrar.all())
+    
+    @property
+    def saldo_pendiente(self):
+        """Saldo pendiente total"""
+        return max(self.total - self.total_pagado, Decimal('0.00'))
+    
+    @property
+    def proxima_cuota(self):
+        """Devuelve la próxima cuota pendiente"""
+        return self.cuentas_por_cobrar.filter(
+            estado__in=['PENDIENTE', 'VENCIDA', 'PARCIAL']
+        ).order_by('numero_cuota').first()
+    
+    @property
+    def cuotas_pagadas(self):
+        return self.cuentas_por_cobrar.filter(estado='PAGADA').count()
+    
+    @property
+    def cuotas_pendientes(self):
+        return self.cuentas_por_cobrar.exclude(estado='PAGADA').count()
 
     def __str__(self):
         return f"Venta-{self.numero}"
@@ -277,15 +439,16 @@ class Venta(models.Model):
         self.save()
         
         # Registrar movimiento de caja
-        MovimientoCaja.objects.create(
-            caja=caja,
-            tipo='INGRESO',
-            monto=self.total,
-            responsable=self.vendedor,
-            descripcion=f"Venta {self.numero}",
-            venta=self,
-            comprobante=f"V-{self.numero}"
-        )
+        if condicion == '1' or (condicion == '2' and self.entrega_inicial > 0):
+            MovimientoCaja.objects.create(
+                caja=caja,
+                tipo='INGRESO',
+                monto=self.total if condicion == '1' else self.entrega_inicial,
+                responsable=self.vendedor,
+                descripcion=f"Venta {self.numero}",
+                venta=self,
+                comprobante=f"V-{self.numero}"
+            )
         
         # Procesar cada detalle
         for detalle in self.detalles.all():
@@ -310,6 +473,9 @@ class Venta(models.Model):
                         motivo=f"Servicio {detalle.servicio.nombre} en Venta {self.numero}"
                     )
 
+        # Crear cuotas si es a crédito
+        if condicion == '2':
+            self.crear_cuotas()
 
     @transaction.atomic
     def cancelar(self, usuario):
@@ -440,5 +606,219 @@ class DetalleVenta(models.Model):
         if self.tipo == 'PRODUCTO':
             return f"{self.producto} x {self.cantidad}"
         return f"{self.servicio} x {self.cantidad}"
+
+
+
+
+
+
+class CuentaPorCobrar(models.Model):
+    ESTADO_CHOICES = [
+        ('PENDIENTE', 'Pendiente'),
+        ('PAGADA', 'Pagada'),
+        ('VENCIDA', 'Vencida'),
+        ('CANCELADA', 'Cancelada'),
+        ('PARCIAL', 'Pago Parcial'),
+    ]
+    
+    TIPO_PAGO_CHOICES = [
+        ('EFECTIVO', 'Efectivo'),
+        ('TARJETA', 'Tarjeta'),
+        ('TRANSFERENCIA', 'Transferencia'),
+        ('CHEQUE', 'Cheque'),
+    ]
+    
+    venta = models.ForeignKey(
+        'Venta', 
+        on_delete=models.CASCADE, 
+        related_name='cuentas_por_cobrar'
+    )
+    numero_cuota = models.PositiveIntegerField(
+        verbose_name="Número de Cuota"
+    )
+    monto = models.DecimalField(
+        max_digits=12, 
+        decimal_places=2,
+        verbose_name="Monto Total de la Cuota"
+    )
+    saldo = models.DecimalField(
+        max_digits=12, 
+        decimal_places=2,
+        default=0,
+        verbose_name="Saldo Pendiente"
+    )
+    dia_vencimiento = models.PositiveIntegerField(
+        default=5,
+        validators=[MinValueValidator(1), MaxValueValidator(28)],
+        verbose_name="Día de Vencimiento (mes)"
+    )
+    fecha_vencimiento = models.DateField(
+        verbose_name="Fecha de Vencimiento"
+    )
+    fecha_pago = models.DateField(
+        null=True, 
+        blank=True,
+        verbose_name="Fecha de Pago"
+    )
+    estado = models.CharField(
+        max_length=20, 
+        choices=ESTADO_CHOICES, 
+        default='PENDIENTE'
+    )
+    entrega_inicial = models.BooleanField(
+        default=False,
+        verbose_name="¿Es entrega inicial?"
+    )
+    creado = models.DateTimeField(auto_now_add=True)
+    actualizado = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Cuenta por Cobrar'
+        verbose_name_plural = 'Cuentas por Cobrar'
+        ordering = ['venta', 'numero_cuota']
+        unique_together = ['venta', 'numero_cuota']
+    
+    def __str__(self):
+        return f"Cuota {self.numero_cuota} - Venta {self.venta.numero} - {self.get_estado_display()}"
+    
+    def clean(self):
+        # Validar que el día de vencimiento sea válido
+        if self.dia_vencimiento > 28:
+            raise ValidationError("El día de vencimiento no puede ser mayor a 28")
+        
+        # Validar que la fecha de vencimiento coincida con el día establecido
+        if self.fecha_vencimiento.day != self.dia_vencimiento:
+            raise ValidationError(f"La fecha de vencimiento debe ser día {self.dia_vencimiento} del mes")
+    
+    def save(self, *args, **kwargs):
+        # Calcular saldo pendiente si es nuevo
+        if self._state.adding:
+            self.saldo = self.monto
+        
+        # Actualizar estado automáticamente
+        self.actualizar_estado()
+        
+        super().save(*args, **kwargs)
+    
+    def actualizar_estado(self):
+        """Actualiza el estado según fechas y pagos"""
+        hoy = timezone.now().date()
+        
+        if self.estado == 'PAGADA':
+            return
+            
+        if self.saldo <= 0:
+            self.estado = 'PAGADA'
+        elif hoy > self.fecha_vencimiento:
+            self.estado = 'VENCIDA'
+        elif self.saldo < self.monto:
+            self.estado = 'PARCIAL'
+        else:
+            self.estado = 'PENDIENTE'
+    
+    def registrar_pago(self, monto, fecha_pago=None, tipo_pago='EFECTIVO', notas=''):
+        """
+        Registra un pago parcial o completo para esta cuota
+        """
+        if monto <= 0:
+            raise ValidationError("El monto debe ser mayor a cero")
+        
+        if monto > self.saldo:
+            raise ValidationError(f"Monto excede el saldo pendiente. Saldo: {self.saldo}")
+        
+        with transaction.atomic():
+            # Registrar el pago
+            PagoCuota.objects.create(
+                cuenta=self,
+                monto=monto,
+                fecha_pago=fecha_pago or timezone.now().date(),
+                tipo_pago=tipo_pago,
+                notas=notas
+            )
+            
+            # Actualizar saldo y estado
+            self.saldo -= monto
+            self.actualizar_estado()
+            
+            # Si se completó el pago, registrar fecha
+            if self.estado == 'PAGADA' and not self.fecha_pago:
+                self.fecha_pago = fecha_pago or timezone.now().date()
+            
+            self.save()
+    
+    @property
+    def monto_pagado(self):
+        """Devuelve el monto total pagado para esta cuota"""
+        return self.monto - self.saldo
+    
+    @property
+    def pagos(self):
+        """Devuelve todos los pagos asociados a esta cuota"""
+        return self.pagos.all().order_by('fecha_pago')
+    
+    @property
+    def dias_vencido(self):
+        """Devuelve los días de atraso si está vencida"""
+        if self.estado != 'VENCIDA':
+            return 0
+        return (timezone.now().date() - self.fecha_vencimiento).days
+
+
+
+
+
+class PagoCuota(models.Model):
+    TIPO_PAGO_CHOICES = [
+        ('EFECTIVO', 'Efectivo'),
+        ('TARJETA', 'Tarjeta'),
+        ('TRANSFERENCIA', 'Transferencia'),
+        ('CHEQUE', 'Cheque'),
+    ]
+    
+    cuenta = models.ForeignKey(
+        CuentaPorCobrar,
+        on_delete=models.CASCADE,
+        related_name='pagos'
+    )
+    monto = models.DecimalField(
+        max_digits=12, 
+        decimal_places=2
+    )
+    fecha_pago = models.DateField(
+        default=timezone.now
+    )
+    tipo_pago = models.CharField(
+        max_length=20,
+        choices=TIPO_PAGO_CHOICES,
+        default='EFECTIVO'
+    )
+    notas = models.TextField(
+        blank=True,
+        help_text="Observaciones sobre este pago"
+    )
+    registrado_por = models.ForeignKey(
+        'usuarios.PerfilUsuario',
+        on_delete=models.PROTECT,
+        null=True
+    )
+    creado = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Pago de Cuota'
+        verbose_name_plural = 'Pagos de Cuotas'
+        ordering = ['-fecha_pago']
+    
+    def __str__(self):
+        return f"Pago de Gs. {self.monto} - {self.cuenta}"
+    
+    def save(self, *args, **kwargs):
+        if not self.pk:  # Solo para creación
+            self.registrado_por = self.registrado_por or getattr(self.cuenta.venta, 'vendedor', None)
+        super().save(*args, **kwargs)
+
+
+
+
+
 
 

@@ -24,4 +24,11 @@ urlpatterns = [
     path('timbrados/editar/<int:timbrado_id>/', views.editar_timbrado, name='editar_timbrado'),
     path('timbrados/eliminar/<int:timbrado_id>/', views.eliminar_timbrado, name='eliminar_timbrado'),
 
+
+    # Cuentas por cobrar
+    path('cuentas-por-cobrar/', views.lista_cuentas_por_cobrar, name='lista_cuentas_por_cobrar'),
+    path('cuenta/<int:cuenta_id>/', views.detalle_cuenta, name='detalle_cuenta'),
+    path('cuenta/<int:cuenta_id>/pagar/', views.registrar_pago, name='registrar_pago'),
+    path('pagos/', views.lista_pagos, name='lista_pagos'),
+
 ]

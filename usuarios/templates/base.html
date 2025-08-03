@@ -329,6 +329,14 @@
           <i class="fa-solid fa-list-check"></i>
           <span>Lista de ventas</span>
         </a>
+        <a href="{% url 'ventas:lista_cuentas_por_cobrar' %}" class="submenu-item {% if request.resolver_match.url_name == 'lista_cuentas_por_cobrar' %}menu-item-active{% endif %}">
+          <i class="fa-solid fa-credit-card"></i>
+          <span>Cta. por Cobrar</span>
+        </a>
+        <a href="{% url 'ventas:lista_pagos' %}" class="submenu-item block {% if request.resolver_match.url_name == 'lista_pagos' %}menu-item-active{% endif %}">
+          <i class="fa-solid fa-list-check"></i>
+          <span>Lista de pagos</span>
+        </a>
         
       </div>
     </div>

@@ -69,6 +69,64 @@
           <p class="text-sm text-red-600 mt-1">{{ form.condicion.errors.0 }}</p>
         {% endif %}
       </div>
+      
+      <!-- Campos para crédito (condicionales) -->
+      <div id="creditoFields" style="display: none;" class="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div>
+          <label for="{{ form.entrega_inicial.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            {{ form.entrega_inicial.label }}
+          </label>
+          {{ form.entrega_inicial|add_attrs:"class=w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500" }}
+          {% if form.entrega_inicial.errors %}
+            <p class="text-sm text-red-600 mt-1">{{ form.entrega_inicial.errors.0 }}</p>
+          {% endif %}
+          <p class="text-xs text-gray-500 mt-1">Monto inicial al momento de la venta</p>
+        </div>
+        
+        <div>
+          <label for="{{ form.dia_vencimiento.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            {{ form.dia_vencimiento.label }}
+          </label>
+          {{ form.dia_vencimiento|add_attrs:"class=w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500" }}
+          {% if form.dia_vencimiento.errors %}
+            <p class="text-sm text-red-600 mt-1">{{ form.dia_vencimiento.errors.0 }}</p>
+          {% endif %}
+          <p class="text-xs text-gray-500 mt-1">Ej: 5 (vencerá día 5 de cada mes)</p>
+        </div>
+        
+        <div>
+          <label for="{{ form.fecha_primer_vencimiento.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            {{ form.fecha_primer_vencimiento.label }}
+          </label>
+          {{ form.fecha_primer_vencimiento|add_attrs:"class=w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500" }}
+          {% if form.fecha_primer_vencimiento.errors %}
+            <p class="text-sm text-red-600 mt-1">{{ form.fecha_primer_vencimiento.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <div>
+          <label for="{{ form.numero_cuotas.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            {{ form.numero_cuotas.label }}
+          </label>
+          {{ form.numero_cuotas|add_attrs:"class=w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500" }}
+          {% if form.numero_cuotas.errors %}
+            <p class="text-sm text-red-600 mt-1">{{ form.numero_cuotas.errors.0 }}</p>
+          {% endif %}
+          <p class="text-xs text-gray-500 mt-1">Número de cuotas (1-36)</p>
+        </div>
+        
+        <div>
+          <label for="{{ form.monto_cuota.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            {{ form.monto_cuota.label }}
+          </label>
+          {{ form.monto_cuota|add_attrs:"class=w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500" }}
+          {% if form.monto_cuota.errors %}
+            <p class="text-sm text-red-600 mt-1">{{ form.monto_cuota.errors.0 }}</p>
+          {% endif %}
+          <p class="text-xs text-gray-500 mt-1">Monto por cada cuota</p>
+        </div>
+      </div>
+      
       <!-- Timbrado (condicional) -->
       <div id="timbradoContainer" class="{% if venta.tipo_documento not in 'F,BV' %}hidden{% endif %}">
         <label for="{{ form.timbrado.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
@@ -79,6 +137,7 @@
           <p class="text-sm text-red-600 mt-1">{{ form.timbrado.errors.0 }}</p>
         {% endif %}
       </div>
+      
       <!-- Tipo de Pago -->
       <div>
         <label for="{{ form.tipo_pago.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
@@ -89,6 +148,7 @@
           <p class="text-sm text-red-600 mt-1">{{ form.tipo_pago.errors.0 }}</p>
         {% endif %}
       </div>
+      
       <!-- Caja -->
       <div>
         <label for="{{ form.caja.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
@@ -226,13 +286,88 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const tipoDocumentoSelect = document.getElementById('id_tipo_documento');
-    const timbradoContainer = document.getElementById('timbradoContainer');
-    const timbradoInput = document.getElementById('id_timbrado');
+    // Función para manejar campos de crédito
+    function actualizarCamposCredito() {
+        const condicionSelect = document.getElementById('id_condicion');
+        const creditoFields = document.getElementById('creditoFields');
+        const entregaInicial = document.getElementById('id_entrega_inicial');
+        const diaVencimiento = document.getElementById('id_dia_vencimiento');
+        const fechaVencimiento = document.getElementById('id_fecha_primer_vencimiento');
+        const numeroCuotas = document.getElementById('id_numero_cuotas');
+        const montoCuota = document.getElementById('id_monto_cuota');
+        
+        if (condicionSelect && condicionSelect.value === '2') { // CRÉDITO
+            creditoFields.style.display = 'grid';
+            entregaInicial.disabled = false;
+            diaVencimiento.disabled = false;
+            fechaVencimiento.disabled = false;
+            numeroCuotas.disabled = false;
+            montoCuota.disabled = false;
+            
+            // Establecer fecha mínima para primer vencimiento (mañana)
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            fechaVencimiento.min = tomorrow.toISOString().split('T')[0];
+            
+            // Si no hay fecha establecida, poner 30 días después como sugerencia
+            if (!fechaVencimiento.value) {
+                const defaultDate = new Date();
+                defaultDate.setDate(defaultDate.getDate() + 30);
+                fechaVencimiento.value = defaultDate.toISOString().split('T')[0];
+            }
+            
+            // Calcular cuotas iniciales
+            calcularCuotas();
+        } else {
+            creditoFields.style.display = 'none';
+            entregaInicial.disabled = true;
+            diaVencimiento.disabled = true;
+            fechaVencimiento.disabled = true;
+            numeroCuotas.disabled = true;
+            montoCuota.disabled = true;
+        }
+    }
+    
+    // Función para calcular cuotas
+    function calcularCuotas() {
+        const condicionSelect = document.getElementById('id_condicion');
+        const entregaInicial = parseFloat(document.getElementById('id_entrega_inicial').value) || 0;
+        const numeroCuotas = document.getElementById('id_numero_cuotas');
+        const montoCuota = document.getElementById('id_monto_cuota');
+        const totalVenta = parseFloat('{{ venta.total|escapejs }}');
+        
+        if (condicionSelect.value === '2') { // CRÉDITO
+            const totalFinanciar = totalVenta - entregaInicial;
+            
+            // Si cambia el número de cuotas, calcular el monto
+            numeroCuotas.addEventListener('input', function() {
+                const cuotas = parseInt(this.value) || 1;
+                if (cuotas > 0) {
+                    montoCuota.value = (totalFinanciar / cuotas).toFixed(2);
+                }
+            });
+            
+            // Si cambia el monto, calcular el número de cuotas
+            montoCuota.addEventListener('input', function() {
+                const monto = parseFloat(this.value) || 0;
+                if (monto > 0) {
+                    numeroCuotas.value = Math.max(1, Math.ceil(totalFinanciar / monto));
+                }
+            });
+            
+            // Calcular inicialmente
+            const cuotasInicial = parseInt(numeroCuotas.value) || 1;
+            montoCuota.value = (totalFinanciar / cuotasInicial).toFixed(2);
+        }
+    }
     
     // Función para actualizar visibilidad del timbrado
     function actualizarTimbrado() {
-        if (['F', 'BV'].includes(tipoDocumentoSelect.value)) {
+        const tipoDocumentoSelect = document.getElementById('id_tipo_documento');
+        const timbradoContainer = document.getElementById('timbradoContainer');
+        const timbradoInput = document.getElementById('id_timbrado');
+        
+        if (tipoDocumentoSelect && ['F', 'BV'].includes(tipoDocumentoSelect.value)) {
             timbradoContainer.classList.remove('hidden');
             timbradoInput.required = true;
         } else {
@@ -241,44 +376,17 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Event listener para cambios en tipo de documento
-    if (tipoDocumentoSelect) {
-        tipoDocumentoSelect.addEventListener('change', actualizarTimbrado);
-    }
-    
-    // Inicializar estado
-    actualizarTimbrado();
-    
-    // Opcional: Actualizar previsualización del número de documento
-    const form = document.getElementById('finalizarVentaForm');
-    if (form) {
-        form.addEventListener('change', function() {
-            // Aquí podrías añadir lógica para previsualizar el número de documento
-            // basado en los datos seleccionados
-        });
-    }
-});
-</script>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const tipoDocumentoSelect = document.getElementById('id_tipo_documento');
-    const cajaSelect = document.getElementById('id_caja');
-    const documentoPreview = document.getElementById('documentoPreview');
-    const prefijoDocumento = document.getElementById('prefijoDocumento');
-    const numeroSecuencia = document.getElementById('numeroSecuencia');
-    const tipoDocumentoPreview = document.getElementById('tipoDocumentoPreview');
-    
-    // Mapeo entre tipos de documento de venta y tipos de secuencia
-    const tipoSecuenciaMap = {
-        'F': 'FACTURA',
-        'T': 'TICKET'
-    };
-    
-    // Función para actualizar la previsualización
+    // Función para actualizar la previsualización del documento
     async function actualizarPreview() {
+        const tipoDocumentoSelect = document.getElementById('id_tipo_documento');
+        const cajaSelect = document.getElementById('id_caja');
+        const documentoPreview = document.getElementById('documentoPreview');
+        const prefijoDocumento = document.getElementById('prefijoDocumento');
+        const numeroSecuencia = document.getElementById('numeroSecuencia');
+        const tipoDocumentoPreview = document.getElementById('tipoDocumentoPreview');
+        
         // Mostrar sección si hay tipo de documento seleccionado
-        if (tipoDocumentoSelect.value) {
+        if (tipoDocumentoSelect && tipoDocumentoSelect.value) {
             documentoPreview.classList.remove('hidden');
             tipoDocumentoPreview.textContent = tipoDocumentoSelect.options[tipoDocumentoSelect.selectedIndex].text;
         } else {
@@ -286,13 +394,19 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // Actualizar prefijo y número si hay caja y tipo de documento seleccionados
-        if (cajaSelect.value && tipoDocumentoSelect.value) {
+        if (cajaSelect && cajaSelect.value && tipoDocumentoSelect && tipoDocumentoSelect.value) {
             try {
                 const response = await fetch(`/caja/api/caja/${cajaSelect.value}/punto-expedicion/`);
                 if (!response.ok) throw new Error('Error al obtener datos');
                 
                 const data = await response.json();
                 prefijoDocumento.textContent = `${data.codigo}-`;
+                
+                // Mapeo entre tipos de documento de venta y tipos de secuencia
+                const tipoSecuenciaMap = {
+                    'F': 'FACTURA',
+                    'T': 'TICKET'
+                };
                 
                 // Buscar la secuencia correspondiente al tipo de documento
                 const tipoSecuencia = tipoSecuenciaMap[tipoDocumentoSelect.value];
@@ -316,21 +430,38 @@ document.addEventListener('DOMContentLoaded', function() {
                 numeroSecuencia.textContent = '[Error]';
             }
         } else {
-            prefijoDocumento.textContent = cajaSelect.value ? '[Seleccione tipo doc.]-' : '[Seleccione caja]-';
+            prefijoDocumento.textContent = cajaSelect && cajaSelect.value ? '[Seleccione tipo doc.]-' : '[Seleccione caja]-';
             numeroSecuencia.textContent = '[Número secuencial]';
         }
     }
     
-    // Event listeners
-    if (tipoDocumentoSelect) {
-        tipoDocumentoSelect.addEventListener('change', actualizarPreview);
+    // Configurar event listeners
+    const condicionSelect = document.getElementById('id_condicion');
+    if (condicionSelect) {
+        condicionSelect.addEventListener('change', function() {
+            actualizarCamposCredito();
+            actualizarPreview();
+        });
     }
     
+    const tipoDocumentoSelect = document.getElementById('id_tipo_documento');
+    if (tipoDocumentoSelect) {
+        tipoDocumentoSelect.addEventListener('change', function() {
+            actualizarTimbrado();
+            actualizarPreview();
+        });
+    }
+    
+    const cajaSelect = document.getElementById('id_caja');
     if (cajaSelect) {
         cajaSelect.addEventListener('change', actualizarPreview);
     }
     
-    // Inicializar
+    document.getElementById('id_entrega_inicial').addEventListener('input', calcularCuotas);
+    
+    // Inicializar estado
+    actualizarCamposCredito();
+    actualizarTimbrado();
     actualizarPreview();
 });
 </script>

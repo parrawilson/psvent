@@ -209,6 +209,23 @@ class Venta(models.Model):
         verbose_name_plural = 'Ventas'
         ordering = ['-fecha']
 
+    def actualizar_estado_credito(self):
+        """Actualiza el estado general del crédito basado en las cuotas"""
+        if self.condicion != '2':  # Solo para ventas a crédito
+            return
+        
+        # Verificar si todas las cuotas están pagadas
+        cuotas_pendientes = self.cuentas_por_cobrar.exclude(estado='PAGADA')
+        
+        if not cuotas_pendientes.exists():
+            # Todas las cuotas pagadas (no debería pasar si acabamos de revertir un pago)
+            self.estado = 'FINALIZADA'
+        else:
+            # Hay cuotas pendientes
+            self.estado = 'FINALIZADA'  # O mantener FINALIZADA si ese es tu flujo
+        
+        self.save()
+
     def tiene_servicios_con_inventario(self):
         """
         Verifica si la venta contiene servicios que consumen productos del inventario.
@@ -264,7 +281,8 @@ class Venta(models.Model):
                 dia_vencimiento=self.dia_vencimiento_cuotas,
                 fecha_vencimiento=self.fecha.date(),
                 entrega_inicial=True,
-                estado='PAGADA'  # Se asume que la entrega inicial se paga al momento
+                estado='PAGADA',  # Se asume que la entrega inicial se paga al momento
+                saldo=0  # Asegurar saldo cero
             )
             cuotas.append(cuota_inicial)
         
@@ -316,12 +334,19 @@ class Venta(models.Model):
     @property
     def total_pagado(self):
         """Total pagado en todas las cuotas (incluye entrega inicial)"""
-        return sum(cuota.monto_pagado for cuota in self.cuentas_por_cobrar.all())
+        return sum(
+        cuota.monto_pagado if not cuota.entrega_inicial else cuota.monto 
+        for cuota in self.cuentas_por_cobrar.all()
+    )
     
     @property
     def saldo_pendiente(self):
         """Saldo pendiente total"""
-        return max(self.total - self.total_pagado, Decimal('0.00'))
+        total_cuotas_pendientes = sum(
+            cuota.saldo 
+            for cuota in self.cuentas_por_cobrar.exclude(entrega_inicial=True)
+        )
+        return max(total_cuotas_pendientes, Decimal('0.00'))
     
     @property
     def proxima_cuota(self):
@@ -695,6 +720,10 @@ class CuentaPorCobrar(models.Model):
         if self._state.adding:
             self.saldo = self.monto
         
+        # Si es entrega inicial y está pagada, saldo debe ser cero
+        if self.entrega_inicial and self.estado == 'PAGADA':
+            self.saldo = 0
+
         # Actualizar estado automáticamente
         self.actualizar_estado()
         
@@ -796,6 +825,18 @@ class PagoCuota(models.Model):
         blank=True,
         help_text="Observaciones sobre este pago"
     )
+
+    cancelado = models.BooleanField(default=False)
+    motivo_cancelacion = models.TextField(blank=True)
+    cancelado_por = models.ForeignKey(
+        'usuarios.PerfilUsuario',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='pagos_cancelados'
+    )
+    fecha_cancelacion = models.DateTimeField(null=True, blank=True)
+
     registrado_por = models.ForeignKey(
         'usuarios.PerfilUsuario',
         on_delete=models.PROTECT,
@@ -815,6 +856,55 @@ class PagoCuota(models.Model):
         if not self.pk:  # Solo para creación
             self.registrado_por = self.registrado_por or getattr(self.cuenta.venta, 'vendedor', None)
         super().save(*args, **kwargs)
+    
+    @transaction.atomic
+    def cancelar(self, usuario, motivo=""):
+        """Cancela este pago y revierte sus efectos"""
+        if self.cancelado:
+            raise ValidationError("Este pago ya fue cancelado")
+        
+        cuenta = self.cuenta
+        
+        with transaction.atomic():
+            # Revertir el movimiento de caja si existe
+            if self.tipo_pago == 'EFECTIVO':
+                movimiento = MovimientoCaja.objects.filter(
+                    venta=cuenta.venta,
+                    comprobante=f"P-{self.id}"
+                ).first()
+                
+                if movimiento:
+                    MovimientoCaja.objects.create(
+                        caja=movimiento.caja,
+                        tipo='EGRESO',
+                        monto=movimiento.monto,
+                        responsable=usuario,
+                        descripcion=f"Cancelación de pago {self.id} - {movimiento.descripcion}",
+                        venta=cuenta.venta,
+                        comprobante=f"CP-{self.id}"
+                    )
+            
+            # Actualizar la cuenta por cobrar
+            cuenta.saldo += self.monto
+            if cuenta.saldo > 0:
+                if cuenta.saldo < cuenta.monto:
+                    cuenta.estado = 'PARCIAL'
+                else:
+                    cuenta.estado = 'PENDIENTE'
+                
+                # Si estaba marcada como pagada, limpiar fecha de pago
+                cuenta.fecha_pago = None
+            cuenta.save()
+            
+            # Marcar el pago como cancelado
+            self.cancelado = True
+            self.motivo_cancelacion = motivo
+            self.cancelado_por = usuario
+            self.fecha_cancelacion = timezone.now()
+            self.save()
+
+            # Actualizar estado de la venta si es necesario
+            cuenta.venta.actualizar_estado_credito()
 
 
 

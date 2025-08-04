@@ -481,18 +481,37 @@ class PagoCuotaForm(forms.ModelForm):
         fields = ['monto', 'fecha_pago', 'tipo_pago', 'notas']
         widgets = {
             'fecha_pago': forms.DateInput(
-                attrs={'type': 'date', 'class': 'form-control'},
+                attrs={
+                    'type': 'date',
+                    'class': 'block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500'
+                },
                 format='%Y-%m-%d'
             ),
-            'monto': forms.NumberInput(attrs={'class': 'form-control'}),
-            'tipo_pago': forms.Select(attrs={'class': 'form-control'}),
+            'monto': forms.NumberInput(attrs={
+                'class': 'block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500',
+                'step': '0.01'
+            }),
+            'tipo_pago': forms.Select(attrs={
+                'class': 'block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500'
+            }),
             'notas': forms.Textarea(attrs={
-                'class': 'form-control',
+                'class': 'block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500',
                 'rows': 3,
                 'placeholder': 'Observaciones sobre este pago'
             }),
         }
     
     def __init__(self, *args, **kwargs):
+        self.cuenta = kwargs.pop('cuenta', None)
         super().__init__(*args, **kwargs)
         self.fields['fecha_pago'].initial = timezone.now().date()
+        
+        if self.cuenta and self.cuenta.estado == 'PAGADA':
+            for field in self.fields.values():
+                field.widget.attrs['disabled'] = True
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        if self.cuenta and self.cuenta.estado == 'PAGADA':
+            raise ValidationError("No se puede registrar pagos para una cuenta ya pagada")
+        return cleaned_data

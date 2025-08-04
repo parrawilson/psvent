@@ -545,12 +545,17 @@ def detalle_cuenta(request, cuenta_id):
 @transaction.atomic
 def registrar_pago(request, cuenta_id):
     cuenta = get_object_or_404(
-        CuentaPorCobrar.objects.select_related('venta'), 
+        CuentaPorCobrar.objects.select_related('venta', 'venta__cliente'), 
         pk=cuenta_id
     )
     
+    # Verificar estado de la cuenta
+    if cuenta.estado == 'PAGADA':
+        messages.warning(request, 'Esta cuenta ya está completamente pagada')
+        return redirect('ventas:detalle_cuenta', cuenta_id=cuenta.id)
+    
     if request.method == 'POST':
-        form = PagoCuotaForm(request.POST)
+        form = PagoCuotaForm(request.POST, cuenta=cuenta)
         if form.is_valid():
             try:
                 monto = form.cleaned_data['monto']
@@ -591,17 +596,24 @@ def registrar_pago(request, cuenta_id):
                             comprobante=f"P-{pago.id}"
                         )
                     
-                    messages.success(request, f'Pago registrado correctamente. Nuevo saldo: Gs. {cuenta.saldo:,.2f}')
+                    messages.success(request, 
+                        f'Pago registrado correctamente. '
+                        f'Nuevo saldo: Gs. {cuenta.saldo:,.2f}',
+                        extra_tags='success'
+                    )
                     return redirect('ventas:detalle_cuenta', cuenta_id=cuenta.id)
             
             except Exception as e:
-                messages.error(request, f'Error al registrar pago: {str(e)}')
+                messages.error(request, 
+                    f'Error al registrar pago: {str(e)}',
+                    extra_tags='danger'
+                )
                 logger.error(f'Error al registrar pago: {str(e)}', exc_info=True)
     else:
         form = PagoCuotaForm(initial={
             'fecha_pago': timezone.now().date(),
             'monto': cuenta.saldo
-        })
+        }, cuenta=cuenta)
     
     context = {
         'cuenta': cuenta,
@@ -612,7 +624,9 @@ def registrar_pago(request, cuenta_id):
 
 @login_required
 def lista_pagos(request):
-    pagos = PagoCuota.objects.select_related(
+    pagos = PagoCuota.objects.filter(
+        cancelado=False
+    ).select_related(
         'cuenta', 'cuenta__venta', 'cuenta__venta__cliente', 'registrado_por'
     ).order_by('-fecha_pago')
     
@@ -631,6 +645,31 @@ def lista_pagos(request):
     context = {
         'pagos': pagos,
         'titulo': 'Histórico de Pagos',
-        'total_pagos': pagos.aggregate(Sum('monto'))['monto__sum'] or 0
+        'total_pagos': pagos.aggregate(Sum('monto'))['monto__sum'] or 0,
+        'puede_cancelar': request.user.has_perm('ventas.cancelar_pago')  # Asegúrate de crear este permiso
     }
     return render(request, 'ventas/lista_pagos.html', context)
+
+
+@login_required
+@require_POST
+def cancelar_pago(request, pago_id):
+    pago = get_object_or_404(PagoCuota, pk=pago_id)
+    
+    if not request.user.has_perm('ventas.cancelar_pago'):
+        messages.error(request, 'No tienes permiso para cancelar pagos')
+        return redirect('ventas:lista_pagos')
+    
+    motivo = request.POST.get('motivo', 'Cancelación solicitada por el usuario')
+    
+    try:
+        with transaction.atomic():
+            pago.cancelar(request.user.perfil, motivo)
+            messages.success(request, f'Pago #{pago.id} cancelado correctamente')
+    except ValidationError as e:
+        messages.error(request, str(e))
+    except Exception as e:
+        messages.error(request, f'Error al cancelar pago: {str(e)}')
+        logger.error(f'Error cancelando pago {pago_id}: {str(e)}', exc_info=True)
+    
+    return redirect('ventas:lista_pagos')

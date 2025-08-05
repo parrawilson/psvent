@@ -803,6 +803,14 @@ class PagoCuota(models.Model):
         ('TRANSFERENCIA', 'Transferencia'),
         ('CHEQUE', 'Cheque'),
     ]
+
+    numero_recibo = models.CharField(max_length=20, blank=True, null=True)
+    caja = models.ForeignKey(
+        'caja.Caja', 
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True
+    )
     
     cuenta = models.ForeignKey(
         CuentaPorCobrar,
@@ -848,6 +856,44 @@ class PagoCuota(models.Model):
         verbose_name = 'Pago de Cuota'
         verbose_name_plural = 'Pagos de Cuotas'
         ordering = ['-fecha_pago']
+
+    
+    def generar_numero_recibo(self):
+        """Genera el número de recibo usando la secuencia documental como en Ventas"""
+        if not self.numero_recibo and self.caja:
+            secuencia = SecuenciaDocumento.objects.filter(
+                punto_expedicion=self.caja.punto_expedicion,
+                tipo_documento='RECIBO_PAGO'
+            ).first()
+            
+            if secuencia:
+                self.numero_recibo = secuencia.generar_numero()
+                self.save()
+            else:
+                # Si no existe secuencia, crear una automáticamente
+                secuencia = SecuenciaDocumento.objects.create(
+                    punto_expedicion=self.caja.punto_expedicion,
+                    tipo_documento='RECIBO_PAGO',
+                    siguiente_numero=1,
+                    formato="{sucursal}-{punto}-{numero:07d}"
+                )
+                self.numero_recibo = secuencia.generar_numero()
+                self.save()
+        return self.numero_recibo
+    
+    @property
+    def formato_numero_recibo(self):
+        """Muestra el formato completo del recibo igual que en Ventas"""
+        if self.numero_recibo and self.caja:
+            return f"{self.caja.punto_expedicion.get_codigo_completo()}-{self.numero_recibo.split('-')[-1]}"
+        return "Número no generado"
+    
+    def save(self, *args, **kwargs):
+        # Asignar caja si no tiene (tomándola de la venta asociada)
+        if not self.caja and hasattr(self, 'cuenta') and self.cuenta.venta.caja:
+            self.caja = self.cuenta.venta.caja
+        
+        super().save(*args, **kwargs)
     
     def __str__(self):
         return f"Pago de Gs. {self.monto} - {self.cuenta}"

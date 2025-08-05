@@ -476,9 +476,18 @@ class TimbradoForm(forms.ModelForm):
 from .models import PagoCuota
 
 class PagoCuotaForm(forms.ModelForm):
+    caja = forms.ModelChoiceField(
+        queryset=Caja.objects.filter(estado='ABIERTA'),
+        widget=forms.Select(attrs={
+            'class': 'block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500'
+        }),
+        required=True,
+        label="Caja de cobro"
+    )
+    
     class Meta:
         model = PagoCuota
-        fields = ['monto', 'fecha_pago', 'tipo_pago', 'notas']
+        fields = ['monto', 'fecha_pago', 'tipo_pago', 'caja', 'notas']
         widgets = {
             'fecha_pago': forms.DateInput(
                 attrs={
@@ -506,6 +515,10 @@ class PagoCuotaForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['fecha_pago'].initial = timezone.now().date()
         
+        # Establecer caja inicial si la venta tiene caja asociada
+        if self.cuenta and self.cuenta.venta.caja:
+            self.fields['caja'].initial = self.cuenta.venta.caja
+            
         if self.cuenta and self.cuenta.estado == 'PAGADA':
             for field in self.fields.values():
                 field.widget.attrs['disabled'] = True
@@ -514,4 +527,10 @@ class PagoCuotaForm(forms.ModelForm):
         cleaned_data = super().clean()
         if self.cuenta and self.cuenta.estado == 'PAGADA':
             raise ValidationError("No se puede registrar pagos para una cuenta ya pagada")
+        
+        # Validar que la caja esté abierta
+        caja = cleaned_data.get('caja')
+        if caja and caja.estado != 'ABIERTA':
+            raise ValidationError("La caja seleccionada no está abierta")
+        
         return cleaned_data

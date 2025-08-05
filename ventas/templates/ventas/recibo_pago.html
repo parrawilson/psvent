@@ -1,0 +1,144 @@
+{% load form_filters %}
+{% load filtros_paraguay %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Recibo de Pago {{ numero_recibo_completo }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 1cm;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #000;
+            padding-bottom: 10px;
+        }
+        .empresa {
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .documento {
+            font-size: 14px;
+            margin-top: 5px;
+            font-weight: bold;
+        }
+        .info-caja {
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        .content {
+            margin-top: 15px;
+        }
+        .cliente-info {
+            margin-bottom: 15px;
+        }
+        .detalle-pago {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        .detalle-pago th {
+            border: 1px solid #000;
+            padding: 5px;
+            text-align: left;
+            background-color: #f0f0f0;
+        }
+        .detalle-pago td {
+            border: 1px solid #000;
+            padding: 5px;
+        }
+        .totales {
+            margin-top: 10px;
+            text-align: right;
+            font-weight: bold;
+        }
+        .footer {
+            margin-top: 30px;
+            padding-top: 10px;
+            border-top: 1px solid #000;
+            text-align: center;
+            font-size: 10px;
+        }
+        .firmas {
+            margin-top: 40px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .firma {
+            width: 40%;
+            text-align: center;
+            border-top: 1px solid #000;
+            padding-top: 5px;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="empresa">{{ empresa.razon_social }}</div>
+        <div class="documento">RECIBO DE PAGO N° {{ numero_recibo_completo }}</div>
+        <div class="info-caja">
+            Caja: {{ pago.caja.nombre }} - 
+            {{ pago.caja.punto_expedicion.get_codigo_completo }}
+        </div>
+        <div>RUC: {{ empresa.ruc }} - Tel: {{ empresa.telefono }}</div>
+    </div>
+    
+    <div class="content">
+        <div class="cliente-info">
+            <p><strong>Cliente:</strong> {{ pago.cuenta.venta.cliente.nombre_completo }}</p>
+            <p><strong>Documento:</strong>  {{ pago.cuenta.venta.cliente.numero_documento }}</p>
+            <p><strong>Venta N°:</strong> {{ pago.cuenta.venta.numero }}</p>
+        </div>
+        
+        <table class="detalle-pago">
+            <thead>
+                <tr>
+                    <th>Fecha Pago</th>
+                    <th>Cuota N°</th>
+                    <th>Método de Pago</th>
+                    <th>Monto</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{ pago.fecha_pago|date:"d/m/Y" }}</td>
+                    <td>{{ pago.cuenta.numero_cuota }}</td>
+                    <td>{{ pago.get_tipo_pago_display }}</td>
+                    <td>Gs. {{ pago.monto|pyg_intcomma }}</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="totales">
+            <p>TOTAL PAGADO: Gs. {{ pago.monto|pyg_intcomma }}</p>
+            {% if pago.cuenta.saldo > 0 %}
+            <p>SALDO PENDIENTE: Gs. {{ pago.cuenta.saldo|pyg_intcomma }}</p>
+            {% endif %}
+        </div>
+        
+        {% if pago.notas %}
+        <div class="observaciones">
+            <p><strong>Observaciones:</strong> {{ pago.notas }}</p>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="firmas">
+        <div class="firma">Firma Cliente</div>
+        <div class="firma">Firma Responsable</div>
+    </div>
+    
+    <div class="footer">
+        <p>Impreso el {{ fecha_impresion }} por {{ pago.registrado_por.usuario.get_full_name }}</p>
+        <p>{{ empresa.razon_social }} - {{ empresa.direccion }}</p>
+    </div>
+</body>
+</html>

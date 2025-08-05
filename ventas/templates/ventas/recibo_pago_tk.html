@@ -1,0 +1,161 @@
+{% load form_filters %}
+{% load filtros_paraguay %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ticket de Pago {{ numero_recibo_completo }}</title>
+    <style>
+        @page {
+            size: 80mm 297mm; /* Ancho fijo de 80mm, alto dinámico */
+            margin: 0;
+        }
+        body {
+            font-family: 'Courier New', monospace;
+            font-size: 10px;
+            width: 80mm;
+            margin: 0;
+            padding: 2mm;
+            word-wrap: break-word;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 2mm;
+            padding-bottom: 2mm;
+            border-bottom: 1px dashed #000;
+        }
+        .empresa {
+            font-weight: bold;
+            font-size: 11px;
+        }
+        .documento {
+            font-weight: bold;
+            margin: 2mm 0;
+        }
+        .info-caja {
+            font-size: 9px;
+            margin-bottom: 2mm;
+        }
+        .cliente-info {
+            margin-bottom: 3mm;
+            font-size: 9px;
+        }
+        .detalle-pago {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2mm 0;
+            font-size: 9px;
+        }
+        .detalle-pago th {
+            border-bottom: 1px dashed #000;
+            padding: 1mm 0;
+            text-align: left;
+        }
+        .detalle-pago td {
+            padding: 1mm 0;
+        }
+        .totales {
+            margin-top: 3mm;
+            text-align: right;
+            font-weight: bold;
+            font-size: 10px;
+        }
+        .footer {
+            margin-top: 4mm;
+            padding-top: 2mm;
+            border-top: 1px dashed #000;
+            text-align: center;
+            font-size: 8px;
+        }
+        .firmas {
+            margin-top: 5mm;
+            font-size: 8px;
+        }
+        .text-center {
+            text-align: center;
+        }
+        .text-right {
+            text-align: right;
+        }
+        .barcode {
+            margin: 2mm auto;
+            text-align: center;
+            font-family: 'Libre Barcode 128', cursive;
+            font-size: 20px;
+        }
+        hr {
+            border-top: 1px dashed #000;
+            margin: 2mm 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="empresa">{{ empresa.razon_social|truncatechars:30 }}</div>
+        <div class="documento">RECIBO N° {{ numero_recibo_completo }}</div>
+        <div class="info-caja">
+            {{ pago.fecha_pago|date:"d/m/Y" }} - Caja: {{ pago.caja.nombre|truncatechars:15 }}
+        </div>
+    </div>
+    
+    <hr>
+    
+    <div class="cliente-info">
+        <div><strong>CLIENTE:</strong> {{ pago.cuenta.venta.cliente.nombre_completo|truncatechars:30 }}</div>
+        <div><strong>DOC:</strong> {{ pago.cuenta.venta.cliente.numero_documento }}</div>
+        <div><strong>VENTA:</strong> {{ pago.cuenta.venta.numero }}</div>
+    </div>
+    
+    <hr>
+    
+    <table class="detalle-pago">
+        <thead>
+            <tr>
+                <th>DESCRIPCIÓN</th>
+                <th class="text-right">MONTO</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Pago Cuota {{ pago.cuenta.numero_cuota }}</td>
+                <td class="text-right">Gs. {{ pago.monto|pyg_intcomma }}</td>
+            </tr>
+            <tr>
+                <td>{{ pago.get_tipo_pago_display }}</td>
+                <td></td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <hr>
+    
+    <div class="totales">
+        <div>TOTAL: Gs. {{ pago.monto|pyg_intcomma }}</div>
+        {% if pago.cuenta.saldo > 0 %}
+        <div>SALDO: Gs. {{ pago.cuenta.saldo|pyg_intcomma }}</div>
+        {% endif %}
+    </div>
+    
+    {% if pago.notas %}
+    <hr>
+    <div><strong>OBS:</strong> {{ pago.notas|truncatechars:50 }}</div>
+    {% endif %}
+    
+    <hr>
+    
+    <div class="barcode">*{{ numero_recibo_completo }}*</div>
+    
+    <div class="footer">
+        <div>{{ empresa.ruc }}</div>
+        <div>{{ empresa.direccion|truncatechars:40 }}</div>
+        <div>{{ empresa.telefono }}</div>
+        <div>Impreso: {{ fecha_impresion }}</div>
+        <div>Por: {{ pago.registrado_por.usuario.get_full_name|truncatechars:20 }}</div>
+    </div>
+    
+    <!-- Espacio para corte automático -->
+    <div style="margin-top: 10mm; text-align: center;">
+        ---------------------------
+    </div>
+</body>
+</html>

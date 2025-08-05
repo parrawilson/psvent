@@ -545,7 +545,7 @@ def detalle_cuenta(request, cuenta_id):
 @transaction.atomic
 def registrar_pago(request, cuenta_id):
     cuenta = get_object_or_404(
-        CuentaPorCobrar.objects.select_related('venta', 'venta__cliente'), 
+        CuentaPorCobrar.objects.select_related('venta', 'venta__cliente', 'venta__caja'), 
         pk=cuenta_id
     )
     
@@ -559,49 +559,55 @@ def registrar_pago(request, cuenta_id):
         if form.is_valid():
             try:
                 monto = form.cleaned_data['monto']
+                caja = form.cleaned_data['caja']
                 
                 # Validar que el monto no exceda el saldo
                 if monto > cuenta.saldo:
                     messages.error(request, f'El monto excede el saldo pendiente. Saldo actual: Gs. {cuenta.saldo:,.2f}')
                 else:
-                    # Registrar el pago
-                    pago = PagoCuota.objects.create(
-                        cuenta=cuenta,
-                        monto=monto,
-                        fecha_pago=form.cleaned_data['fecha_pago'],
-                        tipo_pago=form.cleaned_data['tipo_pago'],
-                        notas=form.cleaned_data['notas'],
-                        registrado_por=request.user.perfil
-                    )
-                    
-                    # Actualizar saldo y estado de la cuenta
-                    cuenta.saldo -= monto
-                    cuenta.actualizar_estado()
-                    
-                    # Si se completó el pago, registrar fecha
-                    if cuenta.estado == 'PAGADA' and not cuenta.fecha_pago:
-                        cuenta.fecha_pago = form.cleaned_data['fecha_pago']
-                    
-                    cuenta.save()
-                    
-                    # Registrar movimiento de caja si es en efectivo
-                    if form.cleaned_data['tipo_pago'] == 'EFECTIVO':
-                        MovimientoCaja.objects.create(
-                            caja=cuenta.venta.caja,
-                            tipo='INGRESO',
+                    with transaction.atomic():
+                        # Registrar el pago
+                        pago = PagoCuota.objects.create(
+                            cuenta=cuenta,
                             monto=monto,
-                            responsable=request.user.perfil,
-                            descripcion=f"Pago cuota {cuenta.numero_cuota} - Venta {cuenta.venta.numero}",
-                            venta=cuenta.venta,
-                            comprobante=f"P-{pago.id}"
+                            fecha_pago=form.cleaned_data['fecha_pago'],
+                            tipo_pago=form.cleaned_data['tipo_pago'],
+                            notas=form.cleaned_data['notas'],
+                            registrado_por=request.user.perfil,
+                            caja=caja
                         )
-                    
-                    messages.success(request, 
-                        f'Pago registrado correctamente. '
-                        f'Nuevo saldo: Gs. {cuenta.saldo:,.2f}',
-                        extra_tags='success'
-                    )
-                    return redirect('ventas:detalle_cuenta', cuenta_id=cuenta.id)
+                        
+                        # Generar número de recibo
+                        pago.generar_numero_recibo()
+                        
+                        # Actualizar saldo y estado de la cuenta
+                        cuenta.saldo -= monto
+                        cuenta.actualizar_estado()
+                        
+                        # Si se completó el pago, registrar fecha
+                        if cuenta.estado == 'PAGADA' and not cuenta.fecha_pago:
+                            cuenta.fecha_pago = form.cleaned_data['fecha_pago']
+                        
+                        cuenta.save()
+                        
+                        # Registrar movimiento de caja si es en efectivo
+                        if form.cleaned_data['tipo_pago'] == 'EFECTIVO':
+                            MovimientoCaja.objects.create(
+                                caja=caja,
+                                tipo='INGRESO',
+                                monto=monto,
+                                responsable=request.user.perfil,
+                                descripcion=f"Pago cuota {cuenta.numero_cuota} - Venta {cuenta.venta.numero}",
+                                venta=cuenta.venta,
+                                comprobante=f"P-{pago.id}"
+                            )
+                        
+                        messages.success(request, 
+                            f'Pago registrado correctamente. '
+                            f'Nuevo saldo: Gs. {cuenta.saldo:,.2f}',
+                            extra_tags='success'
+                        )
+                        return redirect('ventas:detalle_cuenta', cuenta_id=cuenta.id)
             
             except Exception as e:
                 messages.error(request, 
@@ -612,7 +618,8 @@ def registrar_pago(request, cuenta_id):
     else:
         form = PagoCuotaForm(initial={
             'fecha_pago': timezone.now().date(),
-            'monto': cuenta.saldo
+            'monto': cuenta.saldo,
+            'caja': cuenta.venta.caja if cuenta.venta.caja else None
         }, cuenta=cuenta)
     
     context = {
@@ -621,6 +628,14 @@ def registrar_pago(request, cuenta_id):
         'titulo': f'Registrar Pago - Cuenta {cuenta.numero_cuota}'
     }
     return render(request, 'ventas/registrar_pago.html', context)
+
+
+
+
+
+
+
+
 
 @login_required
 def lista_pagos(request):
@@ -673,3 +688,50 @@ def cancelar_pago(request, pago_id):
         logger.error(f'Error cancelando pago {pago_id}: {str(e)}', exc_info=True)
     
     return redirect('ventas:lista_pagos')
+
+
+
+
+
+
+
+
+from django.template.loader import get_template
+from xhtml2pdf import pisa
+from django.http import HttpResponse
+from django.contrib.auth.decorators import login_required
+
+@login_required
+def imprimir_recibo(request, pago_id, tipo='normal'):
+    pago = get_object_or_404(
+        PagoCuota.objects.select_related(
+            'cuenta', 'cuenta__venta', 'cuenta__venta__cliente',
+            'registrado_por', 'caja', 'caja__punto_expedicion'
+        ),
+        pk=pago_id
+    )
+    
+    if not pago.numero_recibo:
+        pago.generar_numero_recibo()
+    
+    context = {
+        'pago': pago,
+        'empresa': request.user.perfil.empresa,
+        'fecha_impresion': timezone.now().strftime("%d/%m/%Y %H:%M"),
+        'numero_recibo_completo': pago.formato_numero_recibo,
+    }
+    
+    # Seleccionar template según tipo de impresión
+    template_name = 'ventas/recibo_pago_tk.html' if tipo == 'ticket' else 'ventas/recibo_pago.html'
+    template = get_template(template_name)
+    html = template.render(context)
+    
+    response = HttpResponse(content_type='application/pdf')
+    filename = f"Recibo-{pago.formato_numero_recibo}-{'TK' if tipo == 'ticket' else 'N'}.pdf"
+    response['Content-Disposition'] = f'filename="{filename}"'
+    
+    pisa_status = pisa.CreatePDF(html, dest=response, encoding='UTF-8')
+    
+    if pisa_status.err:
+        return HttpResponse('Error al generar el PDF')
+    return response

@@ -139,6 +139,7 @@ class PuntoExpedicion(models.Model):
         ('TICKET', 'Ticket'),
         ('NOTA_CREDITO', 'Nota de Crédito'),
         ('NOTA_DEBITO', 'Nota de Débito'),
+        ('RECIBO_PAGO', 'Recibo de Pago'),
     ]
     
     sucursal = models.ForeignKey(
@@ -178,7 +179,7 @@ class PuntoExpedicion(models.Model):
     
     def crear_secuencias_iniciales(self):
         """Método explícito para crear secuencias con nuevo formato"""
-        tipos = ['FACTURA', 'TICKET', 'NOTA_CREDITO', 'NOTA_DEBITO']
+        tipos = ['FACTURA', 'TICKET', 'NOTA_CREDITO', 'NOTA_DEBITO', 'RECIBO_PAGO']
         for tipo in tipos:
             SecuenciaDocumento.objects.get_or_create(
                 punto_expedicion=self,
@@ -199,6 +200,7 @@ class SecuenciaDocumento(models.Model):
         ('TICKET', 'Ticket'),
         ('NOTA_CREDITO', 'Nota de Crédito'),
         ('NOTA_DEBITO', 'Nota de Débito'),
+        ('RECIBO_PAGO', 'Recibo de Pago'),
     ]
     
     punto_expedicion = models.ForeignKey(

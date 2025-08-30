@@ -9,6 +9,7 @@ from .forms import RegistroUsuarioForm, PerfilUsuarioForm,UserEditForm
 from django.db import IntegrityError, transaction
 
 @login_required
+@login_required
 def registro_usuario(request):
     if request.method == 'POST':
         form_usuario = RegistroUsuarioForm(request.POST)
@@ -17,32 +18,39 @@ def registro_usuario(request):
         if form_usuario.is_valid() and form_perfil.is_valid():
             try:
                 with transaction.atomic():
-                    # 1. Crear usuario (esto activará la señal y creará un perfil vacío)
+                    # 1. Crear usuario
                     user = form_usuario.save()
                     
-                    # 2. Actualizar el perfil existente en lugar de crear uno nuevo
-                    perfil = user.perfil  # Accede al perfil creado por la señal
+                    # 2. Obtener el perfil creado por la señal
+                    perfil = user.perfil
                     
-                    # 3. Actualizar los campos del perfil con los datos del formulario
+                    # 3. Actualizar campos normales
                     perfil.cedula = form_perfil.cleaned_data['cedula'] or None
                     perfil.telefono = form_perfil.cleaned_data['telefono']
                     perfil.direccion = form_perfil.cleaned_data['direccion']
                     perfil.tipo_usuario = form_perfil.cleaned_data['tipo_usuario']
                     perfil.fecha_nacimiento = form_perfil.cleaned_data['fecha_nacimiento']
                     perfil.foto_perfil = form_perfil.cleaned_data['foto_perfil']
+                    perfil.es_vendedor = form_perfil.cleaned_data['es_vendedor']
+                    perfil.es_cobrador = form_perfil.cleaned_data['es_cobrador']
                     perfil.empresa = form_perfil.cleaned_data['empresa']
-                    perfil.sucursales = form_perfil.cleaned_data['sucursales']
+                    perfil.tipo_doc = form_perfil.cleaned_data['tipo_doc']
                     
+                    # Guardar primero el perfil para tener un ID
                     perfil.save()
+                    
+                    # 4. Manejar el campo ManyToMany (sucursales) correctamente
+                    if form_perfil.cleaned_data['sucursales']:
+                        perfil.sucursales.set(form_perfil.cleaned_data['sucursales'])
                     
                 messages.success(request, "Usuario creado correctamente.")
                 return redirect('lista_usuarios')
                 
             except IntegrityError as e:
-                user.delete()  # Elimina el usuario si hay error
+                if User.objects.filter(username=form_usuario.cleaned_data.get('username')).exists():
+                    user.delete()
                 messages.error(request, f"Error al crear el usuario: {str(e)}")
                 return redirect('registro')
-                
     else:
         form_usuario = RegistroUsuarioForm()
         form_perfil = PerfilUsuarioForm()
@@ -50,7 +58,6 @@ def registro_usuario(request):
     return render(request, 'usuarios/registro.html', {
         'form_usuario': form_usuario,
         'form_perfil': form_perfil,
-
     })
 
 
@@ -58,18 +65,27 @@ def registro_usuario(request):
 @login_required
 def editar_usuario(request, usuario_id):
     usuario = get_object_or_404(User, pk=usuario_id)
-    perfil = usuario.perfil  # Asume relación OneToOneField con PerfilUsuario
+    perfil = usuario.perfil
 
     if request.method == 'POST':
-        #form_usuario = EditarUsuarioForm(request.POST, instance=usuario)
         form_usuario = UserEditForm(request.POST, instance=usuario)
         form_perfil = PerfilUsuarioForm(request.POST, request.FILES, instance=perfil)
 
         if form_usuario.is_valid() and form_perfil.is_valid():
             try:
                 with transaction.atomic():
-                    form_usuario.save()
-                    form_perfil.save()
+                    # Guardar el formulario de usuario
+                    user = form_usuario.save()
+                    
+                    # Guardar el formulario de perfil sin commit para manejar manualmente
+                    perfil = form_perfil.save(commit=False)
+                    
+                    # Actualizar campos específicos si es necesario
+                    perfil.usuario = user
+                    perfil.save()
+                    
+                    # Guardar relaciones many-to-many (sucursales)
+                    form_perfil.save_m2m()
                     
                     messages.success(request, "Usuario actualizado correctamente.")
                     return redirect('lista_usuarios')

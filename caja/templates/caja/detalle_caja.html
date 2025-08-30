@@ -107,7 +107,7 @@
                 {{ movimiento.get_tipo_display }}
               </span>
             </td>
-            <td class="px-6 py-4 whitespace-nowrap">S/ {{ movimiento.monto|floatformat:2 }}</td>
+            <td class="px-6 py-4 whitespace-nowrap">Gs/ {{ movimiento.monto|pyg_intcomma }}</td>
             <td class="px-6 py-4">{{ movimiento.descripcion }}</td>
             <td class="px-6 py-4 whitespace-nowrap">{{ movimiento.comprobante|default:"-" }}</td>
           </tr>

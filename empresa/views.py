@@ -69,28 +69,6 @@ class ActividadEconomicaListView(LoginRequiredMixin, ListView):
         return ActividadesEconomicas.objects.filter(empresa=self.request.user.perfil.empresa)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 class EmpresaUpdateView(LoginRequiredMixin, UpdateView):
     model = Empresa
     form_class = EmpresaForm
@@ -105,20 +83,31 @@ class EmpresaUpdateView(LoginRequiredMixin, UpdateView):
         return super().form_valid(form)
     
 
-
 class SucursalCreateView(LoginRequiredMixin, CreateView):
     model = Sucursal
     form_class = SucursalForm
     template_name = 'empresas/sucursal_form.html'
 
     def form_valid(self, form):
-        # Asigna la empresa automáticamente desde el perfil del usuario
-        form.instance.empresa = self.request.user.perfil.empresa
-        messages.success(self.request, "Sucursal creada correctamente")
-        return super().form_valid(form)
+        try:
+            # Verifica que el usuario tenga perfil y empresa
+            if hasattr(self.request.user, 'perfil') and self.request.user.perfil.empresa:
+                form.instance.empresa = self.request.user.perfil.empresa
+                messages.success(self.request, "Sucursal creada correctamente")
+                return super().form_valid(form)
+            else:
+                messages.error(self.request, "No tiene una empresa asignada en su perfil")
+                return self.form_invalid(form)
+        except Exception as e:
+            messages.error(self.request, f"Error al crear sucursal: {str(e)}")
+            return self.form_invalid(form)
 
     def get_success_url(self):
         return reverse_lazy('empresa:lista_sucursales')
+
+    
+
+
 
 class SucursalUpdateView(LoginRequiredMixin, UpdateView):
     model = Sucursal

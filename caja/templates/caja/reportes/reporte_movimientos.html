@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load custom_filters %}
+{% load filtros_paraguay %}
 
 {% block content %}
 <div class="max-w-7xl mx-auto py-10 px-4">
@@ -87,7 +88,7 @@
               <span class="text-red-600 font-semibold">Egreso</span>
             {% endif %}
           </td>
-          <td class="px-6 py-3 text-right">${{ movimiento.monto|floatformat:2 }}</td>
+          <td class="px-6 py-3 text-right">Gs. {{ movimiento.monto|pyg_intcomma }}</td>
         </tr>
         {% empty %}
         <tr>
@@ -102,9 +103,9 @@
   <div class="mt-6 bg-blue-50 border-l-4 border-blue-400 p-4 rounded-md">
     <p class="text-sm text-gray-700">
       <strong>Resumen:</strong>
-      <span class="text-green-600 font-semibold">Ingresos:</span> ${{ total_ingresos|floatformat:2 }} &nbsp;|&nbsp;
-      <span class="text-red-600 font-semibold">Egresos:</span> ${{ total_egresos|floatformat:2 }} &nbsp;|&nbsp;
-      <span class="text-blue-700 font-semibold">Saldo neto:</span> ${{ total_ingresos|subtract:total_egresos|floatformat:2 }}
+      <span class="text-green-600 font-semibold">Ingresos:</span> Gs. {{ total_ingresos|pyg_intcomma }} &nbsp;|&nbsp;
+      <span class="text-red-600 font-semibold">Egresos:</span> Gs. {{ total_egresos|pyg_intcomma }} &nbsp;|&nbsp;
+      <span class="text-blue-700 font-semibold">Saldo neto:</span> Gs. {{ total_ingresos|subtract:total_egresos|pyg_intcomma }}
     </p>
   </div>
 </div>

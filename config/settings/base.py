@@ -104,7 +104,7 @@ LOGGING = {
     },
 }
 
-
+LOGIN_URL = 'login'
 
 # Configuración común para todos los entornos
 SIFEN_CONFIG = {

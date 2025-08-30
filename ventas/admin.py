@@ -1,5 +1,10 @@
 from django.contrib import admin
-from .models import Venta, DetalleVenta, Cliente, Timbrado, CuentaPorCobrar, PagoCuota
+from django.utils import timezone
+from .models import (
+    Venta, DetalleVenta, Cliente, Timbrado, 
+    CuentaPorCobrar, PagoCuota, ConfiguracionComision, 
+    ComisionVenta
+)
 
 class DetalleVentaInline(admin.TabularInline):
     model = DetalleVenta
@@ -19,12 +24,22 @@ class CuentaPorCobrarInline(admin.TabularInline):
         return obj.dias_vencido
     dias_vencido.short_description = 'Días vencido'
 
+class ComisionVentaInline(admin.TabularInline):
+    model = ComisionVenta
+    extra = 0
+    readonly_fields = ('monto', 'estado', 'fecha_pago')
+    fields = ('vendedor', 'tipo', 'monto', 'estado', 'fecha_pago')
+    can_delete = False
+    
+    def has_add_permission(self, request, obj=None):
+        return False
+
 @admin.register(Venta)
 class VentaAdmin(admin.ModelAdmin):
     list_display = ('numero', 'cliente', 'fecha', 'total', 'estado', 'vendedor', 'condicion', 'tipo_documento')
     list_filter = ('estado', 'fecha', 'condicion', 'tipo_documento', 'vendedor')
     search_fields = ('numero', 'cliente__nombre_completo', 'numero_documento')
-    inlines = [DetalleVentaInline, CuentaPorCobrarInline]
+    inlines = [DetalleVentaInline, CuentaPorCobrarInline, ComisionVentaInline]
     readonly_fields = ('subtotal', 'total', 'fecha', 'numero', 'vendedor')
     autocomplete_fields = ('cliente', 'timbrado', 'caja')
     list_select_related = ('cliente', 'vendedor')
@@ -107,13 +122,72 @@ class CuentaPorCobrarAdmin(admin.ModelAdmin):
 
 @admin.register(PagoCuota)
 class PagoCuotaAdmin(admin.ModelAdmin):
-    list_display = ('cuenta', 'monto', 'fecha_pago', 'tipo_pago', 'registrado_por')
-    list_filter = ('tipo_pago', 'fecha_pago')
+    list_display = ('cuenta', 'monto', 'fecha_pago', 'tipo_pago', 'registrado_por', 'cancelado')
+    list_filter = ('tipo_pago', 'fecha_pago', 'cancelado')
     search_fields = ('cuenta__venta__numero', 'cuenta__venta__cliente__nombre_completo', 'notas')
     date_hierarchy = 'fecha_pago'
     raw_id_fields = ('cuenta',)
+    readonly_fields = ('cancelado', 'motivo_cancelacion', 'cancelado_por', 'fecha_cancelacion')
+    fieldsets = (
+        (None, {
+            'fields': ('cuenta', 'monto', 'fecha_pago', 'tipo_pago', 'notas', 'registrado_por')
+        }),
+        ('Estado', {
+            'fields': ('cancelado', 'motivo_cancelacion', 'cancelado_por', 'fecha_cancelacion'),
+            'classes': ('collapse',)
+        }),
+    )
     
     def get_queryset(self, request):
         return super().get_queryset(request).select_related(
             'cuenta', 'cuenta__venta', 'cuenta__venta__cliente', 'registrado_por'
         )
+
+@admin.register(ConfiguracionComision)
+class ConfiguracionComisionAdmin(admin.ModelAdmin):
+    list_display = ('vendedor', 'tipo', 'porcentaje', 'activo')
+    list_filter = ('tipo', 'activo')
+    search_fields = ('vendedor__user__username', 'vendedor__user__first_name', 'vendedor__user__last_name')
+    list_editable = ('activo', 'porcentaje')
+    raw_id_fields = ('vendedor',)
+    fieldsets = (
+        (None, {
+            'fields': ('vendedor', 'tipo', 'activo')
+        }),
+        ('Configuración', {
+            'fields': ('porcentaje',),
+            'classes': ('collapse',)
+        }),
+    )
+
+@admin.register(ComisionVenta)
+class ComisionVentaAdmin(admin.ModelAdmin):
+    list_display = ('venta', 'vendedor', 'tipo', 'monto', 'estado', 'fecha_pago')
+    list_filter = ('estado', 'tipo', 'fecha_pago')
+    search_fields = ('venta__numero', 'vendedor__user__username', 'vendedor__user__first_name')
+    readonly_fields = ('monto', 'venta', 'vendedor', 'configuracion', 'tipo')
+    raw_id_fields = ('venta', 'vendedor', 'configuracion')
+    date_hierarchy = 'creado'
+    actions = ['marcar_como_pagadas']
+    
+    fieldsets = (
+        (None, {
+            'fields': ('venta', 'vendedor', 'configuracion', 'tipo', 'monto')
+        }),
+        ('Estado', {
+            'fields': ('estado', 'fecha_pago', 'notas')
+        }),
+    )
+    
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related(
+            'venta', 'venta__cliente', 'vendedor', 'vendedor__user', 'configuracion'
+        )
+    
+    def marcar_como_pagadas(self, request, queryset):
+        updated = queryset.filter(estado='PENDIENTE').update(
+            estado='PAGADA',
+            fecha_pago=timezone.now().date()
+        )
+        self.message_user(request, f"{updated} comisiones marcadas como pagadas")
+    marcar_como_pagadas.short_description = "Marcar comisiones seleccionadas como pagadas"

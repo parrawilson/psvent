@@ -1,0 +1,504 @@
+{% extends 'base.html' %}
+{% load filtros_paraguay %}
+{% load form_filters %}
+{% load static %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto bg-white shadow-md rounded-xl p-6">
+  <div class="mb-6 border-b pb-4">
+    <h2 class="text-2xl font-bold text-gray-800">{{ titulo }}</h2>
+    <p class="text-sm text-gray-600">Complete los datos para la nota de crédito</p>
+    
+    <!-- Mensajes generales -->
+    {% if messages %}
+      <div class="mt-4 space-y-2">
+        {% for message in messages %}
+          <div class="p-3 rounded {% if message.tags == 'error' %}bg-red-100 text-red-800{% else %}bg-blue-100 text-blue-800{% endif %}">
+            <i class="fas {% if message.tags == 'error' %}fa-exclamation-circle{% else %}fa-info-circle{% endif %} mr-2"></i>
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <!-- Errores del formulario principal -->
+    {% if form.errors %}
+      <div class="mt-4 p-4 bg-red-50 rounded-lg">
+        <h4 class="font-bold text-red-800">Corrija los siguientes errores:</h4>
+        <ul class="list-disc pl-5 mt-2 text-red-700">
+          {% for field, errors in form.errors.items %}
+            {% for error in errors %}
+              <li>
+                <strong>{{ form|get_field_label:field }}:</strong> 
+                {{ error }}
+                {% if field == 'venta' and not form.venta.value %}
+                  <a href="{% url 'ventas:lista_ventas' %}" class="text-blue-600 hover:text-blue-800 ml-2">
+                    (Seleccionar venta)
+                  </a>
+                {% endif %}
+              </li>
+            {% endfor %}
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+
+    <!-- Errores del formset -->
+    {% if formset.errors %}
+      <div class="mt-4 p-4 bg-red-50 rounded-lg">
+        <h4 class="font-bold text-red-800">Errores en los detalles:</h4>
+        <ul class="list-disc pl-5 mt-2 text-red-700">
+          {% for error in formset.non_form_errors %}
+            <li>{{ error }}</li>
+          {% endfor %}
+          {% for form in formset %}
+            {% if form.errors %}
+              <li>
+                <strong>Detalle #{{ forloop.counter }}:</strong>
+                <ul class="list-disc pl-5">
+                  {% for field, errors in form.errors.items %}
+                    {% for error in errors %}
+                      <li>{{ form|get_field_label:field }}: {{ error }}</li>
+                    {% endfor %}
+                  {% endfor %}
+                </ul>
+              </li>
+            {% endif %}
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Resumen de Venta (solo si ya está seleccionada) -->
+  {% if form.venta.value %}
+  <div class="mb-6 p-4 bg-gray-50 rounded-lg">
+    <h4 class="text-lg font-semibold text-gray-700 mb-2">Venta asociada</h4>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <p><strong>Número:</strong> {{ form.instance.venta.numero }}</p>
+        <p><strong>Cliente:</strong> {{ form.instance.venta.cliente|default:"Consumidor Final" }}</p>
+      </div>
+      <div>
+        <p><strong>Fecha:</strong> {{ form.instance.venta.fecha|date:"d/m/Y H:i" }}</p>
+        <p><strong>Total Venta:</strong> Gs. {{ form.instance.venta.total|pyg_intcomma }}</p>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <form method="post" class="space-y-6" onsubmit="return validarFormulario()">
+    {% csrf_token %}
+    
+    <!-- Campos de management del formset -->
+    {{ formset.management_form }}
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Campo Venta -->
+      <div class="{% if form.venta.errors %}border-l-4 border-red-500 pl-4{% endif %}">
+        <label class="block text-sm font-medium text-gray-700 mb-1">
+          Venta asociada *
+        </label>
+        <select name="venta" id="venta-select" required
+                class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500 {% if form.venta.errors %}border-red-500{% endif %}"
+                onchange="cargarDetallesVenta(this.value)">
+          <option value="">Seleccione una venta</option>
+          {% for venta in form.fields.venta.queryset %}
+            <option value="{{ venta.id }}" 
+                    {% if form.venta.value|stringformat:"s" == venta.id|stringformat:"s" %}selected{% endif %}>
+              {{ venta.numero }} - {{ venta.cliente|default:"Consumidor Final" }}
+            </option>
+          {% endfor %}
+        </select>
+        {% if form.venta.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.venta.errors.0 }}</p>
+        {% endif %}
+      </div>
+      
+      <!-- Tipo de Nota -->
+      <div class="{% if form.tipo.errors %}border-l-4 border-red-500 pl-4{% endif %}">
+        <label for="{{ form.tipo.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+          {{ form.tipo.label }} *
+        </label>
+        {{ form.tipo|add_multiple_attrs:"class=w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500 onchange=toggleCancelacionTotal()" }}
+        {% if form.tipo.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.tipo.errors.0 }}</p>
+        {% endif %}
+      </div>
+      
+      <!-- Caja -->
+      <div class="{% if form.caja.errors %}border-l-4 border-red-500 pl-4{% endif %}">
+        <label for="{{ form.caja.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+          {{ form.caja.label }} *
+        </label>
+        {{ form.caja|add_attrs:"class=w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500" }}
+        {% if form.caja.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.caja.errors.0 }}</p>
+        {% endif %}
+      </div>
+      
+      <!-- Timbrado -->
+      <div class="{% if form.timbrado.errors %}border-l-4 border-red-500 pl-4{% endif %}">
+        <label for="{{ form.timbrado.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+          {{ form.timbrado.label }}
+        </label>
+        {{ form.timbrado|add_attrs:"class=w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500" }}
+        {% if form.timbrado.help_text %}
+          <p class="mt-1 text-sm text-gray-500">{{ form.timbrado.help_text }}</p>
+        {% endif %}
+        {% if form.timbrado.errors %}
+          <p class="mt-1 text-sm text-red-600">{{ form.timbrado.errors.0 }}</p>
+        {% endif %}
+      </div>
+    </div>
+    
+    <!-- Motivo -->
+    <div class="{% if form.motivo.errors %}border-l-4 border-red-500 pl-4{% endif %}">
+      <label class="block text-sm font-medium text-gray-700 mb-1">
+        Motivo de la nota *
+      </label>
+      <textarea name="motivo" required minlength="10"
+                class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500 {% if form.motivo.errors %}border-red-500{% endif %}"
+                id="motivo-input">{{ form.motivo.value|default:"" }}</textarea>
+      {% if form.motivo.errors %}
+        <p class="mt-1 text-sm text-red-600">{{ form.motivo.errors.0 }}</p>
+      {% endif %}
+      <p class="mt-1 text-sm text-gray-500">Mínimo 10 caracteres</p>
+      <p class="text-xs text-gray-500" id="contador-caracteres">0/10 caracteres</p>
+    </div>
+    
+    <!-- Botones de acción para detalles -->
+    <div class="flex justify-between items-center">
+      <h3 class="text-lg font-semibold">Detalles de la devolución</h3>
+      <div class="space-x-2">
+        <button type="button" onclick="seleccionarTodo()" class="bg-blue-100 text-blue-700 px-3 py-1 rounded text-sm">
+          <i class="fas fa-check-square mr-1"></i> Seleccionar todo
+        </button>
+        <button type="button" onclick="deseleccionarTodo()" class="bg-gray-100 text-gray-700 px-3 py-1 rounded text-sm">
+          <i class="fas fa-times-circle mr-1"></i> Deseleccionar todo
+        </button>
+        <button type="button" onclick="devolverTodo()" class="bg-green-100 text-green-700 px-3 py-1 rounded text-sm">
+          <i class="fas fa-undo mr-1"></i> Devolver todo
+        </button>
+      </div>
+    </div>
+    
+    <!-- Detalles -->
+    <div class="overflow-x-auto mt-4">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Seleccionar</th>
+            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Producto/Servicio</th>
+            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Cantidad Original</th>
+            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Cantidad a Devolver</th>
+            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Precio Unit.</th>
+            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Subtotal</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200" id="detalles-container">
+          {% if not form.venta.value %}
+          <tr>
+            <td colspan="6" class="px-4 py-4 text-center text-gray-500">
+              Seleccione una venta para cargar sus detalles
+            </td>
+          </tr>
+          {% endif %}
+        </tbody>
+        <tfoot>
+          <tr class="bg-gray-50">
+            <td colspan="5" class="px-4 py-3 text-right font-bold">Total:</td>
+            <td class="px-4 py-3 font-bold" id="total-nota">Gs. 0</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <!-- Botones -->
+    <div class="flex justify-between items-center pt-4 border-t">
+      <button type="submit"
+              class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-lg inline-flex items-center gap-2 transition-colors duration-200">
+        <i class="fas fa-save"></i> Guardar Nota
+      </button>
+
+      <a href="{% if form.instance.venta %}{% url 'ventas:detalle_venta' form.instance.venta.id %}{% else %}{% url 'ventas:lista_ventas' %}{% endif %}"
+         class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-lg inline-flex items-center gap-2 transition-colors duration-200">
+        <i class="fas fa-arrow-left"></i> Cancelar
+      </a>
+    </div>
+  </form>
+</div>
+
+<!-- Template para filas de detalles (usado por JavaScript) -->
+<template id="detalle-template">
+  <tr class="detalle-row">
+    <td class="px-4 py-2 text-center">
+      <input type="checkbox" class="seleccionar-item rounded" onchange="toggleDetalle(this)">
+    </td>
+    <td class="px-4 py-2">
+      <span class="descripcion-item"></span>
+      <input type="hidden" name="detalles-__prefix__-detalle_venta" class="id-detalle">
+      <input type="hidden" name="detalles-__prefix__-id" class="id-form">
+    </td>
+    <td class="px-4 py-2 cantidad-original"></td>
+    <td class="px-4 py-2">
+      <input type="number" name="detalles-__prefix__-cantidad" 
+             min="0.001" step="0.001" max="" 
+             class="w-24 border rounded p-1 cantidad-devolver" 
+             onchange="calcularSubtotal(this)" 
+             oninput="calcularSubtotal(this)" 
+             disabled>
+    </td>
+    <td class="px-4 py-2">
+      <input type="number" name="detalles-__prefix__-precio_unitario" 
+             min="0.01" step="0.01" 
+             class="w-24 border rounded p-1 precio-unitario" 
+             onchange="calcularSubtotal(this)" 
+             oninput="calcularSubtotal(this)" 
+             disabled>
+    </td>
+    <td class="px-4 py-2 subtotal-cell">0.00</td>
+  </tr>
+</template>
+
+<script>
+// Variable global para almacenar los detalles de la venta
+let detallesVenta = {};
+let nextFormIndex = 0;
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Inicializar si ya hay una venta seleccionada
+    const ventaId = document.getElementById('venta-select').value;
+    if (ventaId) {
+        cargarDetallesVenta(ventaId);
+    }
+    
+    // Inicializar contador de caracteres
+    actualizarContador();
+});
+
+// Función para cargar los detalles de una venta
+function cargarDetallesVenta(ventaId) {
+    if (!ventaId) {
+        document.getElementById('detalles-container').innerHTML = 
+            '<tr><td colspan="6" class="px-4 py-4 text-center text-gray-500">Seleccione una venta para cargar sus detalles</td></tr>';
+        return;
+    }
+    
+    // Mostrar indicador de carga
+    document.getElementById('detalles-container').innerHTML = 
+        '<tr><td colspan="6" class="px-4 py-4 text-center text-gray-500"><i class="fas fa-spinner fa-spin mr-2"></i>Cargando detalles...</td></tr>';
+    
+    // Realizar petición AJAX para obtener los detalles
+    fetch(`/ventas/api/ventas/${ventaId}/detalles/`)
+        .then(response => response.json())
+        .then(data => {
+            detallesVenta = data.detalles;
+            mostrarDetallesEnTabla();
+            toggleCancelacionTotal(); // Aplicar la lógica de cancelación total/parcial
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('detalles-container').innerHTML = 
+                '<tr><td colspan="6" class="px-4 py-4 text-center text-red-500">Error al cargar los detalles</td></tr>';
+        });
+}
+
+// Función para mostrar los detalles en la tabla
+function mostrarDetallesEnTabla() {
+    const container = document.getElementById('detalles-container');
+    const template = document.getElementById('detalle-template');
+    container.innerHTML = '';
+    
+    // Obtener y actualizar los campos de management
+    const totalFormsInput = document.getElementById('id_detalles-TOTAL_FORMS');
+    const initialFormsInput = document.getElementById('id_detalles-INITIAL_FORMS');
+    const minNumFormsInput = document.getElementById('id_detalles-MIN_NUM_FORMS');
+    const maxNumFormsInput = document.getElementById('id_detalles-MAX_NUM_FORMS');
+    
+    let nextFormIndex = totalFormsInput ? parseInt(totalFormsInput.value) : 0;
+    
+    Object.values(detallesVenta).forEach(detalle => {
+        const newRow = template.content.cloneNode(true);
+        const tr = newRow.querySelector('tr');
+        
+        // Reemplazar todos los __prefix__ con el índice actual
+        const htmlContent = tr.outerHTML.replace(/__prefix__/g, nextFormIndex);
+        const tempDiv = document.createElement('tbody');
+        tempDiv.innerHTML = htmlContent;
+        const finalRow = tempDiv.querySelector('tr');
+        
+        // Actualizar todos los campos con los datos del detalle
+        finalRow.querySelector('.descripcion-item').textContent = detalle.descripcion;
+        finalRow.querySelector('.id-detalle').value = detalle.id;
+        finalRow.querySelector('.cantidad-original').textContent = detalle.cantidad;
+        finalRow.querySelector('.cantidad-devolver').max = detalle.cantidad;
+        finalRow.querySelector('.precio-unitario').value = detalle.precio_unitario;
+        
+        // Añadir la fila a la tabla
+        container.appendChild(finalRow);
+        nextFormIndex++;
+    });
+    
+    // Actualizar los campos de management form
+    if (totalFormsInput) {
+        totalFormsInput.value = nextFormIndex;
+    }
+    if (initialFormsInput) {
+        initialFormsInput.value = 0;
+    }
+    if (minNumFormsInput) {
+        minNumFormsInput.value = 1;
+    }
+    if (maxNumFormsInput) {
+        maxNumFormsInput.value = 1000;
+    }
+    
+    // Si no hay detalles, mostrar mensaje
+    if (nextFormIndex === 0) {
+        container.innerHTML = 
+            '<tr><td colspan="6" class="px-4 py-4 text-center text-gray-500">No hay detalles en esta venta</td></tr>';
+    }
+}
+
+// Función para calcular el subtotal de una fila
+function calcularSubtotal(input) {
+    const row = input.closest('tr');
+    const cantidad = parseFloat(row.querySelector('.cantidad-devolver').value) || 0;
+    const precio = parseFloat(row.querySelector('.precio-unitario').value) || 0;
+    const subtotal = cantidad * precio;
+    
+    row.querySelector('.subtotal-cell').textContent = subtotal.toFixed(2);
+    calcularTotalNota();
+}
+
+// Función para calcular el total de la nota
+function calcularTotalNota() {
+    let total = 0;
+    
+    document.querySelectorAll('.detalle-row').forEach(row => {
+        const subtotal = parseFloat(row.querySelector('.subtotal-cell').textContent) || 0;
+        total += subtotal;
+    });
+    
+    document.getElementById('total-nota').textContent = `Gs. ${total.toFixed(2)}`;
+}
+
+// Función para habilitar/deshabilitar un detalle
+function toggleDetalle(checkbox) {
+    const row = checkbox.closest('tr');
+    const cantidadInput = row.querySelector('.cantidad-devolver');
+    const precioInput = row.querySelector('.precio-unitario');
+    
+    if (checkbox.checked) {
+        cantidadInput.disabled = false;
+        precioInput.disabled = false;
+        
+        // Si es cancelación total, establecer la cantidad máxima
+        if (document.querySelector('[name="tipo"]').value === 'TOTAL') {
+            const cantidadMax = parseFloat(cantidadInput.max);
+            cantidadInput.value = cantidadMax;
+            calcularSubtotal(cantidadInput);
+        }
+    } else {
+        cantidadInput.disabled = true;
+        precioInput.disabled = true;
+        cantidadInput.value = '';
+        row.querySelector('.subtotal-cell').textContent = '0.00';
+        calcularTotalNota();
+    }
+}
+
+// Función para aplicar lógica de cancelación total/parcial
+function toggleCancelacionTotal() {
+    const tipo = document.querySelector('[name="tipo"]').value;
+    const checkboxes = document.querySelectorAll('.seleccionar-item');
+    
+    if (tipo === 'TOTAL') {
+        // En cancelación total, seleccionar y habilitar todos los items
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = true;
+            toggleDetalle(checkbox);
+        });
+    } else {
+        // En cancelación parcial, deseleccionar todos
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = false;
+            toggleDetalle(checkbox);
+        });
+    }
+}
+
+// Funciones para los botones de acción
+function seleccionarTodo() {
+    document.querySelectorAll('.seleccionar-item').forEach(checkbox => {
+        checkbox.checked = true;
+        toggleDetalle(checkbox);
+    });
+}
+
+function deseleccionarTodo() {
+    document.querySelectorAll('.seleccionar-item').forEach(checkbox => {
+        checkbox.checked = false;
+        toggleDetalle(checkbox);
+    });
+}
+
+function devolverTodo() {
+    document.querySelectorAll('.seleccionar-item').forEach(checkbox => {
+        checkbox.checked = true;
+        toggleDetalle(checkbox);
+        
+        const row = checkbox.closest('tr');
+        const cantidadInput = row.querySelector('.cantidad-devolver');
+        const cantidadMax = parseFloat(cantidadInput.max);
+        cantidadInput.value = cantidadMax;
+        calcularSubtotal(cantidadInput);
+    });
+}
+
+// Contador de caracteres para el motivo
+function actualizarContador() {
+    const motivoInput = document.getElementById('motivo-input');
+    const contador = document.getElementById('contador-caracteres');
+    const longitud = motivoInput.value.length;
+    
+    contador.textContent = `${longitud}/10 caracteres`;
+    contador.className = `text-xs ${longitud >= 10 ? 'text-green-600' : 'text-red-600'}`;
+}
+
+document.getElementById('motivo-input').addEventListener('input', actualizarContador);
+
+// Validación del formulario
+function validarFormulario() {
+    let valido = true;
+    const venta = document.getElementById('venta-select');
+    const motivo = document.getElementById('motivo-input');
+    const tieneDetalles = document.querySelectorAll('.seleccionar-item:checked').length > 0;
+    
+    // Validar venta
+    if (!venta.value) {
+        venta.classList.add('border-red-500');
+        valido = false;
+    } else {
+        venta.classList.remove('border-red-500');
+    }
+    
+    // Validar motivo
+    if (motivo.value.trim().length < 10) {
+        motivo.classList.add('border-red-500');
+        valido = false;
+    } else {
+        motivo.classList.remove('border-red-500');
+    }
+    
+    // Validar que haya al menos un detalle seleccionado
+    if (!tieneDetalles) {
+        alert('Debe seleccionar al menos un item para devolver');
+        valido = false;
+    }
+    
+    return valido;
+}
+</script>
+{% endblock %}

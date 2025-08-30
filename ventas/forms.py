@@ -1,10 +1,11 @@
 from django import forms
-from .models import Venta, DetalleVenta, Cliente, Timbrado
+from .models import Venta, DetalleVenta, Cliente, Timbrado, ComisionVenta, ConfiguracionComision
 from almacen.models import Producto, Servicio, Almacen,Stock
 from caja.models import Caja
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from django.core.validators import RegexValidator
+from django.db.models import Q
 
 
 class ClienteForm(forms.ModelForm):
@@ -177,7 +178,6 @@ class DetalleVentaForm(forms.ModelForm):
             self.add_error(None, 'No puede seleccionar tanto un producto como un servicio')
         
         return cleaned_data
-
 
 
 class FinalizarVentaForm(forms.Form):
@@ -534,3 +534,369 @@ class PagoCuotaForm(forms.ModelForm):
             raise ValidationError("La caja seleccionada no está abierta")
         
         return cleaned_data
+
+
+
+
+from usuarios.models import PerfilUsuario
+class ConfiguracionComisionForm(forms.ModelForm):
+    class Meta:
+        model = ConfiguracionComision
+        fields = ['vendedor', 'tipo', 'porcentaje']
+        widgets = {
+            'vendedor': forms.Select(attrs={
+                'class': 'form-control',
+                'data-placeholder': 'Seleccione un vendedor'
+            }),
+            'tipo': forms.Select(attrs={
+                'class': 'form-control',
+                'onchange': 'actualizarCampos()'
+            }),
+            'porcentaje': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'step': '0.01',
+                'min': '0',
+                'max': '100',
+                'id': 'porcentajeField'
+            })
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.tipo == 'ENTREGA_INICIAL':
+            self.fields['porcentaje'].widget = forms.HiddenInput()
+
+    def clean(self):
+        cleaned_data = super().clean()
+        tipo = cleaned_data.get('tipo')
+        porcentaje = cleaned_data.get('porcentaje')
+
+        if tipo == 'PORCENTAJE_VENTA' and not porcentaje:
+            self.add_error('porcentaje', 'Este campo es requerido para comisión porcentual')
+        
+        return cleaned_data
+
+
+
+
+
+from .models import ConfiguracionComisionCobrador
+
+
+class ConfiguracionComisionCobradorForm(forms.ModelForm):
+    class Meta:
+        model = ConfiguracionComisionCobrador
+        fields = ['cobrador', 'porcentaje', 'activo']
+        widgets = {
+            'cobrador': forms.Select(attrs={
+                'class': 'form-control',
+                'data-placeholder': 'Seleccione un cobrador'
+            }),
+            'porcentaje': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'step': '0.01',
+                'min': '0',
+                'max': '100',
+                'id': 'porcentajeField'
+            })
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Filtramos solo usuarios marcados como cobradores
+        self.fields['cobrador'].queryset = PerfilUsuario.objects.filter(
+            Q(es_cobrador=True) | Q(usuario__is_staff=True))
+
+
+
+
+#INICIO SECCION DE COBROS RAPIDOS DE CUENTAS POR COBRAR
+from decimal import Decimal, InvalidOperation
+
+class BuscarClienteForm(forms.Form):
+    q = forms.CharField(
+        label='Buscar cliente',
+        required=False,
+        widget=forms.TextInput(attrs={
+            'placeholder': 'Nombre o documento del cliente',
+            'class': 'form-input'
+        })
+    )
+
+
+class ConfiguracionPagoForm(forms.Form):
+    fecha_pago = forms.DateField(
+        label='Fecha de pago',
+        initial=timezone.now().date,
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-input'})
+    )
+    tipo_pago = forms.ChoiceField(
+        label='Tipo de pago',
+        choices=PagoCuota.TIPO_PAGO_CHOICES,
+        initial='EFECTIVO',
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+    caja = forms.ModelChoiceField(
+        label='Caja',
+        queryset=Caja.objects.none(),
+        widget=forms.Select(attrs={'class': 'form-select', 'required': True})
+    )
+    notas = forms.CharField(
+        label='Notas',
+        required=False,
+        widget=forms.Textarea(attrs={
+            'rows': 2,
+            'class': 'form-textarea',
+            'placeholder': 'Observaciones sobre el pago'
+        })
+    )
+
+    def __init__(self, *args, **kwargs):
+        cajas_abiertas = kwargs.pop('cajas_abiertas', None)
+        super().__init__(*args, **kwargs)
+        if cajas_abiertas:
+            self.fields['caja'].queryset = cajas_abiertas
+
+class PagoCuentaForm(forms.Form):
+    monto = forms.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        min_value=Decimal('0.00'),
+        initial=0,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-input',
+            'step': '0.01',
+            'min': '0'
+        })
+    )
+
+    def __init__(self, *args, **kwargs):
+        self.cuenta = kwargs.pop('cuenta', None)
+        super().__init__(*args, **kwargs)
+        if self.cuenta:
+            self.fields['monto'].widget.attrs['max'] = str(self.cuenta.saldo)
+
+    def clean_monto(self):
+        monto = self.cleaned_data['monto']
+        if self.cuenta and monto > self.cuenta.saldo:
+            raise ValidationError(f"El monto no puede ser mayor al saldo pendiente (Gs. {self.cuenta.saldo:,.2f})")
+        return monto
+
+
+#FIN SECCION DE COBROS RAPIDOS DE CUENTAS POR COBRAR
+
+#INICIO SECCION DE PAGOS RAPIDOS DE COMISIONES A COBRADORES
+class BuscarCobradorForm(forms.Form):
+    q = forms.CharField(
+        label='Buscar cobrador',
+        required=False,
+        widget=forms.TextInput(attrs={
+            'placeholder': 'Nombre o usuario del cobrador',
+            'class': 'form-control'
+        })
+    )
+
+class PagoComisionCobradorForm(forms.Form):
+    monto = forms.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        min_value=Decimal('0.00'),
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'step': '0.01',
+            'min': '0'
+        })
+    )
+
+    def __init__(self, *args, **kwargs):
+        self.comision = kwargs.pop('comision', None)
+        super().__init__(*args, **kwargs)
+        if self.comision:
+            # Calcular el saldo pendiente (monto total - monto ya pagado)
+            saldo_pendiente = self.comision.monto - self.comision.monto_pagado
+            self.fields['monto'].initial = saldo_pendiente
+            # Establecer el máximo permitido como el saldo pendiente
+            self.fields['monto'].widget.attrs['max'] = str(saldo_pendiente)
+
+    def clean_monto(self):
+        monto = self.cleaned_data['monto']
+        if self.comision:
+            saldo_pendiente = self.comision.monto - self.comision.monto_pagado
+            if monto > saldo_pendiente:
+                raise ValidationError(
+                    f"El monto no puede ser mayor al saldo pendiente (Gs. {saldo_pendiente:,.2f})"
+                )
+        return monto
+
+#FIN SECCION DE PAGOS RAPIDOS DE COMISIONES A COBRADORES
+
+#INICIO SECCION DE PAGOS RAPIDOS DE COMISIONES A VENDEDORES
+# Añadir al final de forms.py
+
+class BuscarVendedorForm(forms.Form):
+    q = forms.CharField(
+        label='Buscar vendedor',
+        required=False,
+        widget=forms.TextInput(attrs={
+            'placeholder': 'Nombre o usuario del vendedor',
+            'class': 'form-control'
+        })
+    )
+
+class PagoComisionVendedorForm(forms.Form):
+    monto = forms.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        min_value=Decimal('0.01'),
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'step': '0.01',
+            'min': '0.01'
+        })
+    )
+
+    def __init__(self, *args, **kwargs):
+        self.comision = kwargs.pop('comision', None)
+        super().__init__(*args, **kwargs)
+        if self.comision:
+            saldo_pendiente = self.comision.saldo_pendiente
+            self.fields['monto'].initial = saldo_pendiente
+            self.fields['monto'].widget.attrs['max'] = str(saldo_pendiente)
+            self.fields['monto'].help_text = f"Saldo pendiente: Gs. {saldo_pendiente:,.2f}"
+
+    def clean_monto(self):
+        monto = self.cleaned_data['monto']
+        if self.comision and monto > self.comision.saldo_pendiente:
+            raise ValidationError(
+                f"El monto no puede ser mayor al saldo pendiente (Gs. {self.comision.saldo_pendiente:,.2f})"
+            )
+        return monto
+    
+
+
+#Sección de Notas de Créditos
+
+from django import forms
+from .models import NotaCredito, DetalleNotaCredito, Venta
+
+from decimal import Decimal, InvalidOperation
+
+class NotaCreditoForm(forms.ModelForm):
+    class Meta:
+        model = NotaCredito
+        fields = ['venta', 'tipo', 'motivo', 'caja', 'timbrado']
+        widgets = {
+            'motivo': forms.Textarea(attrs={'rows': 3, 'minlength': 10}),
+            'venta': forms.Select(attrs={'required': True}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        
+        # Configurar querysets
+        self.fields['venta'].queryset = Venta.objects.filter(
+            estado='FINALIZADA'
+        ).select_related('cliente').order_by('-fecha')
+        
+        # Filtrar cajas disponibles
+        if user and hasattr(user, 'perfil'):
+            qs = Caja.objects.filter(estado='ABIERTA')
+            if not (user.is_superuser or user.perfil.tipo_usuario == 'ADMIN'):
+                qs = qs.filter(
+                    Q(responsable=user.perfil) | 
+                    Q(usuarios_permitidos=user.perfil)
+                ).distinct()
+            self.fields['caja'].queryset = qs
+            if qs.count() == 1:
+                self.fields['caja'].initial = qs.first()
+
+    def clean(self):
+        cleaned_data = super().clean()
+        motivo = cleaned_data.get('motivo', '').strip()
+        
+        if len(motivo) < 10:
+            self.add_error('motivo', "El motivo debe tener al menos 10 caracteres")
+        
+        return cleaned_data
+
+    def clean_venta(self):
+        venta = self.cleaned_data.get('venta')
+        if not venta:
+            raise ValidationError("Este campo es requerido")
+        return venta
+    
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        
+        if commit:
+            # Calcular total con redondeo a 2 decimales
+            total = sum(
+                Decimal(str(detalle.subtotal)).quantize(Decimal('0.01')) 
+                for detalle in instance.detalles.all()
+            )
+            instance.total = total
+            instance.save()
+        
+        return instance
+
+
+class DetalleNotaCreditoForm(forms.ModelForm):
+    class Meta:
+        model = DetalleNotaCredito
+        fields = ['detalle_venta', 'cantidad', 'precio_unitario']
+        widgets = {
+            'cantidad': forms.NumberInput(attrs={
+                'min': '0.001', 
+                'step': '0.001',
+                'pattern': '^\d+(\.\d{1,3})?$',
+                'title': 'Máximo 3 decimales'
+            }),
+            'precio_unitario': forms.NumberInput(attrs={
+                'min': '0.01', 
+                'step': '0.01',
+                'pattern': '^\d+(\.\d{1,2})?$',
+                'title': 'Máximo 2 decimales'
+            }),
+        }
+
+    def __init__(self, *args, **kwargs):
+        venta = kwargs.pop('venta', None)
+        super().__init__(*args, **kwargs)
+        if venta:
+            self.fields['detalle_venta'].queryset = venta.detalles.all()
+
+    def clean_cantidad(self):
+        cantidad = self.cleaned_data.get('cantidad')
+        if cantidad is not None:
+            try:
+                cantidad = Decimal(str(cantidad)).quantize(Decimal('0.001'))
+            except (ValueError, InvalidOperation):
+                raise ValidationError("Valor inválido para cantidad")
+        return cantidad
+
+    def clean_precio_unitario(self):
+        precio = self.cleaned_data.get('precio_unitario')
+        if precio is not None:
+            try:
+                precio = Decimal(str(precio)).quantize(Decimal('0.01'))
+            except (ValueError, InvalidOperation):
+                raise ValidationError("Valor inválido para precio")
+        return precio
+
+    def clean(self):
+        cleaned_data = super().clean()
+        cantidad = cleaned_data.get('cantidad')
+        precio_unitario = cleaned_data.get('precio_unitario')
+        
+        if cantidad and precio_unitario:
+            try:
+                subtotal = Decimal(str(cantidad)) * Decimal(str(precio_unitario))
+                # 🔑 Redondeo a 2 decimales antes de guardar
+                cleaned_data['subtotal'] = subtotal.quantize(Decimal('0.01'))
+            except (ValueError, InvalidOperation):
+                self.add_error(None, "Error al calcular el subtotal")
+        
+        return cleaned_data
+
+

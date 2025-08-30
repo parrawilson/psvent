@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto py-10 px-6">
+  <!-- Título del formulario -->
+  <div class="text-center mb-8">
+    <h1 class="text-3xl font-bold text-blue-600">
+      <i class="fa-solid fa-percent mr-2"></i> Gestión de Comisiones
+    </h1>
+    <p class="text-gray-500 mt-2">Configuración y seguimiento de comisiones</p>
+  </div>
+
+  <!-- Menú de Comisiones sobre Ventas -->
+  <div class="mt-12">
+    <div class="text-center mb-6">
+      <h2 class="text-2xl font-bold text-green-600">
+        <i class="fa-solid fa-coins mr-2"></i> Comisiones sobre Ventas
+      </h2>
+      <p class="text-gray-500 text-sm mt-1">Gestiona configuraciones, historial y nuevas comisiones</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <!-- Historial de comisiones -->
+      <a href="{% url 'ventas:lista_comisiones' %}" 
+         class="block bg-white rounded-xl shadow-md p-5 hover:shadow-lg transition hover:-translate-y-1 border-l-4 border-yellow-400">
+        <div class="flex items-center space-x-4">
+          <div class="text-yellow-500 text-3xl">
+            <i class="fa-solid fa-chart-line"></i>
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold text-gray-800">Historial</h3>
+            <p class="text-sm text-gray-500">Ver comisiones ya aplicadas</p>
+          </div>
+        </div>
+      </a>
+
+      <!-- Lista de configuraciones -->
+      <a href="{% url 'ventas:lista_configuraciones_comision' %}" 
+         class="block bg-white rounded-xl shadow-md p-5 hover:shadow-lg transition hover:-translate-y-1 border-l-4 border-blue-400">
+        <div class="flex items-center space-x-4">
+          <div class="text-blue-500 text-3xl">
+            <i class="fa-solid fa-gear"></i>
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold text-gray-800">Configuraciones</h3>
+            <p class="text-sm text-gray-500">Ver y editar reglas existentes</p>
+          </div>
+        </div>
+      </a>
+
+      <!-- Nueva configuración -->
+      <a href="{% url 'ventas:configurar_comisiones' %}" 
+         class="block bg-white rounded-xl shadow-md p-5 hover:shadow-lg transition hover:-translate-y-1 border-l-4 border-green-400">
+        <div class="flex items-center space-x-4">
+          <div class="text-green-500 text-3xl">
+            <i class="fa-solid fa-circle-plus"></i>
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold text-gray-800">Nueva Comisión</h3>
+            <p class="text-sm text-gray-500">Agregar nueva configuración</p>
+          </div>
+        </div>
+      </a>
+      <!-- Pagos Rápidos -->
+      <a href="{% url 'ventas:pagos_rapidos_comisiones_vendedores' %}" 
+         class="block bg-white rounded-xl shadow-md p-5 hover:shadow-lg transition hover:-translate-y-1 border-l-4 border-blue-400">
+        <div class="flex items-center space-x-4">
+          <div class="text-blue-500 text-3xl">
+            <i class="fa-solid fa-bolt"></i>
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold text-gray-800">Pagos Rápidos</h3>
+            <p class="text-sm text-gray-500">Registrar pagos de forma ágil</p>
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- Menú de Comisiones sobre Cobranzas -->
+  <div class="mt-12">
+    <div class="text-center mb-6">
+      <h2 class="text-2xl font-bold text-purple-600">
+        <i class="fa-solid fa-hand-holding-dollar mr-2"></i> Comisiones sobre Cobranzas
+      </h2>
+      <p class="text-gray-500 text-sm mt-1">Gestiona comisiones por cobros realizados</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <!-- Historial de comisiones cobranzas -->
+      <a href="{% url 'ventas:lista_comisiones_cobradores' %}" 
+         class="block bg-white rounded-xl shadow-md p-5 hover:shadow-lg transition hover:-translate-y-1 border-l-4 border-purple-400">
+        <div class="flex items-center space-x-4">
+          <div class="text-purple-500 text-3xl">
+            <i class="fa-solid fa-file-invoice-dollar"></i>
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold text-gray-800">Historial Cobros</h3>
+            <p class="text-sm text-gray-500">Ver comisiones por cobros</p>
+          </div>
+        </div>
+      </a>
+
+      <!-- Configuración cobradores -->
+      <a href="{% url 'ventas:lista_configurar_comisiones_cobradores' %}" 
+         class="block bg-white rounded-xl shadow-md p-5 hover:shadow-lg transition hover:-translate-y-1 border-l-4 border-indigo-400">
+        <div class="flex items-center space-x-4">
+          <div class="text-indigo-500 text-3xl">
+            <i class="fa-solid fa-user-tie"></i>
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold text-gray-800">Config. Cobradores</h3>
+            <p class="text-sm text-gray-500">Definir % de comisión</p>
+          </div>
+        </div>
+      </a>
+
+      <!-- Pago de comisiones -->
+      <a href="{% url 'ventas:lista_comisiones_cobradores' %}?estado=PENDIENTE" 
+         class="block bg-white rounded-xl shadow-md p-5 hover:shadow-lg transition hover:-translate-y-1 border-l-4 border-pink-400">
+        <div class="flex items-center space-x-4">
+          <div class="text-pink-500 text-3xl">
+            <i class="fa-solid fa-money-bill-wave"></i>
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold text-gray-800">Pagar Comisiones</h3>
+            <p class="text-sm text-gray-500">Liquidar comisiones pendientes</p>
+          </div>
+        </div>
+      </a>
+
+
+
+      <!-- Pagos Rápidos -->
+      <a href="{% url 'ventas:pagos_rapidos_comisiones_cobradores' %}" 
+         class="block bg-white rounded-xl shadow-md p-5 hover:shadow-lg transition hover:-translate-y-1 border-l-4 border-blue-400">
+        <div class="flex items-center space-x-4">
+          <div class="text-blue-500 text-3xl">
+            <i class="fa-solid fa-bolt"></i>
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold text-gray-800">Pagos Rápidos</h3>
+            <p class="text-sm text-gray-500">Registrar pagos de forma ágil</p>
+          </div>
+        </div>
+      </a>
+
+
+    </div>
+  </div>
+</div>
+
+<!-- Iconos -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+
+<style>
+  .transition {
+    transition: all 0.3s ease;
+  }
+  .hover\:-translate-y-1:hover {
+    transform: translateY(-4px);
+  }
+</style>
+{% endblock %}

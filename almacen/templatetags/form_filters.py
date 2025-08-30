@@ -21,6 +21,29 @@ def add_class(field, css):
     return field.as_widget(attrs={**field.field.widget.attrs, 'class': new_classes})
 
 
+@register.filter(name='add_multiple_attrs')
+def add_multiple_attrs(field, attrs_string):
+    """
+    Añade múltiples atributos a un campo de formulario
+    Uso: {{ field|add_multiple_attrs:"class=form-control onchange=myFunction()" }}
+    """
+    attrs = {}
+    for attr in attrs_string.split():
+        if '=' in attr:
+            key, value = attr.split('=', 1)
+            # Si es class, lo concatenamos con las clases existentes
+            if key == 'class' and 'class' in field.field.widget.attrs:
+                attrs[key] = f"{field.field.widget.attrs['class']} {value}"
+            else:
+                attrs[key] = value
+        else:
+            # Si no tiene =, asumimos que es una clase
+            if 'class' in field.field.widget.attrs:
+                attrs['class'] = f"{field.field.widget.attrs['class']} {attr}"
+            else:
+                attrs['class'] = attr
+    return field.as_widget(attrs=attrs)
+
 @register.filter(name='format_ejemplo')
 def format_ejemplo(formato, secuencia):
     """

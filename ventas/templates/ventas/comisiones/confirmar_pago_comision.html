@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load form_filters %}
+{% load filtros_paraguay %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between mt-6 mb-4">
+        <h1 class="text-2xl font-semibold text-gray-800">{{ titulo }}</h1>
+        <a href="{% url 'ventas:lista_comisiones' %}" class="inline-flex items-center px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400 transition">
+            <i class="fas fa-arrow-left mr-2"></i> Volver
+        </a>
+    </div>
+
+    <div class="bg-white shadow-md rounded-lg overflow-hidden">
+        <div class="bg-blue-600 px-6 py-4">
+            <h2 class="text-white text-lg font-bold">Detalles de la Comisión</h2>
+        </div>
+
+        <div class="px-6 py-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                    <dl>
+                        <dt class="font-semibold text-gray-600">Vendedor:</dt>
+                        <dd class="text-gray-800">{{ comision.vendedor }}</dd>
+
+                        <dt class="font-semibold text-gray-600 mt-4">Venta:</dt>
+                        <dd class="text-blue-600">
+                            <a href="{% url 'ventas:detalle_venta' comision.venta.id %}" class="underline hover:text-blue-800 transition">
+                                {{ comision.venta.numero }}
+                            </a>
+                        </dd>
+                    </dl>
+                </div>
+                <div>
+                    <dl>
+                        <dt class="font-semibold text-gray-600">Monto:</dt>
+                        <dd class="text-gray-800">Gs. {{ comision.monto|pyg_intcomma }}</dd>
+
+                        <dt class="font-semibold text-gray-600 mt-4">Estado:</dt>
+                        <dd>
+                            <span class="inline-block px-3 py-1 text-sm font-medium bg-yellow-200 text-yellow-900 rounded">
+                                {{ comision.get_estado_display }}
+                            </span>
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+
+            <form method="post" class="mt-8 space-y-6">
+                {% csrf_token %}
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="fecha_pago" class="block text-sm font-medium text-gray-700">Fecha de pago *</label>
+                        <input type="date" id="fecha_pago" name="fecha_pago"
+                               value="{{ fecha_hoy }}"
+                               required
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                    </div>
+
+                    <div>
+                        <label for="caja" class="block text-sm font-medium text-gray-700">Caja *</label>
+                        <select id="caja" name="caja" required
+                                class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                            <option value="">Seleccione una caja</option>
+                            {% for caja in cajas %}
+                            <option value="{{ caja.id }}">{{ caja.nombre }} ({{ caja.punto_expedicion.get_codigo_completo }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mt-4 rounded-md flex items-start space-x-2">
+                    <i class="fas fa-exclamation-triangle mt-1"></i>
+                    <p>Se registrará un egreso en caja por el monto de la comisión.</p>
+                </div>
+
+                <div class="flex justify-between mt-6">
+                    <button type="submit" class="inline-flex items-center px-5 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition">
+                        <i class="fas fa-check-circle mr-2"></i> Confirmar Pago
+                    </button>
+                    <a href="{% url 'ventas:lista_comisiones' %}" class="inline-flex items-center px-5 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400 transition">
+                        <i class="fas fa-times mr-2"></i> Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const today = new Date().toISOString().split('T')[0];
+    const fechaInput = document.getElementById('fecha_pago');
+    if (fechaInput) {
+        fechaInput.setAttribute('max', today);
+    }
+
+    const cajaSelect = document.getElementById('caja');
+    if (cajaSelect && cajaSelect.options.length === 2) {
+        cajaSelect.options[1].selected = true;
+    }
+});
+</script>
+{% endblock %}
+
+
+
+

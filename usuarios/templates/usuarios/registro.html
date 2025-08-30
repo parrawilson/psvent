@@ -24,64 +24,100 @@
       {% endfor %}
     {% endif %}
 
-    <form method="post" class="space-y-4 md:space-y-6">
+    <form method="post" enctype="multipart/form-data" class="space-y-4 md:space-y-6">
       {% csrf_token %}
 
       <!-- Sección 1: Datos de Usuario -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-        <!-- Username -->
-        <div>
-          <label for="{{ form_usuario.username.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
-            {{ form_usuario.username.label }}
-          </label>
-          {{ form_usuario.username|add_attrs:"class=w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" }}
-          {% if form_usuario.username.errors %}
-            <p class="text-sm text-red-500 mt-1">{{ form_usuario.username.errors.0 }}</p>
-          {% endif %}
-        </div>
+      <div class="border-b border-gray-200 pb-4">
+        <h3 class="text-lg font-medium text-gray-800 mb-4">Datos de acceso</h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+          <!-- Username -->
+          <div>
+            <label for="{{ form_usuario.username.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+              {{ form_usuario.username.label }}
+            </label>
+            {{ form_usuario.username|add_attrs:"class=w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" }}
+            {% if form_usuario.username.errors %}
+              <p class="text-sm text-red-500 mt-1">{{ form_usuario.username.errors.0 }}</p>
+            {% endif %}
+          </div>
+          <!-- Nombres -->
+          <div>
+            <label for="{{ form_usuario.first_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+              {{ form_usuario.first_name.label }}
+            </label>
+            {{ form_usuario.first_name|add_attrs:"class=w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" }}
+            {% if form_usuario.first_name.errors %}
+              <p class="text-sm text-red-500 mt-1">{{ form_usuario.first_name.errors.0 }}</p>
+            {% endif %}
+          </div>
+          <!-- Apellidos -->
+          <div>
+            <label for="{{ form_usuario.last_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+              {{ form_usuario.last_name.label }}
+            </label>
+            {{ form_usuario.last_name|add_attrs:"class=w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" }}
+            {% if form_usuario.last_name.errors %}
+              <p class="text-sm text-red-500 mt-1">{{ form_usuario.last_name.errors.0 }}</p>
+            {% endif %}
+          </div>
 
-        <!-- Email -->
-        <div>
-          <label for="{{ form_usuario.email.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
-            {{ form_usuario.email.label }}
-          </label>
-          {{ form_usuario.email|add_attrs:"class=w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" }}
-          {% if form_usuario.email.errors %}
-            <p class="text-sm text-red-500 mt-1">{{ form_usuario.email.errors.0 }}</p>
-          {% endif %}
+          <!-- Email -->
+          <div>
+            <label for="{{ form_usuario.email.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+              {{ form_usuario.email.label }}
+            </label>
+            {{ form_usuario.email|add_attrs:"class=w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" }}
+            {% if form_usuario.email.errors %}
+              <p class="text-sm text-red-500 mt-1">{{ form_usuario.email.errors.0 }}</p>
+            {% endif %}
+          </div>
+        </div>
+        
+
+        <!-- Sección 2: Contraseña -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mt-4">
+          <!-- Password1 -->
+          <div>
+            <label for="{{ form_usuario.password1.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+              {{ form_usuario.password1.label }}
+            </label>
+            {{ form_usuario.password1|add_attrs:"class=w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" }}
+            {% if form_usuario.password1.errors %}
+              <p class="text-sm text-red-500 mt-1">{{ form_usuario.password1.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <!-- Password2 -->
+          <div>
+            <label for="{{ form_usuario.password2.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+              {{ form_usuario.password2.label }}
+            </label>
+            {{ form_usuario.password2|add_attrs:"class=w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" }}
+            {% if form_usuario.password2.errors %}
+              <p class="text-sm text-red-500 mt-1">{{ form_usuario.password2.errors.0 }}</p>
+            {% endif %}
+          </div>
         </div>
       </div>
 
-      <!-- Sección 2: Contraseña -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-        <!-- Password1 -->
-        <div>
-          <label for="{{ form_usuario.password1.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
-            {{ form_usuario.password1.label }}
-          </label>
-          {{ form_usuario.password1|add_attrs:"class=w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" }}
-          {% if form_usuario.password1.errors %}
-            <p class="text-sm text-red-500 mt-1">{{ form_usuario.password1.errors.0 }}</p>
-          {% endif %}
-        </div>
-
-        <!-- Password2 -->
-        <div>
-          <label for="{{ form_usuario.password2.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
-            {{ form_usuario.password2.label }}
-          </label>
-          {{ form_usuario.password2|add_attrs:"class=w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" }}
-          {% if form_usuario.password2.errors %}
-            <p class="text-sm text-red-500 mt-1">{{ form_usuario.password2.errors.0 }}</p>
-          {% endif %}
-        </div>
-      </div>
-
-      <!-- Sección 3: Perfil de Usuario -->
-      <div class="border-t border-gray-200 pt-4 mt-4">
+      <!-- Sección 3: Información Personal -->
+      <div class="border-b border-gray-200 pb-4">
         <h3 class="text-lg font-medium text-gray-800 mb-4">Información Personal</h3>
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+          <!-- Tipo de Documento -->
+          <div>
+            <label for="{{ form_perfil.tipo_doc.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+              {{ form_perfil.tipo_doc.label }}
+            </label>
+            {{ form_perfil.tipo_doc|add_attrs:"class=w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" }}
+            {% if form_perfil.tipo_doc.errors %}
+              <p class="text-sm text-red-500 mt-1">{{ form_perfil.tipo_doc.errors.0 }}</p>
+            {% endif %}
+          </div>
+
           <!-- Cédula -->
           <div>
             <label for="{{ form_perfil.cedula.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
@@ -92,7 +128,9 @@
               <p class="text-sm text-red-500 mt-1">{{ form_perfil.cedula.errors.0 }}</p>
             {% endif %}
           </div>
+        </div>
 
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mt-4">
           <!-- Teléfono -->
           <div>
             <label for="{{ form_perfil.telefono.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
@@ -101,6 +139,17 @@
             {{ form_perfil.telefono|add_attrs:"class=w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" }}
             {% if form_perfil.telefono.errors %}
               <p class="text-sm text-red-500 mt-1">{{ form_perfil.telefono.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <!-- Fecha de Nacimiento -->
+          <div>
+            <label for="{{ form_perfil.fecha_nacimiento.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+              {{ form_perfil.fecha_nacimiento.label }}
+            </label>
+            {{ form_perfil.fecha_nacimiento|add_attrs:"class=w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" }}
+            {% if form_perfil.fecha_nacimiento.errors %}
+              <p class="text-sm text-red-500 mt-1">{{ form_perfil.fecha_nacimiento.errors.0 }}</p>
             {% endif %}
           </div>
         </div>
@@ -115,16 +164,82 @@
             <p class="text-sm text-red-500 mt-1">{{ form_perfil.direccion.errors.0 }}</p>
           {% endif %}
         </div>
+      </div>
 
-        <!-- Tipo de Usuario -->
-        <div class="mt-4">
-          <label for="{{ form_perfil.tipo_usuario.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
-            {{ form_perfil.tipo_usuario.label }}
-          </label>
-          {{ form_perfil.tipo_usuario|add_attrs:"class=w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" }}
-          {% if form_perfil.tipo_usuario.errors %}
-            <p class="text-sm text-red-500 mt-1">{{ form_perfil.tipo_usuario.errors.0 }}</p>
-          {% endif %}
+      <!-- Sección 4: Información Laboral -->
+      <div class="border-b border-gray-200 pb-4">
+        <h3 class="text-lg font-medium text-gray-800 mb-4">Información Laboral</h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+          <!-- Empresa -->
+          <div>
+            <label for="{{ form_perfil.empresa.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+              {{ form_perfil.empresa.label }}
+            </label>
+            {{ form_perfil.empresa|add_attrs:"class=w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" }}
+            {% if form_perfil.empresa.errors %}
+              <p class="text-sm text-red-500 mt-1">{{ form_perfil.empresa.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <!-- Sucursales -->
+          <div>
+            <label for="{{ form_perfil.sucursales.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+              {{ form_perfil.sucursales.label }}
+            </label>
+            {{ form_perfil.sucursales|add_attrs:"class=w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" }}
+            {% if form_perfil.sucursales.errors %}
+              <p class="text-sm text-red-500 mt-1">{{ form_perfil.sucursales.errors.0 }}</p>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mt-4">
+          <!-- Tipo de Usuario -->
+          <div>
+            <label for="{{ form_perfil.tipo_usuario.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+              {{ form_perfil.tipo_usuario.label }}
+            </label>
+            {{ form_perfil.tipo_usuario|add_attrs:"class=w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" }}
+            {% if form_perfil.tipo_usuario.errors %}
+              <p class="text-sm text-red-500 mt-1">{{ form_perfil.tipo_usuario.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <!-- Foto de Perfil -->
+          <div>
+            <label for="{{ form_perfil.foto_perfil.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+              {{ form_perfil.foto_perfil.label }}
+            </label>
+            {{ form_perfil.foto_perfil|add_attrs:"class=w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" }}
+            {% if form_perfil.foto_perfil.errors %}
+              <p class="text-sm text-red-500 mt-1">{{ form_perfil.foto_perfil.errors.0 }}</p>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mt-4">
+          <!-- Es Vendedor -->
+          <div class="flex items-center">
+            {{ form_perfil.es_vendedor|add_attrs:"class=h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" }}
+            <label for="{{ form_perfil.es_vendedor.id_for_label }}" class="ml-2 block text-sm text-gray-700">
+              {{ form_perfil.es_vendedor.label }}
+            </label>
+            {% if form_perfil.es_vendedor.errors %}
+              <p class="text-sm text-red-500 mt-1">{{ form_perfil.es_vendedor.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <!-- Es Cobrador -->
+          <div class="flex items-center">
+            {{ form_perfil.es_cobrador|add_attrs:"class=h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" }}
+            <label for="{{ form_perfil.es_cobrador.id_for_label }}" class="ml-2 block text-sm text-gray-700">
+              {{ form_perfil.es_cobrador.label }}
+            </label>
+            {% if form_perfil.es_cobrador.errors %}
+              <p class="text-sm text-red-500 mt-1">{{ form_perfil.es_cobrador.errors.0 }}</p>
+            {% endif %}
+          </div>
         </div>
       </div>
 

@@ -216,7 +216,7 @@ function mostrarModalImpresion(pagoId) {
   document.body.classList.add('overflow-hidden');
   
   // Configurar los enlaces
-  const urlBase = `/ventas/pagos/${pagoId}/imprimir/`;
+  const urlBase = `/ventas/cuentas-por-cobrar/pagos/${pagoId}/imprimir/`;
   document.getElementById('btnImprimirNormal').href = urlBase;
   document.getElementById('btnImprimirTicket').href = `${urlBase}ticket/`;
 }
@@ -235,7 +235,7 @@ document.getElementById('modalImpresion').addEventListener('click', function(e) 
 
 function mostrarModalCancelacion(pagoId) {
   document.getElementById('pagoIdInput').value = pagoId;
-  document.getElementById('formCancelacion').action = `/ventas/pagos/${pagoId}/cancelar/`;
+  document.getElementById('formCancelacion').action = `/ventas/cuentas-por-cobrar/pagos/${pagoId}/cancelar/`;
   document.getElementById('modalCancelacion').classList.remove('hidden');
   document.body.classList.add('overflow-hidden');
 }

@@ -67,7 +67,7 @@
               <p class="text-xs text-gray-500">{{ mov.get_tipo_display }}</p>
             </div>
             <div class="text-sm font-medium {% if mov.tipo == 'INGRESO' %}text-green-600{% else %}text-red-600{% endif %}">
-              S/ {{ mov.monto|floatformat:2 }}
+              Gs/ {{ mov.monto|pyg_intcomma }}
             </div>
           </div>
           {% empty %}

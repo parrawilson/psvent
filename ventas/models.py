@@ -208,6 +208,52 @@ class Venta(models.Model):
         verbose_name = 'Venta'
         verbose_name_plural = 'Ventas'
         ordering = ['-fecha']
+    
+
+    @property
+    def comisiones(self):
+        """Acceso directo a las comisiones asociadas"""
+        return self.comisiones.all()
+
+    def generar_comisiones(self):
+        """Genera las comisiones para esta venta"""
+        from .models import ComisionVenta  # Importación local para evitar circular
+        
+        # Eliminada la validación de estado para permitir generación antes de finalizar
+        configuraciones = ConfiguracionComision.objects.filter(
+            vendedor=self.vendedor,
+            activo=True
+        )
+        
+        comisiones = []
+        for config in configuraciones:
+            monto = config.calcular_comision(self)
+            if monto > 0:
+                comision = ComisionVenta.objects.create(
+                    venta=self,
+                    vendedor=self.vendedor,
+                    configuracion=config,
+                    tipo=config.tipo,
+                    monto=monto
+                )
+                comisiones.append(comision)
+        
+        return comisiones
+
+    @property
+    def total_comisiones(self):
+        """Total de comisiones generadas por esta venta"""
+        return self.comisiones.aggregate(Sum('monto'))['monto__sum'] or Decimal('0.00')
+
+    @property
+    def comisiones_pendientes(self):
+        """Comisiones pendientes de pago"""
+        return self.comisiones.filter(estado='PENDIENTE')
+
+    @property
+    def comisiones_pagadas(self):
+        """Comisiones ya pagadas"""
+        return self.comisiones.filter(estado='PAGADA')
 
     def actualizar_estado_credito(self):
         """Actualiza el estado general del crédito basado en las cuotas"""
@@ -453,13 +499,12 @@ class Venta(models.Model):
                     detalle.almacen_servicio = almacen_servicio
                     detalle.save()
         
-        # Actualizar estado y datos de la venta
+        # Actualizar datos de la venta (excepto estado)
         self.caja = caja
         self.tipo_pago = tipo_pago
         self.tipo_documento = tipo_documento
         self.condicion = condicion
         self.timbrado = timbrado if tipo_documento in ['F', 'BV'] else None
-        self.estado = 'FINALIZADA'
         self.generar_numero_documento()
         self.save()
         
@@ -501,6 +546,15 @@ class Venta(models.Model):
         # Crear cuotas si es a crédito
         if condicion == '2':
             self.crear_cuotas()
+        
+        # Generar comisiones ANTES de marcar como FINALIZADA
+        self.generar_comisiones()
+        
+        # Finalmente, actualizar el estado
+        self.estado = 'FINALIZADA'
+        self.save()
+        
+
 
     @transaction.atomic
     def cancelar(self, usuario):
@@ -952,9 +1006,630 @@ class PagoCuota(models.Model):
             # Actualizar estado de la venta si es necesario
             cuenta.venta.actualizar_estado_credito()
 
+from django.db.models import Q
+# models.py (añadir al final)
+class ConfiguracionComision(models.Model):
+    TIPO_COMISION_CHOICES = [
+        ('PORCENTAJE_VENTA', 'Porcentaje sobre venta total'),
+        ('ENTREGA_INICIAL', 'Entrega inicial como comisión'),
+    ]
+
+    vendedor = models.ForeignKey(
+        PerfilUsuario, 
+        on_delete=models.CASCADE,
+        related_name='configuraciones_comision',
+        limit_choices_to=Q(es_vendedor=True) | Q(usuario__is_staff=True)
+    )
+    tipo = models.CharField(
+        max_length=20,
+        choices=TIPO_COMISION_CHOICES,
+        default='PORCENTAJE_VENTA'
+    )
+    porcentaje = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        verbose_name="Porcentaje de comisión",
+        null=True,
+        blank=True
+    )
+    activo = models.BooleanField(default=True)
+    creado = models.DateTimeField(auto_now_add=True)
+    actualizado = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Configuración de Comisión'
+        verbose_name_plural = 'Configuraciones de Comisiones'
+        unique_together = ['vendedor', 'tipo']
+
+    def __str__(self):
+        if self.tipo == 'PORCENTAJE_VENTA':
+            return f"{self.vendedor} - {self.porcentaje}% sobre venta"
+        return f"{self.vendedor} - Entrega inicial como comisión"
+
+    def calcular_comision(self, venta):
+        """
+        Calcula el monto de comisión según el tipo de configuración
+        """
+        if self.tipo == 'PORCENTAJE_VENTA' and self.porcentaje:
+            return (venta.total * self.porcentaje) / 100
+        elif self.tipo == 'ENTREGA_INICIAL' and venta.condicion == '2':  # Solo para crédito
+            return venta.entrega_inicial
+        return Decimal('0.00')
+
+
+
+class ComisionVenta(models.Model):
+    """
+    Registro de comisiones generadas por ventas
+    """
+    ESTADO_CHOICES = [
+        ('PENDIENTE', 'Pendiente de pago'),
+        ('PARCIAL', 'Pago Parcial'),
+        ('PAGADA', 'Pagada'),
+        ('CANCELADA', 'Cancelada'),
+    ]
+    
+    venta = models.ForeignKey(
+        Venta,
+        on_delete=models.CASCADE,
+        related_name='comisiones'
+    )
+
+    notas_credito = models.ManyToManyField(
+        'NotaCredito',
+        through='ComisionNotaCredito',
+        related_name='comisiones_afectadas',
+        blank=True
+    )
+    vendedor = models.ForeignKey(
+        PerfilUsuario,
+        on_delete=models.PROTECT,
+        related_name='comisiones_ventas'
+    )
+    configuracion = models.ForeignKey(
+        ConfiguracionComision,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True
+    )
+    tipo = models.CharField(
+        max_length=20,
+        choices=ConfiguracionComision.TIPO_COMISION_CHOICES
+    )
+    monto = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0
+    )
+    monto_pagado = models.DecimalField(
+        max_digits=12, 
+        decimal_places=2, 
+        default=0, 
+        verbose_name="Monto Pagado"
+    )
+    estado = models.CharField(
+        max_length=20,
+        choices=ESTADO_CHOICES,
+        default='PENDIENTE'
+    )
+    fecha_pago = models.DateField(
+        null=True,
+        blank=True
+    )
+    notas = models.TextField(
+        blank=True,
+        help_text="Observaciones sobre esta comisión"
+    )
+    creado = models.DateTimeField(auto_now_add=True)
+    actualizado = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Comisión por Venta'
+        verbose_name_plural = 'Comisiones por Ventas'
+        ordering = ['-creado']
+
+    def __str__(self):
+        return f"Comisión {self.get_tipo_display()} - Venta {self.venta.numero}"
+
+    @classmethod
+    def generar_comisiones(cls, venta):
+        """
+        Genera las comisiones para una venta según la configuración del vendedor
+        """
+        if venta.estado != 'FINALIZADA':
+            return []
+        
+        configuraciones = ConfiguracionComision.objects.filter(
+            vendedor=venta.vendedor,
+            activo=True
+        )
+        
+        comisiones = []
+        for config in configuraciones:
+            monto = config.calcular_comision(venta)
+            if monto > 0:
+                comision = cls.objects.create(
+                    venta=venta,
+                    vendedor=venta.vendedor,
+                    configuracion=config,
+                    tipo=config.tipo,
+                    monto=monto
+                )
+                comisiones.append(comision)
+        
+        return comisiones
+    
+
+    def pagar(self, monto=None, fecha_pago=None):
+        """Marca la comisión como pagada o parcialmente pagada"""
+        if monto is None:
+            monto = self.monto - self.monto_pagado
+        
+        self.monto_pagado += monto
+        
+        if self.monto_pagado >= self.monto:
+            self.estado = 'PAGADA'
+            self.monto_pagado = self.monto  # Asegurar que no exceda
+        else:
+            self.estado = 'PARCIAL'
+            
+        self.fecha_pago = fecha_pago or timezone.now().date()
+        self.save()
+    
+    @property
+    def saldo_pendiente(self):
+        """Calcula el saldo pendiente de pago"""
+        return self.monto - self.monto_pagado
+
+    @transaction.atomic
+    def revertir_pago(self, usuario, motivo=""):
+        """Revierte un pago de comisión y registra el movimiento correspondiente en caja"""
+        if self.estado != 'PAGADA':
+            raise ValidationError("Solo se pueden revertir comisiones pagadas")
+        
+        # Buscar el movimiento de caja original
+        movimiento = MovimientoCaja.objects.filter(
+            comprobante__startswith=f"COM-{self.id}",
+            tipo='EGRESO'
+        ).order_by('-fecha').first()
+        
+        if not movimiento:
+            raise ValidationError("No se encontró el movimiento de caja asociado")
+        
+        with transaction.atomic():
+            # Generar timestamp único para el comprobante de reversión
+            timestamp = int(timezone.now().timestamp())
+            # Crear movimiento de entrada (reversión)
+            MovimientoCaja.objects.create(
+                caja=movimiento.caja,
+                tipo='INGRESO',  # Entrada porque estamos recuperando el dinero
+                monto=self.monto_pagado,
+                responsable=usuario,
+                descripcion=f"Reversión comisión venta {self.venta.numero}. Motivo: {motivo}",
+                comprobante=f"COM-REV-{self.id}-{timestamp}",  # Incluir timestamp único
+                
+            )
+            
+            # Actualizar estado de la comisión
+            self.estado = 'PENDIENTE'
+            self.monto_pagado = Decimal('0.00')
+            self.fecha_pago = None
+            self.notas = f"\n--- REVERSIÓN ---\nMotivo: {motivo}\nUsuario: {usuario}\nFecha: {timezone.now().strftime('%Y-%m-%d %H:%M')}\n\n{self.notas or ''}"
+            self.save()
 
 
 
 
 
+class ConfiguracionComisionCobrador(models.Model):
+    """Configuración de comisiones para cobradores"""
+    cobrador = models.ForeignKey(
+        PerfilUsuario, 
+        on_delete=models.CASCADE,
+        related_name='configuraciones_comision_cobrador',
+        limit_choices_to=Q(es_cobrador=True) | Q(usuario__is_staff=True)
+    )
+    porcentaje = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        verbose_name="Porcentaje de comisión"
+    )
+    activo = models.BooleanField(default=True)
+    creado = models.DateTimeField(auto_now_add=True)
+    actualizado = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        verbose_name = 'Configuración de Comisión para Cobrador'
+        verbose_name_plural = 'Configuraciones de Comisiones para Cobradores'
+        unique_together = ['cobrador', 'activo']
+
+    def __str__(self):
+        return f"{self.cobrador} - {self.porcentaje}% sobre cobros"
+
+    def calcular_comision(self, monto_cobrado):
+        """Calcula el monto de comisión según el porcentaje configurado"""
+        return (monto_cobrado * self.porcentaje) / 100
+
+
+class ComisionCobrador(models.Model):
+    """Registro de comisiones generadas por cobros realizados"""
+    ESTADO_CHOICES = [
+        ('PENDIENTE', 'Pendiente de pago'),
+        ('PARCIAL', 'Pago Parcial'),
+        ('PAGADA', 'Pagada'),
+        ('CANCELADA', 'Cancelada'),
+    ]
+    
+    pago = models.ForeignKey(
+        PagoCuota,
+        on_delete=models.CASCADE,
+        related_name='comisiones_cobrador'
+    )
+    cobrador = models.ForeignKey(
+        PerfilUsuario,
+        on_delete=models.PROTECT,
+        related_name='comisiones_cobros'
+    )
+    configuracion = models.ForeignKey(
+        ConfiguracionComisionCobrador,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True
+    )
+    monto = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0
+    )
+    monto_pagado = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0,
+        verbose_name="Monto Pagado"
+    )
+    estado = models.CharField(
+        max_length=20,
+        choices=ESTADO_CHOICES,
+        default='PENDIENTE'
+    )
+    fecha_pago = models.DateField(
+        null=True,
+        blank=True
+    )
+    notas = models.TextField(
+        blank=True,
+        help_text="Observaciones sobre esta comisión"
+    )
+    creado = models.DateTimeField(auto_now_add=True)
+    actualizado = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Comisión por Cobro'
+        verbose_name_plural = 'Comisiones por Cobros'
+        ordering = ['-creado']
+
+    def __str__(self):
+        return f"Comisión Cobro #{self.pago.id} - {self.get_estado_display()}"
+
+    # Modificar el método pagar para manejar pagos parciales
+    def pagar(self, monto, fecha_pago=None):
+        """Marca la comisión como pagada o parcialmente pagada"""
+        self.monto_pagado += monto
+        
+        if self.monto_pagado >= self.monto:
+            self.estado = 'PAGADA'
+            self.monto_pagado = self.monto  # Asegurar que no exceda
+        else:
+            self.estado = 'PARCIAL'
+            
+        self.fecha_pago = fecha_pago or timezone.now().date()
+        self.save()
+
+    @transaction.atomic
+    def revertir_pago(self, usuario, motivo=""):
+        """Revierte un pago de comisión"""
+        if self.estado != 'PAGADA':
+            raise ValidationError("Solo se pueden revertir comisiones pagadas")
+        
+        # Buscar el movimiento de caja original (usando startswith)
+        movimiento = MovimientoCaja.objects.filter(
+            comprobante__startswith=f"COM-COB-{self.id}-",
+            tipo='EGRESO'
+        ).order_by('-fecha').first()  # Tomar el más reciente
+        
+        if not movimiento:
+            raise ValidationError("No se encontró el movimiento de caja asociado")
+        
+        with transaction.atomic():
+            # Generar timestamp único para el comprobante de reversión
+            timestamp = int(timezone.now().timestamp())
+            # Crear movimiento de entrada (reversión)
+            MovimientoCaja.objects.create(
+                caja=movimiento.caja,
+                tipo='INGRESO',  # Entrada porque estamos recuperando el dinero
+                monto=self.monto,
+                responsable=usuario,
+                descripcion=f"Reversión comisión cobro {self.pago.id}. Motivo: {motivo}",
+                comprobante=f"COM-COB-REV-{self.id}-{timestamp}",  # Incluir timestamp único
+                fecha=timezone.now().date()  # Asegurar fecha actual
+            )
+            
+            # Actualizar estado de la comisión
+            self.estado = 'PENDIENTE'
+            self.fecha_pago = None
+            self.notas = f"\n--- REVERSIÓN ---\nMotivo: {motivo}\nUsuario: {usuario}\nFecha: {timezone.now().strftime('%Y-%m-%d %H:%M')}\n\n{self.notas or ''}"
+            self.save()
+
+
+#Sección de Notas de Créditos
+from decimal import Decimal, ROUND_HALF_UP
+
+def redondear_dos_decimales(valor):
+    """Redondea a 2 decimales, siempre devuelve un Decimal válido."""
+    if valor is None:
+        return Decimal('0.00')
+    return Decimal(str(valor)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+
+
+class NotaCredito(models.Model):
+    ESTADO_CHOICES = [
+        ('BORRADOR', 'Borrador'),
+        ('FINALIZADA', 'Finalizada'),
+        ('CANCELADA', 'Cancelada'),
+    ]
+
+    TIPO_NOTA = [
+        ('TOTAL', 'Cancelación total'),
+        ('PARCIAL', 'Devolución parcial'),
+    ]
+
+    venta = models.ForeignKey(Venta, on_delete=models.PROTECT, related_name='notas_credito')
+    numero = models.CharField(max_length=20, unique=True)
+    numero_documento = models.CharField(max_length=15, blank=True)
+    timbrado = models.ForeignKey(Timbrado, on_delete=models.PROTECT, null=True, blank=True)
+    tipo = models.CharField(max_length=10, choices=TIPO_NOTA, default='TOTAL')
+    fecha = models.DateTimeField(auto_now_add=True)
+    motivo = models.TextField()
+    subtotal = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    total = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='BORRADOR')
+    caja = models.ForeignKey('caja.Caja', on_delete=models.PROTECT, null=True, blank=True)
+    creado_por = models.ForeignKey(PerfilUsuario, on_delete=models.PROTECT)
+    notas = models.TextField(blank=True)
+
+    class Meta:
+        verbose_name = 'Nota de Crédito'
+        verbose_name_plural = 'Notas de Crédito'
+        ordering = ['-fecha']
+
+    def __str__(self):
+        return f"NC-{self.numero} (Venta: {self.venta.numero})"
+
+    @property
+    def punto_expedicion(self):
+        return self.caja.punto_expedicion if self.caja else None
+
+    @property
+    def secuencia_documento(self):
+        if not self.caja:
+            return None
+        return SecuenciaDocumento.objects.filter(
+            punto_expedicion=self.caja.punto_expedicion,
+            tipo_documento='NOTA_CREDITO'
+        ).first()
+
+    def generar_numero_documento(self):
+        if not self.numero_documento and self.secuencia_documento:
+            self.numero_documento = self.secuencia_documento.generar_numero()
+            self.save()
+        return self.numero_documento
+
+    @property
+    def formato_numero_documento(self):
+        if self.numero_documento:
+            return f"{self.punto_expedicion.get_codigo_completo()}-{self.numero_documento.split('-')[-1]}"
+        return "Número no generado"
+
+    @transaction.atomic
+    def finalizar(self):
+        if self.estado != 'BORRADOR':
+            raise ValidationError('Solo se pueden finalizar notas de crédito en estado Borrador')
+
+        if not self.caja or self.caja.estado != 'ABIERTA':
+            raise ValidationError('La caja debe estar abierta para registrar notas de crédito')
+
+        # Generar número de documento
+        self.generar_numero_documento()
+
+        # Registrar movimiento de caja (egreso por devolución)
+        MovimientoCaja.objects.create(
+            caja=self.caja,
+            tipo='EGRESO',
+            monto=redondear_dos_decimales(self.total),
+            responsable=self.creado_por,
+            descripcion=f"Nota de Crédito {self.numero} - Venta {self.venta.numero}",
+            comprobante=f"NC-{self.numero}",
+            nota_credito=self
+        )
+
+        # Revertir inventario
+        for detalle in self.detalles.all():
+            if detalle.detalle_venta.tipo == 'PRODUCTO':
+                MovimientoInventario.objects.create(
+                    producto=detalle.detalle_venta.producto,
+                    almacen=detalle.detalle_venta.almacen,
+                    cantidad=detalle.cantidad,
+                    tipo='ENTRADA',
+                    usuario=self.creado_por,
+                    motivo=f"Nota de Crédito {self.numero}"
+                )
+            elif detalle.detalle_venta.tipo == 'SERVICIO' and detalle.detalle_venta.servicio.tipo == 'COMPUESTO':
+                for componente in detalle.detalle_venta.servicio.componentes.all():
+                    cantidad_necesaria = componente.cantidad * detalle.cantidad
+                    MovimientoInventario.objects.create(
+                        producto=componente.producto,
+                        almacen=detalle.detalle_venta.almacen_servicio,
+                        cantidad=cantidad_necesaria,
+                        tipo='ENTRADA',
+                        usuario=self.creado_por,
+                        motivo=f"Nota de Crédito {self.numero} - Servicio {detalle.detalle_venta.servicio.nombre}"
+                    )
+
+        # Revertir comisiones
+        self.revertir_comisiones()
+
+        # Actualizar estado
+        self.estado = 'FINALIZADA'
+        self.save()
+
+    @transaction.atomic
+    def revertir_comisiones(self):
+        porcentaje_devolucion = Decimal('1.00')
+        if self.tipo == 'PARCIAL':
+            porcentaje_devolucion = self.total / self.venta.total
+
+        for comision in self.venta.comisiones.all():
+            monto_a_revertir = redondear_dos_decimales(comision.monto * porcentaje_devolucion)
+
+            if comision.estado == 'PAGADA':
+                timestamp = int(timezone.now().timestamp())
+                comprobante = f"COM-NC-REV-{comision.id}-{timestamp}"
+
+                MovimientoCaja.objects.create(
+                    caja=self.caja,
+                    tipo='INGRESO',
+                    monto=monto_a_revertir,
+                    responsable=self.creado_por,
+                    descripcion=f"Reversión comisión por NC {self.numero} - Venta {self.venta.numero}",
+                    comprobante=comprobante
+                )
+
+                if self.tipo == 'TOTAL':
+                    comision.estado = 'CANCELADA'
+                    comision.monto_pagado = Decimal('0.00')
+                else:
+                    comision.monto_pagado = max(comision.monto_pagado - monto_a_revertir, Decimal('0.00'))
+                    comision.estado = 'PARCIAL' if comision.monto_pagado > 0 else 'PENDIENTE'
+
+                comision.notas = f"\n--- REVERSIÓN POR NC {self.numero} ---\nMonto revertido: Gs. {monto_a_revertir:,.2f}\n\n{comision.notas or ''}"
+                comision.save()
+
+            elif comision.estado in ['PENDIENTE', 'PARCIAL']:
+                if self.tipo == 'TOTAL':
+                    comision.estado = 'CANCELADA'
+                    comision.monto = Decimal('0.00')
+                else:
+                    comision.monto = max(comision.monto - monto_a_revertir, Decimal('0.00'))
+                    if comision.monto <= 0:
+                        comision.estado = 'CANCELADA'
+
+                comision.notas = f"\n--- AJUSTE POR NC {self.numero} ---\nMonto reducido: Gs. {monto_a_revertir:,.2f}\n\n{comision.notas or ''}"
+                comision.save()
+
+    @transaction.atomic
+    def revertir_reversion_comisiones(self, usuario):
+        for comision in self.venta.comisiones.all():
+            movimientos_reversion = MovimientoCaja.objects.filter(
+                comprobante__startswith=f"COM-NC-REV-{comision.id}-",
+                tipo='INGRESO'
+            )
+            if movimientos_reversion.exists():
+                total_revertido = redondear_dos_decimales(sum(m.monto for m in movimientos_reversion))
+                timestamp = int(timezone.now().timestamp())
+                comprobante = f"COM-NC-CANC-{comision.id}-{timestamp}"
+
+                MovimientoCaja.objects.create(
+                    caja=self.caja,
+                    tipo='EGRESO',
+                    monto=total_revertido,
+                    responsable=usuario,
+                    descripcion=f"Cancelación reversión comisión por NC {self.numero}",
+                    comprobante=comprobante
+                )
+
+                if self.tipo == 'TOTAL':
+                    comision.estado = 'PAGADA'
+                    comision.monto_pagado = comision.monto
+                else:
+                    comision.monto_pagado += total_revertido
+                    comision.estado = 'PAGADA' if comision.monto_pagado >= comision.monto else 'PARCIAL'
+
+            comision.notas = f"\n--- CANCELACIÓN NC {self.numero} ---\nReversión de comisión revertida\n\n{comision.notas or ''}"
+            comision.save()
+
+    @transaction.atomic
+    def cancelar(self, usuario):
+        if self.estado != 'FINALIZADA':
+            raise ValidationError('Solo se pueden cancelar notas de crédito finalizadas')
+
+        movimiento_caja = MovimientoCaja.objects.filter(nota_credito=self).first()
+        if movimiento_caja:
+            MovimientoCaja.objects.create(
+                caja=movimiento_caja.caja,
+                tipo='INGRESO',
+                monto=redondear_dos_decimales(movimiento_caja.monto),
+                responsable=usuario,
+                descripcion=f"Cancelación Nota de Crédito {self.numero}",
+                comprobante=f"CNC-{self.numero}"
+            )
+
+        # Revertir inventario
+        movimientos_inventario = MovimientoInventario.objects.filter(
+            motivo=f"Nota de Crédito {self.numero}"
+        )
+        for movimiento in movimientos_inventario:
+            MovimientoInventario.objects.create(
+                producto=movimiento.producto,
+                almacen=movimiento.almacen,
+                cantidad=movimiento.cantidad,
+                tipo='SALIDA',
+                usuario=usuario,
+                motivo=f"Cancelación Nota de Crédito {self.numero}"
+            )
+
+        self.revertir_reversion_comisiones(usuario)
+
+        self.estado = 'CANCELADA'
+        self.save()
+
+
+class DetalleNotaCredito(models.Model):
+    nota_credito = models.ForeignKey(NotaCredito, on_delete=models.CASCADE, related_name='detalles')
+    detalle_venta = models.ForeignKey(DetalleVenta, on_delete=models.PROTECT)
+    cantidad = models.DecimalField(max_digits=12, decimal_places=3)
+    precio_unitario = models.DecimalField(max_digits=12, decimal_places=2)
+    subtotal = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+
+    class Meta:
+        verbose_name = 'Detalle de Nota de Crédito'
+        verbose_name_plural = 'Detalles de Notas de Crédito'
+
+    def clean(self):
+        if self.cantidad <= 0:
+            raise ValidationError("La cantidad debe ser mayor a cero")
+        if self.cantidad > self.detalle_venta.cantidad:
+            raise ValidationError("La cantidad no puede ser mayor a la originalmente vendida")
+        # Redondeo seguro
+        self.cantidad = Decimal(str(self.cantidad)).quantize(Decimal('0.001'))
+        self.precio_unitario = redondear_dos_decimales(self.precio_unitario)
+
+    def save(self, *args, **kwargs):
+        if self.cantidad:
+            self.cantidad = Decimal(str(self.cantidad)).quantize(Decimal('0.001'))
+        if self.precio_unitario:
+            self.precio_unitario = redondear_dos_decimales(self.precio_unitario)
+        # calcular subtotal seguro
+        self.subtotal = redondear_dos_decimales(self.cantidad * self.precio_unitario)
+        super().save(*args, **kwargs)
+
+
+class ComisionNotaCredito(models.Model):
+    comision = models.ForeignKey(ComisionVenta, on_delete=models.CASCADE)
+    nota_credito = models.ForeignKey(NotaCredito, on_delete=models.CASCADE)
+    monto_revertido = models.DecimalField(max_digits=12, decimal_places=2)
+    fecha = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ['comision', 'nota_credito']

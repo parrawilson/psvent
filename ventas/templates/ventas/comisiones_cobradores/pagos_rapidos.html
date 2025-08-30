@@ -1,0 +1,309 @@
+{% extends 'base.html' %}
+{% load form_filters %}
+{% load filtros_paraguay %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+  <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+    <!-- Encabezado -->
+    <div class="px-4 py-5 sm:px-6 bg-gray-50 border-b border-gray-200">
+      <h1 class="text-lg leading-6 font-semibold text-gray-900">
+        {{ titulo }}
+      </h1>
+    </div>
+    
+    <div class="px-4 py-5 sm:p-6">
+      <!-- Búsqueda de cobrador -->
+      <div class="mb-6 bg-blue-50 rounded-md p-4 border border-blue-100">
+        <h3 class="text-sm font-medium text-blue-800 mb-3">Buscar Cobrador</h3>
+        <form method="get" class="flex items-center space-x-2">
+          {{ buscar_form.q|add_attrs:"class=w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500" }}
+          <button type="submit" name="buscar_cobrador" 
+                  class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            <i class="fas fa-search mr-2"></i> Buscar
+          </button>
+        </form>
+      </div>
+      
+      {% if cobrador %}
+      <!-- Información del cobrador -->
+      <div class="mb-6 bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+        <div class="px-4 py-5 sm:px-6 bg-gray-50 border-b border-gray-200">
+          <h3 class="text-lg font-medium leading-6 text-gray-900">Información del Cobrador</h3>
+        </div>
+        
+        <div class="px-4 py-5 sm:p-6">
+          <div class="flex flex-col md:flex-row gap-6">
+            <!-- Columna izquierda - Datos personales -->
+            <div class="md:w-2/3 space-y-4">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <p class="text-sm font-medium text-gray-500">Nombre completo</p>
+                  <p class="mt-1 text-sm text-gray-900">
+                    {{ cobrador.usuario.get_full_name|default:"No especificado" }}
+                  </p>
+                </div>
+                
+                <div>
+                  <p class="text-sm font-medium text-gray-500">Nombre de usuario</p>
+                  <p class="mt-1 text-sm text-gray-900">
+                    {{ cobrador.usuario.username }}
+                  </p>
+                </div>
+                
+                <div>
+                  <p class="text-sm font-medium text-gray-500">Documento</p>
+                  <p class="mt-1 text-sm text-gray-900">
+                    {{ cobrador.tipo_doc }}: {{ cobrador.cedula|default:"No especificado" }}
+                  </p>
+                </div>
+                
+                <div>
+                  <p class="text-sm font-medium text-gray-500">Teléfono</p>
+                  <p class="mt-1 text-sm text-gray-900">
+                    {{ cobrador.telefono|default:"No especificado" }}
+                  </p>
+                </div>
+              </div>
+              
+              <div>
+                <p class="text-sm font-medium text-gray-500">Dirección</p>
+                <p class="mt-1 text-sm text-gray-900">
+                  {{ cobrador.direccion|default:"No especificado"|truncatechars:50 }}
+                </p>
+              </div>
+            </div>
+            
+            <!-- Columna derecha - Estadísticas y avatar -->
+            <div class="md:w-1/3 border-l border-gray-200 pl-6">
+              <div class="flex flex-col items-center">
+                <!-- Avatar/Icono -->
+                <div class="mb-4 p-3 bg-blue-50 rounded-full">
+                  <i class="fas fa-user-tie fa-3x text-blue-400"></i>
+                </div>
+                
+                <!-- Estadísticas -->
+                <div class="w-full space-y-3">
+                  <div class="bg-gray-50 p-3 rounded-lg">
+                    <p class="text-xs font-medium text-gray-500">Comisiones pendientes</p>
+                    <p class="text-xl font-semibold text-gray-900">
+                      {{ comisiones|length }}
+                    </p>
+                  </div>
+                  
+                  <div class="bg-gray-50 p-3 rounded-lg">
+                    <p class="text-xs font-medium text-gray-500">Total a pagar</p>
+                    <p class="text-xl font-semibold text-green-600">
+                      Gs. {{ comisiones|sum_attr:'monto'|pyg_intcomma }}
+                    </p>
+                  </div>
+                  
+                  <div class="bg-gray-50 p-3 rounded-lg">
+                    <p class="text-xs font-medium text-gray-500">Estado</p>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                      Activo
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Pie con acciones rápidas -->
+        <div class="px-4 py-3 bg-gray-50 border-t border-gray-200 text-right">
+          <a href="#" class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            <i class="fas fa-eye mr-1"></i> Ver perfil completo
+          </a>
+          <a href="#" class="ml-2 inline-flex items-center px-3 py-1 border border-gray-300 text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            <i class="fas fa-envelope mr-1"></i> Contactar
+          </a>
+        </div>
+      </div>
+        
+      <!-- Formulario de pagos -->
+      <form method="post" id="form-pagos">
+        {% csrf_token %}
+        
+        <!-- Configuración común -->
+        <div class="mb-6 bg-green-50 rounded-md p-4 border border-green-200">
+          <h3 class="text-sm font-medium text-green-800 mb-3">Configuración de Pagos</h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">{{ configuracion_form.fecha_pago.label }}</label>
+              {{ configuracion_form.fecha_pago|add_attrs:"class=w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-500" }}
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">{{ configuracion_form.tipo_pago.label }}</label>
+              {{ configuracion_form.tipo_pago|add_attrs:"class=w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-500" }}
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">{{ configuracion_form.caja.label }}</label>
+              {{ configuracion_form.caja|add_attrs:"class=w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-500" }}
+            </div>
+          </div>
+          <div class="mt-4">
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{ configuracion_form.notas.label }}</label>
+            {{ configuracion_form.notas|add_attrs:"class=w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-500" }}
+          </div>
+        </div>
+        
+        <!-- Lista de comisiones -->
+        <div class="mb-6">
+          <h3 class="text-sm font-medium text-gray-800 mb-3">Comisiones Pendientes</h3>
+          
+          {% if forms_pago %}
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID Comisión</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pago Asociado</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Venta</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Monto Total</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pagado</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Saldo</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Monto a Pagar</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                  {% for comision, form in forms_pago %}
+                  {% with saldo=comision.monto|sub:comision.monto_pagado %}
+                  <tr>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ comision.id }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Pago #{{ comision.pago.id }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ comision.pago.cuenta.venta.numero }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Gs. {{ comision.monto|pyg_intcomma }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Gs. {{ comision.monto_pagado|pyg_intcomma }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium {% if saldo > 0 %}text-red-600{% else %}text-green-600{% endif %}">
+                      Gs. {{ saldo|pyg_intcomma }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="w-40">  <!-- Contenedor con ancho fijo -->
+                        {{ form.monto|add_attrs:"class=w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-500" }}
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                      <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                        {% if comision.estado == 'PAGADA' %}bg-green-100 text-green-800
+                        {% elif comision.estado == 'PARCIAL' %}bg-yellow-100 text-yellow-800
+                        {% else %}bg-red-100 text-red-800{% endif %}">
+                        {{ comision.get_estado_display }}
+                      </span>
+                    </td>
+                  </tr>
+                  {% endwith %}
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <div class="rounded-md bg-yellow-50 p-4 border border-yellow-100">
+              <div class="flex">
+                <div class="flex-shrink-0">
+                  <i class="fas fa-info-circle text-yellow-400"></i>
+                </div>
+                <div class="ml-3">
+                  <h3 class="text-sm font-medium text-yellow-800">No hay comisiones pendientes</h3>
+                </div>
+              </div>
+            </div>
+          {% endif %}
+        </div>
+        
+        <!-- Botones -->
+        <div class="pt-4 flex justify-end space-x-3 border-t border-gray-200">
+          <a href="{% url 'ventas:pagos_rapidos_comisiones_cobradores' %}" 
+             class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            <i class="fas fa-times-circle mr-2"></i> Cancelar
+          </a>
+          {% if forms_pago %}
+          <button type="submit" name="registrar_pagos"
+                  class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+            <i class="fas fa-check-circle mr-2"></i> Registrar Pagos
+          </button>
+          {% endif %}
+        </div>
+      </form>
+      {% endif %}
+      
+      <!-- Resultados de pagos -->
+      {% if pagos_realizados %}
+        <div class="mt-8">
+          <h3 class="text-lg font-medium text-gray-900 mb-3">Pagos Registrados</h3>
+          <div class="bg-green-50 rounded-md p-4 border border-green-200 mb-4">
+            <p class="text-sm font-medium text-green-800">
+              Se registraron {{ pagos_realizados|length }} pagos por un total de <span class="font-bold">Gs. {{ total_pagado|pyg_intcomma }}</span>
+            </p>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID Comisión</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Monto Pagado</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Saldo Anterior</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nuevo Saldo</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                {% for pago in pagos_realizados %}
+                <tr>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ pago.comision.id }}</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">Gs. {{ pago.monto|pyg_intcomma }}</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Gs. {{ pago.saldo_anterior|pyg_intcomma }}</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium {% if pago.nuevo_saldo > 0 %}text-red-600{% else %}text-green-600{% endif %}">
+                    Gs. {{ pago.nuevo_saldo|pyg_intcomma }}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ pago.comision.fecha_pago|date:"d/m/Y" }}</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm">
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                      {% if pago.comision.estado == 'PAGADA' %}bg-green-100 text-green-800
+                      {% elif pago.comision.estado == 'PARCIAL' %}bg-yellow-100 text-yellow-800
+                      {% else %}bg-red-100 text-red-800{% endif %}">
+                      {{ pago.comision.get_estado_display }}
+                    </span>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('form-pagos');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            let hasPayment = false;
+            const inputs = form.querySelectorAll('input[type="number"]');
+            inputs.forEach(input => {
+                if (parseFloat(input.value) > 0) {
+                    hasPayment = true;
+                }
+            });
+            if (!hasPayment) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Atención',
+                    text: 'Debe ingresar al menos un pago con monto mayor a cero',
+                    confirmButtonText: 'Aceptar'
+                });
+                return false;
+            }
+            return true;
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -5,6 +5,7 @@
 {% block content %}
 <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
   <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+    <!-- Encabezado -->
     <div class="px-4 py-5 sm:px-6 bg-gray-50 border-b border-gray-200">
       <h1 class="text-lg leading-6 font-semibold text-gray-900">
         {{ titulo }}
@@ -33,6 +34,7 @@
       </div>
       
       {% if cuenta.estado == 'PAGADA' %}
+        <!-- Aviso cuenta pagada -->
         <div class="rounded-md bg-green-50 p-4 mb-6 border border-green-100">
           <div class="flex">
             <div class="flex-shrink-0">
@@ -48,7 +50,7 @@
         </div>
       {% else %}
         <!-- Formulario de pago -->
-        <form method="post">
+        <form method="post" class="space-y-6">
           {% csrf_token %}
           
           <div class="space-y-4">
@@ -58,7 +60,8 @@
                 {{ field.label }}
                 {% if field.field.required %}<span class="text-red-500">*</span>{% endif %}
               </label>
-              {{ field|add_class:"block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" }}
+              {{ field|add_class:"block w-full rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:bg-white transition-colors duration-200" }}
+              
               {% if field.errors %}
               <p class="mt-1 text-sm text-red-600">{{ field.errors.0 }}</p>
               {% endif %}
@@ -69,7 +72,7 @@
             {% endfor %}
           </div>
           
-          <div class="mt-6 flex justify-end space-x-3">
+          <div class="pt-4 flex justify-end space-x-3 border-t border-gray-200">
             <a href="{% url 'ventas:detalle_cuenta' cuenta.id %}" 
                class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
               <i class="fas fa-times-circle mr-2"></i> Cancelar

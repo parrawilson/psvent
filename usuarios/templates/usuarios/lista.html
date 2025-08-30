@@ -23,43 +23,69 @@
       <thead class="bg-gray-50 text-left text-gray-700">
         <tr>
           <th class="px-4 py-3">Usuario</th>
-          <th class="px-4 py-3">Cedula</th>
+          <th class="px-4 py-3">Nombre</th>
+          <th class="px-4 py-3">Documento</th>
           <th class="px-4 py-3">Teléfono</th>
-          <th class="px-4 py-3">Dirección</th>
           <th class="px-4 py-3">Tipo</th>
-          <th class="px-4 py-3">Perfil</th>
           <th class="px-4 py-3 text-center">Acciones</th>
         </tr>
       </thead>
 
-
       <tbody class="divide-y divide-gray-200">
-    {% for usuario in usuarios %}
-    <tr id="usuario-{{ usuario.id }}" class="hover:bg-gray-50">
-      <td class="px-4 py-3">{{ usuario.usuario }}</td>
-      <td class="px-4 py-3 font-mono">{{ usuario.cedula }}</td>
-      <td class="px-4 py-3 whitespace-nowrap">{{ usuario.telefono }}</td>
-      <td class="px-4 py-3 whitespace-nowrap">{{ usuario.direccion }}</td>
-      <td class="px-4 py-3 whitespace-nowrap">{{ usuario.tipo_usuario }}</td>
-      <td class="px-4 py-3 whitespace-nowrap">{{ usuario.foto_perfil }}</td>
-      <td class="px-4 py-3">
-        <div class="flex flex-wrap justify-center gap-2">
-          <a href="{% url 'editar_usuario' usuario.id %}"
-            class="inline-flex items-center px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-xs font-medium transition duration-200">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
-            Editar
-          </a>
-        </div>
-      </td>
-    </tr>
-    {% endfor %}
-  </tbody>
-
-
-
+        {% for perfil in usuarios %}
+        <tr id="usuario-{{ perfil.usuario.id }}" class="hover:bg-gray-50">
+          <td class="px-4 py-3">
+            <div class="flex items-center">
+              {% if perfil.foto_perfil %}
+                <img src="{{ perfil.foto_perfil.url }}" alt="Foto de perfil" class="h-8 w-8 rounded-full object-cover mr-2">
+              {% else %}
+                <div class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center mr-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                </div>
+              {% endif %}
+              <span>{{ perfil.usuario.username }}</span>
+            </div>
+          </td>
+          <td class="px-4 py-3">
+            {{ perfil.usuario.get_full_name|default:"-" }}
+          </td>
+          <td class="px-4 py-3 font-mono">
+            {{ perfil.get_tipo_doc_display }}: {{ perfil.cedula|default:"-" }}
+          </td>
+          <td class="px-4 py-3">{{ perfil.telefono|default:"-" }}</td>
+          <td class="px-4 py-3">
+            <span class="px-2 py-1 text-xs rounded-full 
+              {% if perfil.tipo_usuario == 'ADMIN' %}bg-purple-100 text-purple-800
+              {% elif perfil.tipo_usuario == 'VENDEDOR' %}bg-blue-100 text-blue-800
+              {% elif perfil.tipo_usuario == 'COBRADOR' %}bg-green-100 text-green-800
+              {% else %}bg-gray-100 text-gray-800{% endif %}">
+              {{ perfil.get_tipo_usuario_display }}
+            </span>
+          </td>
+          <td class="px-4 py-3">
+            <div class="flex flex-wrap justify-center gap-2">
+              <a href="{% url 'editar_usuario' perfil.usuario.id %}"
+                class="inline-flex items-center px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-xs font-medium transition duration-200">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                Editar
+              </a>
+              <button data-id="{{ perfil.usuario.id }}" 
+                class="btn-eliminar inline-flex items-center px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-md text-xs font-medium transition duration-200">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                Eliminar
+              </button>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
     </table>
   </div>
 </div>
@@ -67,7 +93,6 @@
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
-<script src="https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
@@ -88,6 +113,7 @@
 
     $(document).on('click', '.btn-eliminar', function () {
       const usuarioId = $(this).data('id');
+      const csrfToken = $('input[name="csrfmiddlewaretoken"]').val();
       
       Swal.fire({
         title: '¿Eliminar usuario?',
@@ -101,10 +127,10 @@
       }).then((result) => {
         if (result.isConfirmed) {
           $.ajax({
-            url: `/almacen/usuarios/eliminar/${usuarioId}/`,
+            url: `/usuarios/eliminar/${usuarioId}/`,  // Asegúrate que esta ruta coincida con tu urls.py
             method: 'POST',
             headers: {
-              'X-CSRFToken': '{{ csrf_token }}'
+              'X-CSRFToken': csrfToken
             },
             beforeSend: function() {
               Swal.fire({
@@ -121,8 +147,8 @@
                 const fila = $(`#usuario-${usuarioId}`);
                 tabla.row(fila).remove().draw();
                 Swal.fire(
-                  'Eliminada!',
-                  'La usuario ha sido eliminada.',
+                  'Eliminado!',
+                  'El usuario ha sido eliminado.',
                   'success'
                 );
               } else {

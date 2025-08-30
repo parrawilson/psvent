@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto py-10 px-6">
+  <!-- Título principal -->
+  <div class="text-center mb-8">
+    <h1 class="text-3xl font-bold text-blue-600">
+      <i class="fa-solid fa-hand-holding-dollar mr-2"></i> Cuentas por Cobrar
+    </h1>
+    <p class="text-gray-500 mt-2">Administra tus cuentas pendientes y pagos de clientes</p>
+  </div>
+
+  <!-- Menú principal -->
+  <div class="mt-12">
+    <div class="text-center mb-6">
+      <h2 class="text-2xl font-bold text-purple-600">
+        <i class="fa-solid fa-file-invoice-dollar mr-2"></i> Gestión de Cobros
+      </h2>
+      <p class="text-gray-500 text-sm mt-1">Consulta los saldos pendientes y los pagos recibidos</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Cuentas por Cobrar -->
+      <a href="{% url 'ventas:lista_cuentas_por_cobrar' %}" 
+         class="block bg-white rounded-xl shadow-md p-5 hover:shadow-lg transition hover:-translate-y-1 border-l-4 border-red-400">
+        <div class="flex items-center space-x-4">
+          <div class="text-red-500 text-3xl">
+            <i class="fa-solid fa-money-bill-wave"></i>
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold text-gray-800">Cuentas por Cobrar</h3>
+            <p class="text-sm text-gray-500">Ver facturas pendientes de cobro</p>
+          </div>
+        </div>
+      </a>
+
+      <!-- Pagos Recibidos -->
+      <a href="{% url 'ventas:lista_pagos' %}" 
+         class="block bg-white rounded-xl shadow-md p-5 hover:shadow-lg transition hover:-translate-y-1 border-l-4 border-green-400">
+        <div class="flex items-center space-x-4">
+          <div class="text-green-500 text-3xl">
+            <i class="fa-solid fa-cash-register"></i>
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold text-gray-800">Pagos Recibidos</h3>
+            <p class="text-sm text-gray-500">Consultar pagos registrados de clientes</p>
+          </div>
+        </div>
+      </a>
+
+      <!-- Cobros Rápidos -->
+      <a href="{% url 'ventas:cobros_rapidos' %}" 
+         class="block bg-white rounded-xl shadow-md p-5 hover:shadow-lg transition hover:-translate-y-1 border-l-4 border-blue-400">
+        <div class="flex items-center space-x-4">
+          <div class="text-blue-500 text-3xl">
+            <i class="fa-solid fa-bolt"></i>
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold text-gray-800">Cobros Rápidos</h3>
+            <p class="text-sm text-gray-500">Registrar cobros de forma ágil</p>
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Iconos -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+
+<style>
+  .transition {
+    transition: all 0.3s ease;
+  }
+  .hover\:-translate-y-1:hover {
+    transform: translateY(-4px);
+  }
+</style>
+{% endblock %}
+

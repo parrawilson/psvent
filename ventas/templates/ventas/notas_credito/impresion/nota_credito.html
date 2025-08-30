@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Nota de Crédito {{ nota_credito.numero }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 1cm;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #000;
+            padding-bottom: 10px;
+        }
+        .logo {
+            max-width: 150px;
+            max-height: 80px;
+        }
+        .company-info {
+            text-align: center;
+            flex-grow: 1;
+        }
+        .document-info {
+            text-align: right;
+        }
+        h1 {
+            text-align: center;
+            font-size: 16px;
+            margin: 20px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 5px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .totals {
+            margin-top: 20px;
+            float: right;
+            width: 300px;
+        }
+        .signatures {
+            margin-top: 100px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .signature-line {
+            border-top: 1px solid #000;
+            width: 200px;
+            text-align: center;
+            padding-top: 5px;
+        }
+        .footer {
+            margin-top: 50px;
+            font-size: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        {% if logo_path %}
+        <div class="logo-container">
+            <img src="{{ logo_path }}" class="logo" alt="Logo">
+        </div>
+        {% endif %}
+        <div class="company-info">
+            <h2>{{ empresa.razon_social }}</h2>
+            <p>{{ empresa.direccion }}</p>
+            <p>Tel: {{ empresa.telefono }} | RUC: {{ empresa.ruc }}</p>
+        </div>
+        <div class="document-info">
+            <h3>NOTA DE CRÉDITO</h3>
+            <p><strong>Número:</strong> {{ numero_documento_completo }}</p>
+            <p><strong>Fecha:</strong> {{ nota_credito.fecha|date:"d/m/Y" }}</p>
+            {% if nota_credito.timbrado %}
+            <p><strong>Timbrado:</strong> {{ nota_credito.timbrado.numero }}</p>
+            <p>Válido hasta: {{ nota_credito.timbrado.fecha_fin|date:"d/m/Y" }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <h1>NOTA DE CRÉDITO</h1>
+
+    <div class="client-info">
+        <p><strong>Cliente:</strong> {{ nota_credito.venta.cliente.nombre_completo|default:"Consumidor Final" }}</p>
+        <p><strong>Documento:</strong> {{ nota_credito.venta.cliente.tipo_documento }}: {{ nota_credito.venta.cliente.numero_documento }}</p>
+        <p><strong>Dirección:</strong> {{ nota_credito.venta.cliente.direccion|default:"No especificada" }}</p>
+        <p><strong>Venta asociada:</strong> {{ nota_credito.venta.numero }} del {{ nota_credito.venta.fecha|date:"d/m/Y" }}</p>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Código</th>
+                <th>Descripción</th>
+                <th>Cantidad</th>
+                <th>Precio Unitario</th>
+                <th>Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for detalle in nota_credito.detalles.all %}
+            <tr>
+                <td>
+                    {% if detalle.detalle_venta.producto %}
+                        {{ detalle.detalle_venta.producto.codigo }}
+                    {% else %}
+                        {{ detalle.detalle_venta.servicio.codigo }}
+                    {% endif %}
+                </td>
+                <td>
+                    {% if detalle.detalle_venta.producto %}
+                        {{ detalle.detalle_venta.producto.nombre }}
+                    {% else %}
+                        {{ detalle.detalle_venta.servicio.nombre }}
+                    {% endif %}
+                </td>
+                <td>{{ detalle.cantidad }}</td>
+                <td>Gs. {{ detalle.precio_unitario|floatformat:2 }}</td>
+                <td>Gs. {{ detalle.subtotal|floatformat:2 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="totals">
+        <p><strong>Subtotal:</strong> Gs. {{ nota_credito.subtotal|floatformat:2 }}</p>
+        <p><strong>Total:</strong> Gs. {{ nota_credito.total|floatformat:2 }}</p>
+    </div>
+
+    <div class="motivo">
+        <p><strong>Motivo:</strong></p>
+        <p>{{ nota_credito.motivo }}</p>
+    </div>
+
+    <div class="signatures">
+        <div class="signature-line">
+            <p>Firma Cliente</p>
+        </div>
+        <div class="signature-line">
+            <p>Firma Responsable</p>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Documento generado el {{ fecha_impresion }}</p>
+        <p>{{ empresa.razon_social }} - {{ empresa.ruc }}</p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">{{ titulo }}</h1>
+        <a href="{% url 'ventas:configurar_comisiones' %}" 
+           class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+                 xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path>
+            </svg>
+            Nueva Configuración
+        </a>
+    </div>
+
+    <!-- Filtros -->
+    <div class="bg-white p-4 rounded-lg shadow-md mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Vendedor</label>
+                <select id="filtroVendedor" class="w-full px-3 py-2 border rounded-lg">
+                    <option value="">Todos los vendedores</option>
+                    {% for v in vendedores %}
+                    <option value="{{ v.id }}" {% if request.GET.vendedor == v.id|stringformat:"s" %}selected{% endif %}>
+                        {{ v }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
+                <select id="filtroTipo" class="w-full px-3 py-2 border rounded-lg">
+                    <option value="">Todos los tipos</option>
+                    {% for tipo, nombre in tipos_comision %}
+                    <option value="{{ tipo }}" {% if request.GET.tipo == tipo %}selected{% endif %}>
+                        {{ nombre }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="flex items-end">
+                <button id="btnFiltrar" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                    Filtrar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla -->
+    <div class="bg-white rounded-lg shadow-md overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vendedor</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for config in configuraciones %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap">{{ config.vendedor }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ config.get_tipo_display }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        {% if config.tipo == 'FIJO' %}
+                            Gs. {{ config.monto_fijo|floatformat:2 }}
+                        {% else %}
+                            {{ config.porcentaje|floatformat:2 }}%
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="inline-block px-2 py-1 text-xs font-semibold rounded-full 
+                            {% if config.activo %}bg-green-100 text-green-800
+                            {% else %}bg-gray-200 text-gray-700{% endif %}">
+                            {{ config.get_activo_display }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap flex space-x-2">
+                        <a href="#" class="text-blue-600 hover:text-blue-800" title="Editar">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
+                                 viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                      d="M11 5h2M12 7v10m9-5a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </a>
+                        <form method="post" action="#" class="inline" 
+                              onsubmit="return confirm('¿Desactivar esta configuración?')">
+                            {% csrf_token %}
+                            <button type="submit" class="text-red-600 hover:text-red-800" title="Desactivar">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
+                                     viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                          d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="px-6 py-4 text-center text-gray-500">
+                        No hay configuraciones registradas
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const btn = document.getElementById('btnFiltrar');
+    btn.addEventListener('click', function () {
+        const params = new URLSearchParams();
+        const vendedor = document.getElementById('filtroVendedor').value;
+        const tipo = document.getElementById('filtroTipo').value;
+
+        if (vendedor) params.append('vendedor', vendedor);
+        if (tipo) params.append('tipo', tipo);
+
+        window.location.search = params.toString();
+    });
+});
+</script>
+{% endblock %}

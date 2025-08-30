@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load form_filters %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto py-10 px-6">
+  <!-- Título del formulario -->
+  <div class="text-center mb-8">
+    <h1 class="text-3xl font-bold text-blue-600">
+      <i class="fa-solid fa-user-tie mr-2"></i> 
+      {% if modo == 'editar' %}Editar{% else %}Nueva{% endif %} Configuración de Comisión
+    </h1>
+    <p class="text-gray-500 mt-2">
+      {% if modo == 'editar' %}
+        Actualice el porcentaje de comisión para {{ configuracion.cobrador }}
+      {% else %}
+        Defina el porcentaje de comisión sobre cobros realizados
+      {% endif %}
+    </p>
+  </div>
+
+  <!-- Formulario -->
+  <div class="bg-white rounded-xl shadow-md p-6">
+    <form method="post" class="space-y-6">
+      {% csrf_token %}
+      
+      <!-- Mensajes -->
+      {% if messages %}
+        {% for message in messages %}
+        <div class="mb-4 p-4 text-sm rounded-lg {% if message.tags == 'error' %}bg-red-50 text-red-800{% else %}bg-green-50 text-green-800{% endif %}">
+          {{ message }}
+        </div>
+        {% endfor %}
+      {% endif %}
+
+      <!-- Errores generales -->
+      {% if form.non_field_errors %}
+      <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
+        <p class="text-sm text-red-700">
+          {% for error in form.non_field_errors %}
+            {{ error }}<br>
+          {% endfor %}
+        </p>
+      </div>
+      {% endif %}
+
+      <!-- Campo Cobrador -->
+      <div>
+        <label for="{{ form.cobrador.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+          Cobrador *
+        </label>
+        {{ form.cobrador|add_attrs:"class=w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500" }}
+        {% if form.cobrador.errors %}
+        <p class="mt-1 text-sm text-red-600">
+          {% for error in form.cobrador.errors %}
+            {{ error }}<br>
+          {% endfor %}
+        </p>
+        {% endif %}
+      </div>
+
+      <!-- Campo Porcentaje -->
+      <div>
+        <label for="{{ form.porcentaje.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+          Porcentaje de comisión *
+        </label>
+        <div class="mt-1 relative rounded-md shadow-sm">
+          {{ form.porcentaje|add_attrs:"class=w-full px-3 py-2 border rounded-lg pr-10 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500" }}
+          <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+            <span class="text-gray-500 sm:text-sm">%</span>
+          </div>
+        </div>
+        {% if form.porcentaje.errors %}
+        <p class="mt-1 text-sm text-red-600">
+          {% for error in form.porcentaje.errors %}
+            {{ error }}<br>
+          {% endfor %}
+        </p>
+        {% endif %}
+        <p class="mt-1 text-sm text-gray-500">
+          Porcentaje que recibirá el cobrador sobre cada pago que registre
+        </p>
+      </div>
+
+      <!-- Estado -->
+      <div class="flex items-start">
+        <div class="flex items-center h-5">
+          {{ form.activo|add_attrs:"class=h-4 w-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500" }}
+        </div>
+        <div class="ml-3 text-sm">
+          <label for="{{ form.activo.id_for_label }}" class="font-medium text-gray-700">Activo</label>
+          <p class="text-gray-500">Desmarque para desactivar esta configuración</p>
+        </div>
+      </div>
+
+      <!-- Botones -->
+      <div class="flex justify-end space-x-4 pt-6">
+        <a href="{% if modo == 'editar' %}{% url 'ventas:lista_configurar_comisiones_cobradores' %}{% else %}{% url 'ventas:configurar_comisiones_cobradores' %}{% endif %}" 
+           class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
+          Cancelar
+        </a>
+        <button type="submit" 
+                class="inline-flex items-center px-4 py-2 text-sm text-white bg-blue-600 hover:bg-blue-700 rounded-lg">
+          <i class="fa-solid fa-save mr-2"></i> 
+          {% if modo == 'editar' %}Actualizar{% else %}Guardar{% endif %} Configuración
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Iconos -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+
+<script>
+document.querySelector("form").addEventListener("submit", function(e) {
+  let porcentaje = parseFloat(document.getElementById("id_porcentaje").value);
+  if (porcentaje < 0 || porcentaje > 100) {
+    alert("El porcentaje debe estar entre 0 y 100");
+    e.preventDefault();
+  }
+});
+</script>
+{% endblock %}

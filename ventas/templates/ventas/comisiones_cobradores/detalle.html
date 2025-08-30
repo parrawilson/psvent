@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load filtros_paraguay %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Encabezado -->
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">Detalle de Comisión a Cobrador</h1>
+        <a href="{% url 'ventas:lista_comisiones_cobradores' %}" 
+           class="inline-flex items-center bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 text-sm">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2"
+                 viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+            </svg>
+            Volver al listado
+        </a>
+    </div>
+
+    <!-- Tarjeta de información principal -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div>
+                <h2 class="text-lg font-semibold text-gray-700 mb-2">Información de la Comisión</h2>
+                <div class="space-y-2">
+                    <p><span class="font-medium">ID:</span> {{ comision.id }}</p>
+                    <p><span class="font-medium">Estado:</span> 
+                        <span class="px-2 py-1 text-xs rounded-full font-semibold
+                            {% if comision.estado == 'PAGADA' %}
+                                bg-green-100 text-green-800
+                            {% elif comision.estado == 'PENDIENTE' %}
+                                bg-yellow-100 text-yellow-800
+                            {% else %}
+                                bg-gray-200 text-gray-700
+                            {% endif %}">
+                            {{ comision.get_estado_display }}
+                        </span>
+                    </p>
+                    <p><span class="font-medium">Monto:</span> Gs. {{ comision.monto|pyg_intcomma }}</p>
+                    <p><span class="font-medium">Fecha creación:</span> {{ comision.creado|date:"d/m/Y H:i" }}</p>
+                    {% if comision.fecha_pago %}
+                    <p><span class="font-medium">Fecha pago:</span> {{ comision.fecha_pago|date:"d/m/Y" }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div>
+                <h2 class="text-lg font-semibold text-gray-700 mb-2">Información del Cobrador</h2>
+                <div class="space-y-2">
+                    <p><span class="font-medium">Cobrador:</span> {{ comision.cobrador }}</p>
+                    <p><span class="font-medium">Configuración:</span> {{ comision.configuracion }}</p>
+                    <p><span class="font-medium">Porcentaje:</span> {{ comision.configuracion.porcentaje }}%</p>
+                </div>
+            </div>
+            
+            <div>
+                <h2 class="text-lg font-semibold text-gray-700 mb-2">Pago Asociado</h2>
+                <div class="space-y-2">
+                    <p><span class="font-medium">Pago ID:</span> {{ comision.pago.id }}</p>
+                    <p><span class="font-medium">Monto pagado:</span> Gs. {{ comision.pago.monto|pyg_intcomma }}</p>
+                    <p><span class="font-medium">Fecha pago:</span> {{ comision.pago.fecha_pago|date:"d/m/Y" }}</p>
+                    <p><span class="font-medium">Venta:</span> {{ comision.pago.cuenta.venta.numero }}</p>
+                    <p><span class="font-medium">Cliente:</span> {{ comision.pago.cuenta.venta.cliente }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Notas -->
+        {% if comision.notas %}
+        <div class="mt-4">
+            <h3 class="text-md font-semibold text-gray-700 mb-2">Notas</h3>
+            <div class="bg-gray-50 p-3 rounded-md">
+                {{ comision.notas|linebreaks }}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Movimientos de caja relacionados -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6">
+        <h2 class="text-lg font-semibold text-gray-700 p-4 border-b">Movimientos de Caja Relacionados</h2>
+        
+        {% if movimientos %}
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Monto</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Comprobante</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descripción</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for movimiento in movimientos %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap">{{ movimiento.fecha|date:"d/m/Y H:i" }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 py-1 text-xs rounded-full font-semibold
+                                {% if movimiento.tipo == 'INGRESO' %}
+                                    bg-green-100 text-green-800
+                                {% else %}
+                                    bg-red-100 text-red-800
+                                {% endif %}">
+                                {{ movimiento.get_tipo_display }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">Gs. {{ movimiento.monto|pyg_intcomma }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ movimiento.comprobante }}</td>
+                        <td class="px-6 py-4">{{ movimiento.descripcion }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="p-4 text-center text-gray-500">
+            No se encontraron movimientos de caja relacionados
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="flex justify-end space-x-3">
+        {% if comision.estado == 'PENDIENTE' %}
+        <a href="{% url 'ventas:pagar_comision_cobrador' comision.id %}" 
+           class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2"
+                 viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
+            </svg>
+            Pagar Comisión
+        </a>
+        {% elif comision.estado == 'PAGADA' %}
+        <button onclick="mostrarModalRevertir()"
+           class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2"
+                 viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+            </svg>
+            Revertir Pago
+        </button>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal para reversión -->
+<div id="modalRevertir" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-6 w-full max-w-md">
+        <h3 class="text-lg font-bold mb-4">Revertir Pago de Comisión</h3>
+        <p class="mb-4">¿Estás seguro que deseas revertir este pago? Se registrará un ingreso en caja por el monto correspondiente.</p>
+        
+        <form method="post" action="{% url 'ventas:revertir_pago_comision_cobrador' comision.id %}">
+            {% csrf_token %}
+            <div class="mb-4">
+                <label for="motivo" class="block text-sm font-medium text-gray-700 mb-1">Motivo*</label>
+                <textarea name="motivo" id="motivo" rows="3" class="w-full px-3 py-2 border rounded-lg" 
+                          placeholder="Ingrese el motivo de la reversión" required></textarea>
+            </div>
+            
+            <div class="flex justify-end space-x-3">
+                <button type="button" onclick="cerrarModalRevertir()"
+                        class="px-4 py-2 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg">
+                    Cancelar
+                </button>
+                <button type="submit"
+                        class="px-4 py-2 text-white bg-red-600 hover:bg-red-700 rounded-lg">
+                    Confirmar Reversión
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function mostrarModalRevertir() {
+    document.getElementById('modalRevertir').classList.remove('hidden');
+    document.getElementById('motivo').focus();
+}
+
+function cerrarModalRevertir() {
+    document.getElementById('modalRevertir').classList.add('hidden');
+    document.getElementById('motivo').value = '';
+}
+
+// Cerrar modal al hacer clic fuera del contenido
+document.getElementById('modalRevertir').addEventListener('click', function(e) {
+    if (e.target === this) {
+        cerrarModalRevertir();
+    }
+});
+</script>
+
+{% endblock %}

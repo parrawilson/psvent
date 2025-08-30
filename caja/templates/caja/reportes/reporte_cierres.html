@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load filtros_paraguay %}
 
 {% block content %}
 <div class="max-w-7xl mx-auto py-10 px-4">
@@ -12,16 +13,16 @@
       <div class="grid grid-cols-3 gap-4 text-sm">
         <div class="text-center">
           <p class="font-medium">Total Ingresos</p>
-          <p class="text-green-600 font-bold">${{ total_ingresos|floatformat:2 }}</p>
+          <p class="text-green-600 font-bold">Gs. {{ total_ingresos|pyg_intcomma }}</p>
         </div>
         <div class="text-center">
           <p class="font-medium">Total Egresos</p>
-          <p class="text-red-600 font-bold">${{ total_egresos|floatformat:2 }}</p>
+          <p class="text-red-600 font-bold">Gs. {{ total_egresos|pyg_intcomma }}</p>
         </div>
         <div class="text-center">
           <p class="font-medium">Diferencia Total</p>
           <p class="{% if total_diferencia >= 0 %}text-green-600{% else %}text-red-600{% endif %} font-bold">
-            ${{ total_diferencia|floatformat:2 }}
+            Gs. {{ total_diferencia|pyg_intcomma }}
           </p>
         </div>
       </div>
@@ -98,10 +99,10 @@
             <span class="text-gray-500">a</span><br>
             {{ sesion.fecha_cierre|date:"d/m/Y H:i" }}
           </td>
-          <td class="px-6 py-3 text-right">${{ sesion.saldo_inicial|floatformat:2 }}</td>
-          <td class="px-6 py-3 text-right">${{ sesion.saldo_final|floatformat:2 }}</td>
+          <td class="px-6 py-3 text-right">Gs. {{ sesion.saldo_inicial|pyg_intcomma }}</td>
+          <td class="px-6 py-3 text-right">Gs. {{ sesion.saldo_final|pyg_intcomma }}</td>
           <td class="px-6 py-3 text-right {% if sesion.diferencia >= 0 %}text-green-600{% else %}text-red-600{% endif %}">
-            ${{ sesion.diferencia|floatformat:2|default:"0.00" }}
+            Gs. {{ sesion.diferencia|pyg_intcomma|default:"0.00" }}
           </td>
           <td class="px-6 py-3 text-center">
             <a href="{% url 'caja:reporte_sesion_pdf' sesion.id %}"

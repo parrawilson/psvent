@@ -1,0 +1,233 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load form_filters %}
+{% load filtros_paraguay %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">{{ titulo }}</h1>
+        <a href="{% url 'ventas:configurar_comisiones' %}" 
+           class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2"
+                 viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path>
+            </svg>
+            Configurar Comisiones
+        </a>
+    </div>
+
+    <!-- Filtros -->
+    <form method="get" class="bg-white p-4 rounded-lg shadow-md mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+                <select name="estado" class="w-full px-3 py-2 border rounded-lg">
+                    <option value="">Todos los estados</option>
+                    <option value="PENDIENTE" {% if request.GET.estado == 'PENDIENTE' %}selected{% endif %}>Pendientes</option>
+                    <option value="PAGADA" {% if request.GET.estado == 'PAGADA' %}selected{% endif %}>Pagadas</option>
+                    <option value="CANCELADA" {% if request.GET.estado == 'CANCELADA' %}selected{% endif %}>Canceladas</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Vendedor</label>
+                <select name="vendedor" class="w-full px-3 py-2 border rounded-lg">
+                    <option value="">Todos los vendedores</option>
+                    {% for v in vendedores %}
+                    <option value="{{ v.id }}" {% if request.GET.vendedor == v.id|stringformat:"s" %}selected{% endif %}>
+                        {{ v }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Desde</label>
+                <input type="date" name="fecha_desde" value="{{ request.GET.fecha_desde }}" class="w-full px-3 py-2 border rounded-lg">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Hasta</label>
+                <input type="date" name="fecha_hasta" value="{{ request.GET.fecha_hasta }}" class="w-full px-3 py-2 border rounded-lg">
+            </div>
+            <div class="flex items-end">
+                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                    Filtrar
+                </button>
+            </div>
+        </div>
+    </form>
+
+    <!-- Totales -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div class="bg-blue-100 p-4 rounded-lg shadow flex items-center">
+            <svg class="w-8 h-8 text-blue-600 mr-4" fill="none" stroke="currentColor" stroke-width="2"
+                 viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <div>
+                <p class="text-sm text-gray-700">Total Pendiente</p>
+                <p class="text-lg font-bold text-blue-800">Gs. {{ total_pendiente|pyg_intcomma }}</p>
+            </div>
+        </div>
+        <div class="bg-green-100 p-4 rounded-lg shadow flex items-center">
+            <svg class="w-8 h-8 text-green-600 mr-4" fill="none" stroke="currentColor" stroke-width="2"
+                 viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M5 13l4 4L19 7"/>
+            </svg>
+            <div>
+                <p class="text-sm text-gray-700">Total Pagado</p>
+                <p class="text-lg font-bold text-green-800">Gs. {{ total_pagado|pyg_intcomma }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla -->
+    <div class="bg-white rounded-lg shadow-md overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Venta</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vendedor</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Monto</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha Pago</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for comision in comisiones %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <a href="{% url 'ventas:detalle_venta' comision.venta.id %}" 
+                           class="text-blue-600 hover:underline">
+                            {{ comision.venta.numero }}
+                        </a>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ comision.vendedor }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ comision.get_tipo_display }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">Gs. {{ comision.monto|pyg_intcomma }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 py-1 text-xs rounded-full font-semibold
+                            {% if comision.estado == 'PAGADA' %}
+                                bg-green-100 text-green-800
+                            {% elif comision.estado == 'PENDIENTE' %}
+                                bg-yellow-100 text-yellow-800
+                            {% else %}
+                                bg-red-100 text-red-800
+                            {% endif %}">
+                            {{ comision.get_estado_display }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        {% if comision.fecha_pago %}
+                            {{ comision.fecha_pago|date:"d/m/Y" }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap flex space-x-2">
+                        {% if comision.estado == 'PENDIENTE' %}
+                        <a href="{% url 'ventas:pagar_comision' comision.id %}" 
+                           class="inline-flex items-center px-3 py-1 text-sm text-white bg-green-600 hover:bg-green-700 rounded-md">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2"
+                                 viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                      d="M17 9V7a4 4 0 00-8 0v2H5v12h14V9h-2zm-6 0V7a2 2 0 114 0v2h-4z"/>
+                            </svg>
+                            Pagar
+                        </a>
+                        {% elif comision.estado == 'PAGADA' %}
+                        <button onclick="mostrarModalRevertir('{{ comision.id }}')"
+                           class="inline-flex items-center px-3 py-1 text-sm text-white bg-red-600 hover:bg-red-700 rounded-md">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2"
+                                 viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                            </svg>
+                            Revertir
+                        </button>
+                        {% endif %}
+                        <a href="{% url 'ventas:detalle_comision_vendedor' comision.id %}" 
+                           class="inline-flex items-center px-3 py-1 text-sm text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2"
+                                 viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                            </svg>
+                            Detalle
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="px-6 py-4 text-center text-gray-500">
+                        No hay comisiones registradas
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal para reversión -->
+<div id="modalRevertir" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-6 w-full max-w-md">
+        <h3 class="text-lg font-bold mb-4">Revertir Pago de Comisión</h3>
+        <p class="mb-4">¿Estás seguro que deseas revertir este pago? Se registrará un ingreso en caja por el monto correspondiente.</p>
+        
+        <form id="formRevertir" method="post" action="">
+            {% csrf_token %}
+            <input type="hidden" name="comision_id" id="comision_id">
+            <div class="mb-4">
+                <label for="motivo" class="block text-sm font-medium text-gray-700 mb-1">Motivo*</label>
+                <textarea name="motivo" id="motivo" rows="3" class="w-full px-3 py-2 border rounded-lg" 
+                          placeholder="Ingrese el motivo de la reversión" required></textarea>
+            </div>
+            
+            <div class="flex justify-end space-x-3">
+                <button type="button" onclick="cerrarModalRevertir()"
+                        class="px-4 py-2 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg">
+                    Cancelar
+                </button>
+                <button type="submit"
+                        class="px-4 py-2 text-white bg-red-600 hover:bg-red-700 rounded-lg">
+                    Confirmar Reversión
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<script>
+function mostrarModalRevertir(comisionId) {
+    const form = document.getElementById('formRevertir');
+    form.action = `/ventas/comisiones/${comisionId}/revertir/`;
+    document.getElementById('comision_id').value = comisionId;
+    document.getElementById('modalRevertir').classList.remove('hidden');
+    document.getElementById('motivo').focus();
+}
+
+function cerrarModalRevertir() {
+    document.getElementById('modalRevertir').classList.add('hidden');
+    document.getElementById('motivo').value = '';
+}
+
+// Cerrar modal al hacer clic fuera del contenido
+document.getElementById('modalRevertir').addEventListener('click', function(e) {
+    if (e.target === this) {
+        cerrarModalRevertir();
+    }
+});
+</script>
+{% endblock %}
+
+
+
+

@@ -313,7 +313,7 @@
         </span>
         <i class="fas fa-chevron-right text-xs text-gray-500 chevron transform transition-transform duration-200 sidebar-text"></i>
       </button>
-      <span class="tooltip absolute left-full ml-2 bg-gray-800 text-white text-sm px-2 py-1 rounded">Almacén</span>
+      <span class="tooltip absolute left-full ml-2 bg-gray-800 text-white text-sm px-2 py-1 rounded">Ventas</span>
       
       <!-- Submenú -->
       <div class="submenu pl-2 space-y-1 {% if 'ventas/' in request.path %}max-h-screen{% else %}max-h-0{% endif %}">
@@ -329,15 +329,19 @@
           <i class="fa-solid fa-list-check"></i>
           <span>Lista de ventas</span>
         </a>
-        <a href="{% url 'ventas:lista_cuentas_por_cobrar' %}" class="submenu-item {% if request.resolver_match.url_name == 'lista_cuentas_por_cobrar' %}menu-item-active{% endif %}">
+        <a href="{% url 'ventas:menu_ctas_cobrar' %}" class="submenu-item {% if request.resolver_match.url_name == 'menu_ctas_cobrar' %}menu-item-active{% endif %}">
           <i class="fa-solid fa-credit-card"></i>
           <span>Cta. por Cobrar</span>
         </a>
-        <a href="{% url 'ventas:lista_pagos' %}" class="submenu-item block {% if request.resolver_match.url_name == 'lista_pagos' %}menu-item-active{% endif %}">
-          <i class="fa-solid fa-list-check"></i>
-          <span>Lista de pagos</span>
+      
+        <a href="{% url 'ventas:menu_comisiones' %}" class="submenu-item block {% if request.resolver_match.url_name == 'menu_comisiones' %}menu-item-active{% endif %}">
+          <i class="fa-solid fa-percent"></i>
+          <span>Comisiones</span>
         </a>
-        
+        <a href="{% url 'ventas:lista_notas_credito' %}" class="submenu-item block {% if request.resolver_match.url_name == 'lista_notas_credito' %}menu-item-active{% endif %}">
+          <i class="fa-solid fa-arrow-right-arrow-left"></i>
+          <span>N. de Crédito</span>
+        </a>
       </div>
     </div>
 

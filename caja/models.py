@@ -159,6 +159,13 @@ class MovimientoCaja(models.Model):
     responsable = models.ForeignKey(PerfilUsuario, on_delete=models.PROTECT, related_name='movimientos_registrados')
     descripcion = models.TextField()
     venta = models.ForeignKey('ventas.Venta', on_delete=models.SET_NULL, null=True, blank=True)
+    nota_credito = models.ForeignKey(
+        'ventas.NotaCredito', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True,
+        related_name='movimientos_caja'
+    )
     compra = models.ForeignKey('compras.OrdenCompra', on_delete=models.SET_NULL, null=True, blank=True)
     comprobante = models.CharField(max_length=50, blank=True, unique=True)
     imagen_comprobante = models.ImageField(upload_to='comprobantes/caja/', null=True, blank=True)

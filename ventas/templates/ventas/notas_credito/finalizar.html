@@ -1,0 +1,269 @@
+{% extends 'base.html' %}
+{% load filtros_paraguay %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto bg-white shadow-md rounded-xl p-6">
+  <div class="mb-6 border-b pb-4">
+    <h2 class="text-2xl font-bold text-gray-800">Finalizar Nota de Crédito: {{ nota_credito.numero }}</h2>
+    <p class="text-sm text-gray-600">Revise los datos antes de confirmar</p>
+  </div>
+
+  <!-- Mostrar mensajes de error -->
+  {% if messages %}
+  <div class="mb-6">
+    {% for message in messages %}
+    <div class="p-4 mb-4 text-sm text-red-800 bg-red-50 rounded-lg {% if message.tags %}{{ message.tags }}{% endif %}">
+      <div class="flex items-center">
+        <i class="fas fa-exclamation-circle mr-2"></i>
+        <span>{{ message }}</span>
+      </div>
+      {% if message.extra_tags == 'decimal_error' %}
+      <div class="mt-2 text-xs">
+        <p>Error de formato decimal. Los valores deben tener:</p>
+        <ul class="list-disc pl-5 mt-1">
+          <li>Cantidad: máximo 3 decimales</li>
+          <li>Precios: máximo 2 decimales</li>
+        </ul>
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+    <div>
+      <h4 class="text-lg font-semibold text-gray-700 mb-2">Datos Generales</h4>
+      <div class="space-y-2">
+        <p><strong>Venta asociada:</strong> {{ nota_credito.venta.numero }}</p>
+        <p><strong>Cliente:</strong> {{ nota_credito.venta.cliente|default:"Consumidor Final" }}</p>
+        <p><strong>Tipo:</strong> {{ nota_credito.get_tipo_display }}</p>
+        <p><strong>Motivo:</strong> {{ nota_credito.motivo }}</p>
+      </div>
+    </div>
+    
+    <div>
+      <h4 class="text-lg font-semibold text-gray-700 mb-2">Totales</h4>
+      <div class="space-y-2">
+        <p><strong>Total:</strong> Gs. {{ nota_credito.total|pyg_intcomma }}</p>
+        <p><strong>Documento:</strong> {{ nota_credito.formato_numero_documento|default:"No generado" }}</p>
+        <p><strong>Caja:</strong> {{ nota_credito.caja.nombre|default:"No asignada" }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detalles -->
+  <div class="mb-6">
+    <h4 class="text-lg font-semibold text-gray-700 mb-2">Detalles</h4>
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipo</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Descripción</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cantidad</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Precio Unit.</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Subtotal</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          {% for detalle in nota_credito.detalles.all %}
+          <tr>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                {% if detalle.detalle_venta.tipo == 'PRODUCTO' %}bg-blue-100 text-blue-800
+                {% else %}bg-purple-100 text-purple-800{% endif %}">
+                {{ detalle.detalle_venta.get_tipo_display }}
+              </span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              {% if detalle.detalle_venta.tipo == 'PRODUCTO' %}
+                {{ detalle.detalle_venta.producto.nombre }}
+              {% else %}
+                {{ detalle.detalle_venta.servicio.nombre }}
+              {% endif %}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">{{ detalle.cantidad|floatformat:3 }}</td>
+            <td class="px-6 py-4 whitespace-nowrap">Gs. {{ detalle.precio_unitario|floatformat:2|pyg_intcomma }}</td>
+            <td class="px-6 py-4 whitespace-nowrap">Gs. {{ detalle.subtotal|floatformat:2|pyg_intcomma }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" class="px-6 py-4 text-center text-gray-500">
+              No hay detalles registrados
+            </td>
+          </tr>
+          {% endfor %}
+          {% if nota_credito.detalles.all %}
+          <tr class="bg-gray-50 font-semibold">
+            <td colspan="4" class="px-6 py-4 text-right">Total:</td>
+            <td class="px-6 py-4 whitespace-nowrap">Gs. {{ nota_credito.total|floatformat:2|pyg_intcomma }}</td>
+          </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Información de comisiones -->
+  {% if nota_credito.venta.comisiones.exists %}
+  <div class="mb-6 bg-blue-50 p-4 rounded-lg border border-blue-200">
+    <h4 class="text-lg font-semibold text-blue-800 mb-2">Comisiones que serán afectadas</h4>
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-blue-200">
+        <thead class="bg-blue-100">
+          <tr>
+            <th class="px-4 py-2 text-left text-xs font-medium text-blue-800 uppercase">Vendedor</th>
+            <th class="px-4 py-2 text-left text-xs font-medium text-blue-800 uppercase">Tipo</th>
+            <th class="px-4 py-2 text-left text-xs font-medium text-blue-800 uppercase">Monto Original</th>
+            <th class="px-4 py-2 text-left text-xs font-medium text-blue-800 uppercase">Estado</th>
+            <th class="px-4 py-2 text-left text-xs font-medium text-blue-800 uppercase">Monto a Revertir</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-blue-200">
+          {% for comision in nota_credito.venta.comisiones.all %}
+          <tr>
+            <td class="px-4 py-2">{{ comision.vendedor.usuario.get_full_name }}</td>
+            <td class="px-4 py-2">{{ comision.get_tipo_display }}</td>
+            <td class="px-4 py-2">Gs. {{ comision.monto|floatformat:2|pyg_intcomma }}</td>
+            <td class="px-4 py-2">
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                {% if comision.estado == 'PAGADA' %}bg-green-100 text-green-800
+                {% elif comision.estado == 'PENDIENTE' %}bg-yellow-100 text-yellow-800
+                {% elif comision.estado == 'PARCIAL' %}bg-blue-100 text-blue-800
+                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                {{ comision.get_estado_display }}
+              </span>
+            </td>
+            <td class="px-4 py-2">
+              {% if nota_credito.tipo == 'TOTAL' %}
+                Gs. {{ comision.monto|floatformat:2|pyg_intcomma }}
+              {% else %}
+                Gs. {{ comision.monto|floatformat:2|multiply:nota_credito.porcentaje_devolucion|pyg_intcomma }}
+                <span class="text-xs text-gray-500">({{ nota_credito.porcentaje_devolucion|percentage }})</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Confirmación -->
+  <form method="post" class="space-y-4">
+    {% csrf_token %}
+    
+    <div class="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+      <div class="flex items-center">
+        <div class="flex-shrink-0">
+          <i class="fas fa-exclamation-triangle text-yellow-400 text-xl"></i>
+        </div>
+        <div class="ml-3">
+          <h3 class="text-sm font-medium text-yellow-800">Confirmación requerida</h3>
+          <div class="mt-2 text-sm text-yellow-700">
+            <p>Al confirmar, se registrarán los siguientes cambios:</p>
+            <ul class="list-disc pl-5 mt-1 space-y-1">
+              <li>Registro del movimiento en caja por Gs. {{ nota_credito.total|floatformat:2|pyg_intcomma }}</li>
+              <li>Devolución de productos al inventario</li>
+              {% if nota_credito.venta.comisiones.exists %}
+                <li>Reversión de comisiones asociadas a la venta</li>
+                {% if nota_credito.tipo == 'PARCIAL' %}
+                <li>Ajuste proporcional de comisiones ({{ nota_credito.porcentaje_devolucion|percentage }})</li>
+                {% endif %}
+              {% endif %}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex justify-end space-x-4 pt-4 border-t">
+      <button type="submit"
+              class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-lg inline-flex items-center gap-2 transition-colors duration-200">
+        <i class="fas fa-check-circle"></i> Confirmar Nota de Crédito
+      </button>
+
+      <a href="{% url 'ventas:detalle_nota_credito' nota_credito.id %}"
+         class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-lg inline-flex items-center gap-2 transition-colors duration-200">
+        <i class="fas fa-times-circle"></i> Cancelar
+      </a>
+    </div>
+  </form>
+</div>
+
+<!-- JavaScript para validación adicional -->
+<script>
+function formatDecimal(input, decimals) {
+    let value = input.value;
+    if (value.includes('.')) {
+        let parts = value.split('.');
+        if (parts[1].length > decimals) {
+            parts[1] = parts[1].substring(0, decimals);
+            input.value = parts.join('.');
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Validar decimales en tiempo real
+    const cantidadInputs = document.querySelectorAll('input[name*="cantidad"]');
+    const precioInputs = document.querySelectorAll('input[name*="precio_unitario"]');
+    
+    cantidadInputs.forEach(input => {
+        input.addEventListener('input', function() {
+            formatDecimal(this, 3);
+        });
+    });
+    
+    precioInputs.forEach(input => {
+        input.addEventListener('input', function() {
+            formatDecimal(this, 2);
+        });
+    });
+    
+    // Validación antes de enviar
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(e) {
+        let hasError = false;
+        
+        // Validar cantidades (máximo 3 decimales)
+        cantidadInputs.forEach(input => {
+            if (input.value) {
+                const decimalPart = input.value.split('.')[1];
+                if (decimalPart && decimalPart.length > 3) {
+                    input.style.borderColor = 'red';
+                    hasError = true;
+                }
+            }
+        });
+        
+        // Validar precios (máximo 2 decimales)
+        precioInputs.forEach(input => {
+            if (input.value) {
+                const decimalPart = input.value.split('.')[1];
+                if (decimalPart && decimalPart.length > 2) {
+                    input.style.borderColor = 'red';
+                    hasError = true;
+                }
+            }
+        });
+        
+        if (hasError) {
+            e.preventDefault();
+            alert('Por favor, corrija los valores decimales. Cantidad: máximo 3 decimales, Precio: máximo 2 decimales.');
+        }
+    });
+});
+</script>
+
+<style>
+input[type="number"]:invalid {
+  border-color: #dc2626;
+}
+input[type="number"]:focus:invalid {
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+</style>
+{% endblock %}
